@@ -4,4 +4,6 @@
 The project intends to create a version of Microsoft paint based on Java.
 
 
-***Always Painting-P***
+
+
+# ***Always Painting-P***
