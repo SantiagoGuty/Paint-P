@@ -1,0 +1,33 @@
+
+Release Notes
+
+-Version 1.1.0 (August 30, 2024)
+    New features
+        -JPG BMP and PNG support (open, save, save as)
+        -Draw a line (which would become part of the saved image / save an image with those edits)
+        -Manages an image larger than the window and the screen (up to you how to do this)
+        -Allows you to control the width of the line drawn
+        -Have a color chooser (it is NOT required to impact the line, yet)
+        -Have a help menu item with help and about options; about should be a separate window.
+    Known Issues
+        -
+    Expected Next Version
+        -
+
+
+-Version 1.0.0 (August 30, 2024)
+    New features
+        -Open an image file and display it
+        -Allow the user to save the file
+        -Allow the user to "save as" on types ( PNG, JPEG, GIF )
+        -Menu bar in top of the window
+        -Application Custom Icon
+        -Canvas clean option on the menu
+    Known Issues
+        -Need more control of the display of the canvas
+        -When upload two files they lap each other
+    Expected Next Version
+        -Control the size of the canvas and make it possible for the user to change it manually
+        -Show in 'About' the Release Notes on the app
+
+

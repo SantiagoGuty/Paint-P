@@ -10,6 +10,8 @@ module com.example.paintp {
     requires org.kordamp.bootstrapfx.core;
     requires eu.hansolo.tilesfx;
     requires com.almasb.fxgl.all;
+    requires java.desktop;
+    requires javafx.swing;
 
     opens com.example.paintp to javafx.fxml;
     exports com.example.paintp;
