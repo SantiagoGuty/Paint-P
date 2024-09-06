@@ -4,14 +4,11 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="d2182c53-f702-4aa5-b38f-eb010e10bf54" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/src/main/resources/com/example/paintp/about.fxml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
+    <list default="true" id="d2182c53-f702-4aa5-b38f-eb010e10bf54" name="Changes" comment="Release notes about button implemented">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/paint-p_ReleaseNotes.txt" beforeDir="false" afterPath="$PROJECT_DIR$/paint-p_ReleaseNotes.txt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/com/example/paintp/HelloApplication.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/example/paintp/HelloApplication.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/com/example/paintp/HelloController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/example/paintp/HelloController.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/module-info.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/module-info.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/resources/com/example/paintp/hello-view.fxml" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/com/example/paintp/hello-view.fxml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -60,6 +57,7 @@
   <component name="PropertiesComponent"><![CDATA[{
   "keyToString": {
     "Application.HelloApplication.executor": "Run",
+    "Maven.Paint-P [clean].executor": "Run",
     "RunOnceActivity.ShowReadmeOnStart": "true",
     "SHARE_PROJECT_CONFIGURATION_FILES": "true",
     "git-widget-placeholder": "master",
@@ -101,6 +99,15 @@
       <option name="presentableId" value="Default" />
       <updated>1725028215573</updated>
     </task>
+    <task id="LOCAL-00001" summary="Release notes about button implemented">
+      <option name="closed" value="true" />
+      <created>1725479094591</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1725479094591</updated>
+    </task>
+    <option name="localTasksCounter" value="2" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -113,5 +120,10 @@
         </entry>
       </map>
     </option>
+  </component>
+  <component name="VcsManagerConfiguration">
+    <MESSAGE value="Update README.md" />
+    <MESSAGE value="Release notes about button implemented" />
+    <option name="LAST_COMMIT_MESSAGE" value="Release notes about button implemented" />
   </component>
 </project>

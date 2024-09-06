@@ -1,18 +1,22 @@
 
 Release Notes
 
--Version 1.1.0 (August 30, 2024)
+-Version 1.1.0 (September 6, 2024)
     New features
-        -JPG BMP and PNG support (open, save, save as)
-        -Draw a line (which would become part of the saved image / save an image with those edits)
-        -Manages an image larger than the window and the screen (up to you how to do this)
+        -JPG BMP PNG and GIF support (open, save, save as)
+        -Draw a line in multiple colors, becomes part of the image
+        -Manages an image larger than the window and the screen, with the size management of the canvas
         -Allows you to control the width of the line drawn
-        -Have a color chooser (it is NOT required to impact the line, yet)
-        -Have a help menu item with help and about options; about should be a separate window.
+        -Has a color chooser, it impacts the line
+        -Has a help menu item with help and about options
+        -Canva resizing system
     Known Issues
-        -
+        -There is a functionality that uses JavaFX 22 and the app is using 17, It needs to be updated
+        -When resized the canvas, the background is not initialized to white
     Expected Next Version
-        -
+        -Add undo and redo functionalities
+        -Show on the bottom of the app the x and y values of the cursor
+        -When resize
 
 
 -Version 1.0.0 (August 30, 2024)
