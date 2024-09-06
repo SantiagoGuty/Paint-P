@@ -4,13 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="d2182c53-f702-4aa5-b38f-eb010e10bf54" name="Changes" comment="Release notes about button implemented">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/paint-p_ReleaseNotes.txt" beforeDir="false" afterPath="$PROJECT_DIR$/paint-p_ReleaseNotes.txt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/example/paintp/HelloApplication.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/example/paintp/HelloApplication.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/example/paintp/HelloController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/example/paintp/HelloController.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/resources/com/example/paintp/hello-view.fxml" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/com/example/paintp/hello-view.fxml" afterDir="false" />
-    </list>
+    <list default="true" id="d2182c53-f702-4aa5-b38f-eb010e10bf54" name="Changes" comment="Sprint 2 Done &#10;        -JPG BMP PNG and GIF support (open, save, save as)&#10;        -Draw a line in multiple colors, becomes part of the image&#10;        -Manages an image larger than the window and the screen, with the size management of the canvas&#10;        -Allows you to control the width of the line drawn&#10;        -Has a color chooser, it impacts the line&#10;        -Has a help menu item with help and about options&#10;        -Canva resizing system" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -107,7 +101,15 @@
       <option name="project" value="LOCAL" />
       <updated>1725479094591</updated>
     </task>
-    <option name="localTasksCounter" value="2" />
+    <task id="LOCAL-00002" summary="Sprint 2 Done &#10;        -JPG BMP PNG and GIF support (open, save, save as)&#10;        -Draw a line in multiple colors, becomes part of the image&#10;        -Manages an image larger than the window and the screen, with the size management of the canvas&#10;        -Allows you to control the width of the line drawn&#10;        -Has a color chooser, it impacts the line&#10;        -Has a help menu item with help and about options&#10;        -Canva resizing system">
+      <option name="closed" value="true" />
+      <created>1725651490088</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1725651490088</updated>
+    </task>
+    <option name="localTasksCounter" value="3" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -124,6 +126,7 @@
   <component name="VcsManagerConfiguration">
     <MESSAGE value="Update README.md" />
     <MESSAGE value="Release notes about button implemented" />
-    <option name="LAST_COMMIT_MESSAGE" value="Release notes about button implemented" />
+    <MESSAGE value="Sprint 2 Done &#10;        -JPG BMP PNG and GIF support (open, save, save as)&#10;        -Draw a line in multiple colors, becomes part of the image&#10;        -Manages an image larger than the window and the screen, with the size management of the canvas&#10;        -Allows you to control the width of the line drawn&#10;        -Has a color chooser, it impacts the line&#10;        -Has a help menu item with help and about options&#10;        -Canva resizing system" />
+    <option name="LAST_COMMIT_MESSAGE" value="Sprint 2 Done &#10;        -JPG BMP PNG and GIF support (open, save, save as)&#10;        -Draw a line in multiple colors, becomes part of the image&#10;        -Manages an image larger than the window and the screen, with the size management of the canvas&#10;        -Allows you to control the width of the line drawn&#10;        -Has a color chooser, it impacts the line&#10;        -Has a help menu item with help and about options&#10;        -Canva resizing system" />
   </component>
 </project>
