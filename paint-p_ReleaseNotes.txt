@@ -3,6 +3,29 @@
 Release Notes Paint-P
 By Santiago Gutiérrez Morales
 
+-Version 1.2.0 (September 16, 2024)
+    New features
+        -have width controls  (width controls as in control width of a regular line or the line-edges of shapes)
+        -draw square, circle, rectangle, ellipse, triangle
+        -keyboard shortcuts (control S for save, control E for exit, control C to clear canvas)
+        -inform the user as to pixel size of width
+        -text label for colors (hex/rgb/English name)
+        -color grabber (has to modify shapes)
+        -pencil straight line
+        -dashed outline of every shape
+        -smart/aware save ("Are you sure you want to exit?")
+        -Custom size resize canvas
+        -Eraser
+        -Inform the user of their pixel coordinate, the pixel size, and the canvas size measurements on the bottom left corner of the screen
+       - Custom shape: Star!
+
+    Known Issues
+        -Controller needs to be divided into multiple files
+        -The dragged image is not visible
+    Expected Next Version
+        -tabs
+
+
 
 -Version 1.1.0 (September 6, 2024)
     New features
