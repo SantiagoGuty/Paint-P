@@ -4,7 +4,22 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="d2182c53-f702-4aa5-b38f-eb010e10bf54" name="Changes" comment="Sprint 2 Done &#10;        -JPG BMP PNG and GIF support (open, save, save as)&#10;        -Draw a line in multiple colors, becomes part of the image&#10;        -Manages an image larger than the window and the screen, with the size management of the canvas&#10;        -Allows you to control the width of the line drawn&#10;        -Has a color chooser, it impacts the line&#10;        -Has a help menu item with help and about options&#10;        -Canva resizing system" />
+    <list default="true" id="d2182c53-f702-4aa5-b38f-eb010e10bf54" name="Changes" comment="Sprint 3 update&#10;&#10;-Version 1.2.0 (September 16, 2024)&#10;    New features&#10;        -have width controls  (width controls as in control width of a regular line or the line-edges of shapes)&#10;        -draw square, circle, rectangle, ellipse, triangle&#10;        -keyboard shortcuts (control S for save, control E for exit, control C to clear canvas)&#10;        -inform the user as to pixel size of width&#10;        -text label for colors (hex/rgb/English name)&#10;        -color grabber (has to modify shapes)&#10;        -pencil straight line&#10;        -dashed outline of every shape&#10;        -smart/aware save (&quot;Are you sure you want to exit?&quot;)&#10;        -Custom size resize canvas&#10;        -Eraser&#10;        -Inform the user of their pixel coordinate, the pixel size, and the canvas size measurements on the bottom left corner of the screen&#10;       - Custom shape: Star!">
+      <change afterPath="$PROJECT_DIR$/.idea/uiDesigner.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/com/example/paintp/PaintPApplication.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/resources/images/heart_icon.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/resources/images/line_icon1.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/resources/images/sticker_icon.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/resources/images/text_icon.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/example/paintp/HelloController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/example/paintp/HelloController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/module-info.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/resources/com/example/paintp/hello-view.fxml" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/com/example/paintp/hello-view.fxml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/resources/images/circle_icon.png" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/images/circle_icon.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/resources/images/ellipse_icon.png" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/images/ellipse_icon.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/resources/images/line_icon.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/resources/images/rectangle_icon.png" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/images/rectangle_icon.png" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -14,24 +29,25 @@
     <option name="RECENT_TEMPLATES">
       <list>
         <option value="FxmlFile" />
+        <option value="Class" />
       </list>
     </option>
   </component>
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
-  <component name="GitHubPullRequestSearchHistory"><![CDATA[{
-  "lastFilter": {
-    "state": "OPEN",
-    "assignee": "SantiagoGuty"
+  <component name="GitHubPullRequestSearchHistory">{
+  &quot;lastFilter&quot;: {
+    &quot;state&quot;: &quot;OPEN&quot;,
+    &quot;assignee&quot;: &quot;SantiagoGuty&quot;
   }
-}]]></component>
-  <component name="GithubPullRequestsUISettings"><![CDATA[{
-  "selectedUrlAndAccountId": {
-    "url": "https://github.com/SantiagoGuty/Paint-P.git",
-    "accountId": "6193354e-3606-4c86-902e-6a0805759dc8"
+}</component>
+  <component name="GithubPullRequestsUISettings">{
+  &quot;selectedUrlAndAccountId&quot;: {
+    &quot;url&quot;: &quot;https://github.com/SantiagoGuty/Paint-P.git&quot;,
+    &quot;accountId&quot;: &quot;6193354e-3606-4c86-902e-6a0805759dc8&quot;
   }
-}]]></component>
+}</component>
   <component name="MavenImportPreferences">
     <option name="generalSettings">
       <MavenGeneralSettings>
@@ -39,9 +55,12 @@
       </MavenGeneralSettings>
     </option>
   </component>
-  <component name="ProjectColorInfo"><![CDATA[{
-  "associatedIndex": 5
-}]]></component>
+  <component name="ProblemsViewState">
+    <option name="selectedTabId" value="CurrentFile" />
+  </component>
+  <component name="ProjectColorInfo">{
+  &quot;associatedIndex&quot;: 5
+}</component>
   <component name="ProjectId" id="2lNl3Cu6CtlQwSiAfUT2cclWKSw" />
   <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
   <component name="ProjectViewState">
@@ -50,22 +69,45 @@
   </component>
   <component name="PropertiesComponent"><![CDATA[{
   "keyToString": {
-    "Application.HelloApplication.executor": "Run",
+    "Application.HelloApplication.executor": "Run-with-SE",
+    "Application.PaintPApplication.executor": "Run",
+    "Downloaded.Files.Path.Enabled": "false",
     "Maven.Paint-P [clean].executor": "Run",
+    "Maven.Paint-P [org.apache.maven.plugins:maven-clean-plugin:2.5:clean].executor": "Run",
+    "Maven.Paint-P [org.apache.maven.plugins:maven-clean-plugin:2.5:help].executor": "Run",
+    "Maven.Paint-P [org.apache.maven.plugins:maven-compiler-plugin:3.11.0:compile].executor": "Run",
+    "Maven.Paint-P [org.apache.maven.plugins:maven-install-plugin:2.4:install].executor": "Run",
+    "Maven.Paint-P [org.openjfx:javafx-maven-plugin:0.0.8:jlink].executor": "Run",
+    "Maven.Paint-P [org.openjfx:javafx-maven-plugin:0.0.8:run].executor": "Run",
+    "Repository.Attach.Annotations": "false",
+    "Repository.Attach.JavaDocs": "false",
+    "Repository.Attach.Sources": "false",
     "RunOnceActivity.ShowReadmeOnStart": "true",
     "SHARE_PROJECT_CONFIGURATION_FILES": "true",
     "git-widget-placeholder": "master",
     "kotlin-language-version-configured": "true",
-    "last_opened_file_path": "C:/Users/sangu/OneDrive/Documentos/SCJavaFx/SceneBuilder.exe"
+    "last_opened_file_path": "C:/Users/sangu/OneDrive/Escritorio/CS250/Paint-P/src/main/resources/images",
+    "project.structure.last.edited": "Libraries",
+    "project.structure.proportion": "0.15",
+    "project.structure.side.proportion": "0.42873564",
+    "settings.editor.selected.configurable": "project.propVCSSupport.Mappings"
   }
 }]]></component>
   <component name="RecentsManager">
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="C:\Users\sangu\OneDrive\Escritorio\CS250\Paint-P\src\main\resources\images" />
+    </key>
     <key name="MoveFile.RECENT_KEYS">
       <recent name="C:\Users\sangu\OneDrive\Escritorio\CS250\Paint-P\src\main\resources" />
     </key>
+    <key name="MoveClassesOrPackagesDialog.RECENTS_KEY">
+      <recent name="com.example.paintp" />
+    </key>
   </component>
   <component name="RunManager">
-    <configuration name="HelloApplication" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
+    <configuration name="HelloApplication" type="Application" factoryName="Application" nameIsGenerated="true">
+      <option name="ALTERNATIVE_JRE_PATH" value="11" />
+      <option name="ALTERNATIVE_JRE_PATH_ENABLED" value="true" />
       <option name="MAIN_CLASS_NAME" value="com.example.paintp.HelloApplication" />
       <module name="Paint-P" />
       <extension name="coverage">
@@ -78,11 +120,6 @@
         <option name="Make" enabled="true" />
       </method>
     </configuration>
-    <recent_temporary>
-      <list>
-        <item itemvalue="Application.HelloApplication" />
-      </list>
-    </recent_temporary>
   </component>
   <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
   <component name="TaskManager">
@@ -109,12 +146,66 @@
       <option name="project" value="LOCAL" />
       <updated>1725651490088</updated>
     </task>
-    <option name="localTasksCounter" value="3" />
+    <task id="LOCAL-00003" summary="Sprint 2 Done &#10;        -JPG BMP PNG and GIF support (open, save, save as)&#10;        -Draw a line in multiple colors, becomes part of the image&#10;        -Manages an image larger than the window and the screen, with the size management of the canvas&#10;        -Allows you to control the width of the line drawn&#10;        -Has a color chooser, it impacts the line&#10;        -Has a help menu item with help and about options&#10;        -Canva resizing system">
+      <option name="closed" value="true" />
+      <created>1725652243743</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1725652243743</updated>
+    </task>
+    <task id="LOCAL-00004" summary="Release notes updated">
+      <option name="closed" value="true" />
+      <created>1725652320154</created>
+      <option name="number" value="00004" />
+      <option name="presentableId" value="LOCAL-00004" />
+      <option name="project" value="LOCAL" />
+      <updated>1725652320154</updated>
+    </task>
+    <task id="LOCAL-00005" summary="Sprint 3 update&#10;&#10;-Version 1.2.0 (September 16, 2024)&#10;    New features&#10;        -have width controls  (width controls as in control width of a regular line or the line-edges of shapes)&#10;        -draw square, circle, rectangle, ellipse, triangle&#10;        -keyboard shortcuts (control S for save, control E for exit, control C to clear canvas)&#10;        -inform the user as to pixel size of width&#10;        -text label for colors (hex/rgb/English name)&#10;        -color grabber (has to modify shapes)&#10;        -pencil straight line&#10;        -dashed outline of every shape&#10;        -smart/aware save (&quot;Are you sure you want to exit?&quot;)&#10;        -Custom size resize canvas&#10;        -Eraser&#10;        -Inform the user of their pixel coordinate, the pixel size, and the canvas size measurements on the bottom left corner of the screen&#10;       - Custom shape: Star!">
+      <option name="closed" value="true" />
+      <created>1726588559071</created>
+      <option name="number" value="00005" />
+      <option name="presentableId" value="LOCAL-00005" />
+      <option name="project" value="LOCAL" />
+      <updated>1726588559071</updated>
+    </task>
+    <option name="localTasksCounter" value="6" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
+    <option name="OPEN_GENERIC_TABS">
+      <map>
+        <entry key="9ab7fac1-2b69-4a78-99e9-0e5c9529b5bf" value="TOOL_WINDOW" />
+      </map>
+    </option>
     <option name="TAB_STATES">
       <map>
+        <entry key="9ab7fac1-2b69-4a78-99e9-0e5c9529b5bf">
+          <value>
+            <State>
+              <option name="FILTERS">
+                <map>
+                  <entry key="branch">
+                    <value>
+                      <list>
+                        <option value="HEAD" />
+                      </list>
+                    </value>
+                  </entry>
+                  <entry key="structure">
+                    <value>
+                      <list>
+                        <option value="dir:C:/Users/sangu/OneDrive/Escritorio/CS250/Paint-P/src" />
+                      </list>
+                    </value>
+                  </entry>
+                </map>
+              </option>
+              <option name="SHOW_ONLY_AFFECTED_CHANGES" value="true" />
+            </State>
+          </value>
+        </entry>
         <entry key="MAIN">
           <value>
             <State />
@@ -127,6 +218,13 @@
     <MESSAGE value="Update README.md" />
     <MESSAGE value="Release notes about button implemented" />
     <MESSAGE value="Sprint 2 Done &#10;        -JPG BMP PNG and GIF support (open, save, save as)&#10;        -Draw a line in multiple colors, becomes part of the image&#10;        -Manages an image larger than the window and the screen, with the size management of the canvas&#10;        -Allows you to control the width of the line drawn&#10;        -Has a color chooser, it impacts the line&#10;        -Has a help menu item with help and about options&#10;        -Canva resizing system" />
-    <option name="LAST_COMMIT_MESSAGE" value="Sprint 2 Done &#10;        -JPG BMP PNG and GIF support (open, save, save as)&#10;        -Draw a line in multiple colors, becomes part of the image&#10;        -Manages an image larger than the window and the screen, with the size management of the canvas&#10;        -Allows you to control the width of the line drawn&#10;        -Has a color chooser, it impacts the line&#10;        -Has a help menu item with help and about options&#10;        -Canva resizing system" />
+    <MESSAGE value="Release notes updated" />
+    <MESSAGE value="Sprint 3 update&#10;&#10;-Version 1.2.0 (September 16, 2024)&#10;    New features&#10;        -have width controls  (width controls as in control width of a regular line or the line-edges of shapes)&#10;        -draw square, circle, rectangle, ellipse, triangle&#10;        -keyboard shortcuts (control S for save, control E for exit, control C to clear canvas)&#10;        -inform the user as to pixel size of width&#10;        -text label for colors (hex/rgb/English name)&#10;        -color grabber (has to modify shapes)&#10;        -pencil straight line&#10;        -dashed outline of every shape&#10;        -smart/aware save (&quot;Are you sure you want to exit?&quot;)&#10;        -Custom size resize canvas&#10;        -Eraser&#10;        -Inform the user of their pixel coordinate, the pixel size, and the canvas size measurements on the bottom left corner of the screen&#10;       - Custom shape: Star!" />
+    <option name="LAST_COMMIT_MESSAGE" value="Sprint 3 update&#10;&#10;-Version 1.2.0 (September 16, 2024)&#10;    New features&#10;        -have width controls  (width controls as in control width of a regular line or the line-edges of shapes)&#10;        -draw square, circle, rectangle, ellipse, triangle&#10;        -keyboard shortcuts (control S for save, control E for exit, control C to clear canvas)&#10;        -inform the user as to pixel size of width&#10;        -text label for colors (hex/rgb/English name)&#10;        -color grabber (has to modify shapes)&#10;        -pencil straight line&#10;        -dashed outline of every shape&#10;        -smart/aware save (&quot;Are you sure you want to exit?&quot;)&#10;        -Custom size resize canvas&#10;        -Eraser&#10;        -Inform the user of their pixel coordinate, the pixel size, and the canvas size measurements on the bottom left corner of the screen&#10;       - Custom shape: Star!" />
+  </component>
+  <component name="com.intellij.coverage.CoverageDataManagerImpl">
+    <SUITE FILE_PATH="coverage/Paint_P$HelloApplication.ic" NAME="HelloApplication Coverage Results" MODIFIED="1726582811869" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="idea" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="true">
+      <FILTER>com.example.paintp.*</FILTER>
+    </SUITE>
   </component>
 </project>

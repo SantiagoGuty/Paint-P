@@ -51,6 +51,30 @@
       <MenuItem onAction="#setCustomSizeCanvas" text="Custom Canvas Size"/>
       <MenuItem onAction="#setWindowSizeCanvas" text="Window Size Canvas"/>
     </Menu>
+
+    <Menu text="Advanced settings">
+      <Menu text="Sticker settings">
+          <MenuItem onAction="#setCustomSticker" text="Set custom sticker"/>
+          <MenuItem onAction="#setDefaultSticker" text="Reset to default sticker"/>
+      </Menu>
+      <Menu text="Text settings">
+          <MenuItem onAction="#setCustomText" text="Set text for text tool"/>
+          <MenuItem onAction="#setDefaultText" text="Reset to default text"/>
+           <Menu text="Font">
+                      <MenuItem onAction="#setArialFont" text="Arial"/>
+                      <MenuItem onAction="#setVerdanaFont" text="Verdana"/>
+                      <MenuItem onAction="#setTahomaFont" text="Tahoma"/>
+                      <MenuItem onAction="#setTimesFont" text="Times New Roman"/>
+          </Menu>
+          <Menu text="Style">
+              <CheckMenuItem onAction="#toggleBold" text="Bold"/>
+              <CheckMenuItem onAction="#toggleItalic" text="Italic"/>
+          </Menu>
+      </Menu>
+
+    </Menu>
+
+
   </MenuBar>
 
   <!-- Toolbar and Controls -->
@@ -64,7 +88,10 @@
       <ToggleButton fx:id="ellipseButton" text="Ellipse"/>
       <ToggleButton fx:id="circleButton" text="Circle"/>
       <ToggleButton fx:id="triangleButton" text="Triangle"/>
+      <ToggleButton fx:id="imageButton" text="Sticker"/>
       <ToggleButton fx:id="starButton" text="Star"/>
+      <ToggleButton fx:id="heartButton" text="Heart"/>
+      <ToggleButton fx:id="textButton" text="Text"/>
       <Button text="Undo" onAction="#onUndoClick"/>
       <Button text="Redo" onAction="#onRedoClick"/>
     </HBox>
@@ -73,7 +100,7 @@
 
     <!-- Horizontal Menu for Color and Line Width Controls -->
     <HBox alignment="CENTER" spacing="10">
-      <VBox alignment="CENTER" spacing="10">
+      <VBox alignment="CENTER" spacing="5">
         <Label text="Choose Color:"/>
         <ColorPicker fx:id="colorPicker"/>
       </VBox>
@@ -82,7 +109,7 @@
       </VBox>
       <VBox alignment="CENTER" spacing="10">
         <Label text="Line Width:"/>
-        <Slider fx:id="lineWidthSlider" min="1" max="30" value="1" showTickLabels="true" showTickMarks="true"/>
+        <Slider fx:id="lineWidthSlider" min="1" max="50" value="1" showTickLabels="true" showTickMarks="true" majorTickUnit="10"/>
       </VBox>
       <VBox alignment="CENTER" spacing="10">
         <!-- Use CheckBox for dashed lines -->
