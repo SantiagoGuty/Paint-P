@@ -4,21 +4,10 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="d2182c53-f702-4aa5-b38f-eb010e10bf54" name="Changes" comment="Sprint 3 update&#10;&#10;-Version 1.2.0 (September 16, 2024)&#10;    New features&#10;        -have width controls  (width controls as in control width of a regular line or the line-edges of shapes)&#10;        -draw square, circle, rectangle, ellipse, triangle&#10;        -keyboard shortcuts (control S for save, control E for exit, control C to clear canvas)&#10;        -inform the user as to pixel size of width&#10;        -text label for colors (hex/rgb/English name)&#10;        -color grabber (has to modify shapes)&#10;        -pencil straight line&#10;        -dashed outline of every shape&#10;        -smart/aware save (&quot;Are you sure you want to exit?&quot;)&#10;        -Custom size resize canvas&#10;        -Eraser&#10;        -Inform the user of their pixel coordinate, the pixel size, and the canvas size measurements on the bottom left corner of the screen&#10;       - Custom shape: Star!">
-      <change afterPath="$PROJECT_DIR$/.idea/uiDesigner.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/com/example/paintp/PaintPApplication.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/resources/images/heart_icon.png" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/resources/images/line_icon1.png" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/resources/images/sticker_icon.png" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/resources/images/text_icon.png" afterDir="false" />
+    <list default="true" id="d2182c53-f702-4aa5-b38f-eb010e10bf54" name="Changes" comment="2.5 Update&#10;&#10;-Version 1.2.1 (September 19, 2024)&#10;    New features&#10;        -Stickers!&#10;        -Safety on altering canvas&#10;        -text display on the canvas">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/com/example/paintp/HelloController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/example/paintp/HelloController.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/module-info.java" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/resources/com/example/paintp/hello-view.fxml" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/com/example/paintp/hello-view.fxml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/resources/images/circle_icon.png" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/images/circle_icon.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/resources/images/ellipse_icon.png" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/images/ellipse_icon.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/resources/images/line_icon.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/resources/images/rectangle_icon.png" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/images/rectangle_icon.png" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -170,7 +159,15 @@
       <option name="project" value="LOCAL" />
       <updated>1726588559071</updated>
     </task>
-    <option name="localTasksCounter" value="6" />
+    <task id="LOCAL-00006" summary="2.5 Update&#10;&#10;-Version 1.2.1 (September 19, 2024)&#10;    New features&#10;        -Stickers!&#10;        -Safety on altering canvas&#10;        -text display on the canvas">
+      <option name="closed" value="true" />
+      <created>1726733953375</created>
+      <option name="number" value="00006" />
+      <option name="presentableId" value="LOCAL-00006" />
+      <option name="project" value="LOCAL" />
+      <updated>1726733953375</updated>
+    </task>
+    <option name="localTasksCounter" value="7" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -220,10 +217,11 @@
     <MESSAGE value="Sprint 2 Done &#10;        -JPG BMP PNG and GIF support (open, save, save as)&#10;        -Draw a line in multiple colors, becomes part of the image&#10;        -Manages an image larger than the window and the screen, with the size management of the canvas&#10;        -Allows you to control the width of the line drawn&#10;        -Has a color chooser, it impacts the line&#10;        -Has a help menu item with help and about options&#10;        -Canva resizing system" />
     <MESSAGE value="Release notes updated" />
     <MESSAGE value="Sprint 3 update&#10;&#10;-Version 1.2.0 (September 16, 2024)&#10;    New features&#10;        -have width controls  (width controls as in control width of a regular line or the line-edges of shapes)&#10;        -draw square, circle, rectangle, ellipse, triangle&#10;        -keyboard shortcuts (control S for save, control E for exit, control C to clear canvas)&#10;        -inform the user as to pixel size of width&#10;        -text label for colors (hex/rgb/English name)&#10;        -color grabber (has to modify shapes)&#10;        -pencil straight line&#10;        -dashed outline of every shape&#10;        -smart/aware save (&quot;Are you sure you want to exit?&quot;)&#10;        -Custom size resize canvas&#10;        -Eraser&#10;        -Inform the user of their pixel coordinate, the pixel size, and the canvas size measurements on the bottom left corner of the screen&#10;       - Custom shape: Star!" />
-    <option name="LAST_COMMIT_MESSAGE" value="Sprint 3 update&#10;&#10;-Version 1.2.0 (September 16, 2024)&#10;    New features&#10;        -have width controls  (width controls as in control width of a regular line or the line-edges of shapes)&#10;        -draw square, circle, rectangle, ellipse, triangle&#10;        -keyboard shortcuts (control S for save, control E for exit, control C to clear canvas)&#10;        -inform the user as to pixel size of width&#10;        -text label for colors (hex/rgb/English name)&#10;        -color grabber (has to modify shapes)&#10;        -pencil straight line&#10;        -dashed outline of every shape&#10;        -smart/aware save (&quot;Are you sure you want to exit?&quot;)&#10;        -Custom size resize canvas&#10;        -Eraser&#10;        -Inform the user of their pixel coordinate, the pixel size, and the canvas size measurements on the bottom left corner of the screen&#10;       - Custom shape: Star!" />
+    <MESSAGE value="2.5 Update&#10;&#10;-Version 1.2.1 (September 19, 2024)&#10;    New features&#10;        -Stickers!&#10;        -Safety on altering canvas&#10;        -text display on the canvas" />
+    <option name="LAST_COMMIT_MESSAGE" value="2.5 Update&#10;&#10;-Version 1.2.1 (September 19, 2024)&#10;    New features&#10;        -Stickers!&#10;        -Safety on altering canvas&#10;        -text display on the canvas" />
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
-    <SUITE FILE_PATH="coverage/Paint_P$HelloApplication.ic" NAME="HelloApplication Coverage Results" MODIFIED="1726582811869" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="idea" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="true">
+    <SUITE FILE_PATH="coverage/Paint_P$HelloApplication.ic" NAME="HelloApplication Coverage Results" MODIFIED="1726760214940" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="idea" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="true">
       <FILTER>com.example.paintp.*</FILTER>
     </SUITE>
   </component>

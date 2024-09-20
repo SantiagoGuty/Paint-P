@@ -88,6 +88,8 @@ public class HelloController {
     private String defaultfontFamily = "Arial";  // Default font
     private String fontFamily = defaultfontFamily;
     private Boolean italic = false;
+    private Boolean bold = false;
+    private int nGonSides = 5;
 
     @FXML
     private Canvas testCanvas;
@@ -129,6 +131,7 @@ public class HelloController {
         imageButton.setToggleGroup(toolsToggleGroup);
         starButton.setToggleGroup(toolsToggleGroup);
         heartButton.setToggleGroup(toolsToggleGroup);
+        nGonButton.setToggleGroup(toolsToggleGroup);
         textButton.setToggleGroup(toolsToggleGroup);
 
         // Assign ToggleButton methods
@@ -143,6 +146,7 @@ public class HelloController {
         starButton.setOnAction(event -> setStarTool());
         heartButton.setOnAction(event -> setHeartTool());
         textButton.setOnAction(event -> setTextTool());
+        nGonButton.setOnAction(event -> setNgonTool());
 
         //Event for color grabbing
         colorGrabButton.setOnAction(event -> onColorGrabClick());
@@ -184,7 +188,6 @@ public class HelloController {
             System.out.println("Pen size updated: " + newValue);
             updateLabel(); // Update the label to reflect the new pen size, if necessary
         });
-
 
         // Canvas
 
@@ -240,7 +243,7 @@ public class HelloController {
     }
 
     @FXML
-    private ToggleButton pencilButton, eraserButton, lineButton, rectangleButton, ellipseButton, circleButton, triangleButton, starButton, heartButton, imageButton, textButton;
+    private ToggleButton pencilButton, eraserButton, lineButton, rectangleButton, ellipseButton, circleButton, triangleButton, starButton, heartButton, imageButton, textButton, nGonButton;
 
     // Variable to track the current tool
     //private String currentTool = "Pencil"; default
@@ -298,6 +301,11 @@ public class HelloController {
         currentTool = "Text";
     }
 
+    @FXML
+    private void setNgonTool() {
+        currentTool = "nGon";
+    }
+
 
     private void onMousePressed(MouseEvent event) {
         startX = event.getX();
@@ -332,8 +340,8 @@ public class HelloController {
     private void onMouseReleased(MouseEvent event) {
         // Check if the dashed lines checkbox is selected
         if (dashedLineCheckBox.isSelected()) {
-            gc.setLineDashes(10);  // Set dashes (length of dashes)
-            gc.setLineDashOffset(5);  // Distance between dashes
+            gc.setLineDashes((2 * lineWidthSlider.getValue()) + 10);  // Set dashes (length of dashes) dynamically, using the lineWidth multiplied by 2 + 10
+            gc.setLineDashOffset((2 * lineWidthSlider.getValue()) + 20);  // Distance between dashes dynamically, using the lineWidth multiplied by 2 + 20
         } else {
             gc.setLineDashes(0);  // Solid line (no dashes)
         }
@@ -372,32 +380,82 @@ public class HelloController {
             double height = Math.abs(event.getY() - startY);
 
             gc.drawImage(customStickerImage, Math.min(startX, event.getX()), Math.min(startY, event.getY()), width, height);
-        }else if (textButton.isSelected()) {
+        }else if (nGonButton.isSelected()) {
+            double endX = event.getX();
+            double endY = event.getY();
+            int numberOfSides = nGonSides; // This can be set dynamically based on a user input (e.g., a slider or a text field)
+
+            drawNgon(startX, startY, endX, endY, numberOfSides);
+        } else if (textButton.isSelected()) {
             double endX = event.getX();
             double endY = event.getY();
 
-            // Calculate the distance between the start and end points (as a basis for the font size)
+            // Calculate the font size
             double deltaX = endX - startX;
             double deltaY = endY - startY;
             double distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+            double fontSize = distance / 8;  // Adjust the divisor for smaller or larger fonts
 
-            // Set the font size relative to the distance (you can adjust the scaling factor)
-            double fontSize = distance / 10;  // Adjust the divisor for smaller or larger fonts
-            Font font = createFontWithStyle(fontFamily, fontSize, italic);
-            gc.setFont(font);
+            // Create the font using your existing method
+            Font font = createFontWithStyle(fontFamily, fontSize, italic, bold);
 
-            // Set a max width for the text to ensure it fits within the drawing area
-            double maxWidth = Math.abs(endX - startX);  // Use the width between the start and end points as the max width
+            // Get the selected color from the color picker
+            //Color selectedColor = colorPicker.getValue();
 
-            // Ensure the custom text is not null or empty
-            if (stringToolText != null && !stringToolText.isEmpty()) {
-                gc.strokeText(stringToolText, startX, startY, maxWidth);
-                gc.fillText(stringToolText, startX, startY, maxWidth);
-            }
+            // Call the drawText method
+            drawText(startX, startY, endX, endY, stringToolText, font, colorPicker.getValue());
         }
         // Reset dashes back to solid for future drawings if needed
         //gc.setLineDashes(0);
     }
+
+    public void drawNgon(double x1, double y1, double x2, double y2, int n) {
+        double[] xPoints = new double[n];
+        double[] yPoints = new double[n];
+
+        // Calculate the radius of the n-gon (distance between start and end points)
+        double radius = Math.sqrt(Math.pow((x2 - x1), 2) + Math.pow((y2 - y1), 2));
+        double startAngle = Math.atan2(y2 - y1, x2 - x1); // Starting angle based on the direction of drag
+
+        // Calculate the vertices of the n-gon
+        for (int i = 0; i < n; i++) {
+            double angle = ((2 * Math.PI * i) / n) + startAngle;
+            xPoints[i] = x1 + radius * Math.cos(angle);
+            yPoints[i] = y1 + radius * Math.sin(angle);
+        }
+
+        // Draw the n-gon
+        //gc.fillPolygon(xPoints, yPoints, n);
+        gc.strokePolygon(xPoints, yPoints, n);
+    }
+
+    public void drawText(double startX, double startY, double endX, double endY, String text, Font font, Color color) {
+        gc.setLineWidth(1); // More than 1 is unreadable for text
+
+        // Calculate the distance between the start and end points (as a basis for the font size)
+        double deltaX = endX - startX;
+        double deltaY = endY - startY;
+        double distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+
+        // Set the font size relative to the distance
+        double fontSize = distance / 8;  // Adjust the divisor for smaller or larger fonts
+        Font finalFont = Font.font(font.getName(), fontSize);  // Set the font size
+        gc.setFont(finalFont);
+
+        // Set both stroke and fill colors to the selected color from the ColorPicker
+        gc.setStroke(color);
+        gc.setFill(color);
+
+        // Set a max width for the text to ensure it fits within the drawing area
+        double maxWidth = Math.abs(endX - startX);
+
+        // Ensure the custom text is not null or empty
+        if (text != null && !text.isEmpty()) {
+            gc.fillText(text, startX, startY, maxWidth);  // Fill the text first
+            gc.strokeText(text, startX, startY, maxWidth);  // Outline the text
+        }
+    }
+
 
     private void drawHeart(double centerX, double centerY, double size) {
         int points = 100; // Number of points to plot
@@ -449,13 +507,45 @@ public class HelloController {
         stringToolText = defaultText;
     }
 
-    @FXML
-    private Font createFontWithStyle(String fontFamily, double fontSize, boolean italic) {
-        FontWeight weight = FontWeight.NORMAL;
-        FontPosture posture = italic ? FontPosture.ITALIC : FontPosture.REGULAR;
-        return Font.font(fontFamily, weight, posture, fontSize);
+    public void setPolygonSides() {
+        TextInputDialog dialog = new TextInputDialog(String.valueOf(nGonSides));
+        dialog.setTitle("Set Polygon Sides");
+        dialog.setHeaderText("Polygon Tool");
+        dialog.setContentText("Enter the number of sides for the polygon:");
+
+        // Set the icon for the dialog
+        Stage stage = (Stage) dialog.getDialogPane().getScene().getWindow();  // Fix this line by using 'dialog'
+        Image icon = new Image(Objects.requireNonNull(getClass().getResourceAsStream("/images/paint-P-Logo.png")));
+        stage.getIcons().add(icon);
+
+        // Get user input
+        dialog.showAndWait().ifPresent(input -> {
+            try {
+                int sides = Integer.parseInt(input);
+                if (sides >= 3) {  // Minimum 3 sides for a valid polygon
+                    nGonSides = sides;
+                } else {
+                    // Show error message if input is invalid
+                    System.out.println("Please enter a number greater than or equal to 3.");
+                }
+            } catch (NumberFormatException e) {
+                // Handle invalid input (not a number)
+                System.out.println("Invalid input! Please enter a valid number.");
+            }
+        });
     }
 
+    public int getNGonSides() {
+        return nGonSides;
+    }
+
+    @FXML
+    private Font createFontWithStyle(String fontFamily, double fontSize, boolean italic, boolean bold) {
+        FontWeight fontWeight = bold ? FontWeight.BOLD : FontWeight.NORMAL;
+        FontPosture fontPosture = italic ? FontPosture.ITALIC : FontPosture.REGULAR;
+
+        return Font.font(fontFamily, fontWeight, fontPosture, fontSize);
+    }
     private void drawStar(double startX, double startY, double endX, double endY) {
         double centerX = (startX + endX) / 2;
         double centerY = (startY + endY) / 2;
@@ -500,37 +590,40 @@ public class HelloController {
     }
     public void setArialFont() {
         fontFamily = "Arial";
-        updateFont();
     }
 
     @FXML
     public void setVerdanaFont() {
         fontFamily = "Verdana";
-        updateFont();
+        //updateFont();
     }
 
     @FXML
     public void setTahomaFont() {
         fontFamily = "Tahoma";
-        updateFont();
     }
 
     @FXML
     public void setTimesFont() {
         fontFamily = "Times New Roman";
-        updateFont();
     }
 
     @FXML
     public void toggleBold() {
-        fontWeight = FontWeight.BOLD;
-        updateFont();
+        if (bold)
+            bold = false;
+        else{
+            bold = true;
+        }
     }
 
     @FXML
     public void toggleItalic() {
-        fontPosture = FontPosture.ITALIC;
-        updateFont();
+        if (italic)
+            italic = false;
+        else{
+            italic = true;
+        }
     }
 
     private void updateFont() {

@@ -66,10 +66,14 @@
                       <MenuItem onAction="#setTahomaFont" text="Tahoma"/>
                       <MenuItem onAction="#setTimesFont" text="Times New Roman"/>
           </Menu>
-          <Menu text="Style">
-              <CheckMenuItem onAction="#toggleBold" text="Bold"/>
-              <CheckMenuItem onAction="#toggleItalic" text="Italic"/>
-          </Menu>
+            <Menu text="Style">
+                <CheckMenuItem onAction="#toggleBold" text="Bold"/>
+                <CheckMenuItem onAction="#toggleItalic" text="Italic"/>
+            </Menu>
+      </Menu>
+
+      <Menu text="Polygon">
+            <MenuItem onAction="#setPolygonSides" text="Set number of sides"/>
       </Menu>
 
     </Menu>
@@ -91,6 +95,7 @@
       <ToggleButton fx:id="imageButton" text="Sticker"/>
       <ToggleButton fx:id="starButton" text="Star"/>
       <ToggleButton fx:id="heartButton" text="Heart"/>
+      <ToggleButton fx:id="nGonButton" text="Polygon"/>
       <ToggleButton fx:id="textButton" text="Text"/>
       <Button text="Undo" onAction="#onUndoClick"/>
       <Button text="Redo" onAction="#onRedoClick"/>
