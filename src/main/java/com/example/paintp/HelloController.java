@@ -242,6 +242,7 @@ public class HelloController {
         }
     }
 
+
     @FXML
     private ToggleButton pencilButton, eraserButton, lineButton, rectangleButton, ellipseButton, circleButton, triangleButton, starButton, heartButton, imageButton, textButton, nGonButton;
 
