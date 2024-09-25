@@ -4,8 +4,12 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="d2182c53-f702-4aa5-b38f-eb010e10bf54" name="Changes" comment="2.5 Update&#10;&#10;-Version 1.2.1 (September 19, 2024)&#10;    New features&#10;        -Stickers!&#10;        -Safety on altering canvas&#10;        -text display on the canvas">
+    <list default="true" id="d2182c53-f702-4aa5-b38f-eb010e10bf54" name="Changes" comment="Upgrade on dashed lines, Polygons with any amount of sides and visuals in general">
+      <change afterPath="$PROJECT_DIR$/src/main/java/com/example/paintp/CanvasState.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/resources/images/polygon_icon.png" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/paint-p_ReleaseNotes.txt" beforeDir="false" afterPath="$PROJECT_DIR$/paint-p_ReleaseNotes.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/example/paintp/HelloApplication.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/example/paintp/HelloApplication.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/com/example/paintp/HelloController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/example/paintp/HelloController.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/resources/com/example/paintp/hello-view.fxml" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/com/example/paintp/hello-view.fxml" afterDir="false" />
     </list>
@@ -167,7 +171,23 @@
       <option name="project" value="LOCAL" />
       <updated>1726733953375</updated>
     </task>
-    <option name="localTasksCounter" value="7" />
+    <task id="LOCAL-00007" summary="Upgrade on dashed lines, Polygons with any amount of sides and visuals in general">
+      <option name="closed" value="true" />
+      <created>1726793339316</created>
+      <option name="number" value="00007" />
+      <option name="presentableId" value="LOCAL-00007" />
+      <option name="project" value="LOCAL" />
+      <updated>1726793339316</updated>
+    </task>
+    <task id="LOCAL-00008" summary="Upgrade on dashed lines, Polygons with any amount of sides and visuals in general">
+      <option name="closed" value="true" />
+      <created>1726793540477</created>
+      <option name="number" value="00008" />
+      <option name="presentableId" value="LOCAL-00008" />
+      <option name="project" value="LOCAL" />
+      <updated>1726793540477</updated>
+    </task>
+    <option name="localTasksCounter" value="9" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -218,10 +238,11 @@
     <MESSAGE value="Release notes updated" />
     <MESSAGE value="Sprint 3 update&#10;&#10;-Version 1.2.0 (September 16, 2024)&#10;    New features&#10;        -have width controls  (width controls as in control width of a regular line or the line-edges of shapes)&#10;        -draw square, circle, rectangle, ellipse, triangle&#10;        -keyboard shortcuts (control S for save, control E for exit, control C to clear canvas)&#10;        -inform the user as to pixel size of width&#10;        -text label for colors (hex/rgb/English name)&#10;        -color grabber (has to modify shapes)&#10;        -pencil straight line&#10;        -dashed outline of every shape&#10;        -smart/aware save (&quot;Are you sure you want to exit?&quot;)&#10;        -Custom size resize canvas&#10;        -Eraser&#10;        -Inform the user of their pixel coordinate, the pixel size, and the canvas size measurements on the bottom left corner of the screen&#10;       - Custom shape: Star!" />
     <MESSAGE value="2.5 Update&#10;&#10;-Version 1.2.1 (September 19, 2024)&#10;    New features&#10;        -Stickers!&#10;        -Safety on altering canvas&#10;        -text display on the canvas" />
-    <option name="LAST_COMMIT_MESSAGE" value="2.5 Update&#10;&#10;-Version 1.2.1 (September 19, 2024)&#10;    New features&#10;        -Stickers!&#10;        -Safety on altering canvas&#10;        -text display on the canvas" />
+    <MESSAGE value="Upgrade on dashed lines, Polygons with any amount of sides and visuals in general" />
+    <option name="LAST_COMMIT_MESSAGE" value="Upgrade on dashed lines, Polygons with any amount of sides and visuals in general" />
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
-    <SUITE FILE_PATH="coverage/Paint_P$HelloApplication.ic" NAME="HelloApplication Coverage Results" MODIFIED="1726760214940" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="idea" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="true">
+    <SUITE FILE_PATH="coverage/Paint_P$HelloApplication.ic" NAME="HelloApplication Coverage Results" MODIFIED="1726854226691" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="idea" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="true">
       <FILTER>com.example.paintp.*</FILTER>
     </SUITE>
   </component>

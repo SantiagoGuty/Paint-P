@@ -16,121 +16,154 @@
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
-
+<?import javafx.scene.control.TabPane?>
+<?import javafx.scene.control.Tab?>
 <?import javafx.scene.control.CheckMenuItem?>
 <?import javafx.scene.control.CheckBox?>
 
 
+
+
 <VBox xmlns:fx="http://javafx.com/fxml/1" xmlns="http://javafx.com/javafx/17" fx:controller="com.example.paintp.HelloController" spacing="10">
-
-  <!-- Menu Bar -->
-  <MenuBar>
-    <Menu text="File">
-      <MenuItem onAction="#onNewMenuClick" text="New"/>
-      <Menu text="Open Image">
-        <MenuItem onAction="#onOpenImageClickCanvasSize" text="Canvas Size"/>
-        <MenuItem onAction="#onOpenImageClickOriginalSize" text="Original Size"/>
-      </Menu>
-      <MenuItem onAction="#onSafeClick" text="Safe"/>
-      <MenuItem onAction="#onSaveAsClick" text="Save As"/>
-      <MenuItem onAction="#safetyExit" text="Exit"/>
-    </Menu>
-
-    <Menu text="Edit">
-      <MenuItem onAction="#onUndoClick" text="Undo"/>
-      <MenuItem onAction="#onRedoClick" text="Redo"/>
-    </Menu>
-
-    <Menu text="Help">
-      <MenuItem onAction="#onAboutMenuClick" text="About"/>
-    </Menu>
-
-    <Menu text="Canvas">
-      <MenuItem onAction="#onCanvaClearCanva" text="Clear Canvas"/>
-      <MenuItem onAction="#setWideCanvas" text="Wide Canvas"/>
-      <MenuItem onAction="#setTallCanvas" text="Tall Canvas"/>
-      <MenuItem onAction="#setCustomSizeCanvas" text="Custom Canvas Size"/>
-      <MenuItem onAction="#setWindowSizeCanvas" text="Window Size Canvas"/>
-    </Menu>
-
-    <Menu text="Advanced settings">
-      <Menu text="Sticker settings">
-          <MenuItem onAction="#setCustomSticker" text="Set custom sticker"/>
-          <MenuItem onAction="#setDefaultSticker" text="Reset to default sticker"/>
-      </Menu>
-      <Menu text="Text settings">
-          <MenuItem onAction="#setCustomText" text="Set text for text tool"/>
-          <MenuItem onAction="#setDefaultText" text="Reset to default text"/>
-           <Menu text="Font">
-                      <MenuItem onAction="#setArialFont" text="Arial"/>
-                      <MenuItem onAction="#setVerdanaFont" text="Verdana"/>
-                      <MenuItem onAction="#setTahomaFont" text="Tahoma"/>
-                      <MenuItem onAction="#setTimesFont" text="Times New Roman"/>
-          </Menu>
-            <Menu text="Style">
-                <CheckMenuItem onAction="#toggleBold" text="Bold"/>
-                <CheckMenuItem onAction="#toggleItalic" text="Italic"/>
-            </Menu>
-      </Menu>
-
-      <Menu text="Polygon">
-            <MenuItem onAction="#setPolygonSides" text="Set number of sides"/>
-      </Menu>
-
-    </Menu>
+ <!-- Menu Bar -->
+ <MenuBar>
+   <Menu text="File">
+     <MenuItem onAction="#onNewMenuClick" text="New"/>
+     <Menu text="Open Image">
+       <MenuItem onAction="#onOpenImageClickCanvasSize" text="Canvas Size"/>
+       <MenuItem onAction="#onOpenImageClickOriginalSize" text="Original Size"/>
+     </Menu>
+     <MenuItem onAction="#onSafeClick" text="Safe"/>
+     <MenuItem onAction="#onSaveAsClick" text="Save As"/>
+     <MenuItem onAction="#safetyExit" text="Exit"/>
+   </Menu>
 
 
-  </MenuBar>
+   <Menu text="Edit">
+     <MenuItem onAction="#onUndoClick" text="Undo"/>
+     <MenuItem onAction="#onRedoClick" text="Redo"/>
+   </Menu>
 
-  <!-- Toolbar and Controls -->
-  <VBox alignment="CENTER" spacing="10" style="-fx-background-color: #f0f0f0;">
-    <!-- Horizontal Menu for Buttons -->
-    <HBox alignment="CENTER" spacing="10">
-      <ToggleButton fx:id="pencilButton" text="Pencil"/>
-      <ToggleButton fx:id="eraserButton" text="Eraser"/>
-      <ToggleButton fx:id="lineButton" text="Line"/>
-      <ToggleButton fx:id="rectangleButton" text="Rectangle"/>
-      <ToggleButton fx:id="ellipseButton" text="Ellipse"/>
-      <ToggleButton fx:id="circleButton" text="Circle"/>
-      <ToggleButton fx:id="triangleButton" text="Triangle"/>
-      <ToggleButton fx:id="imageButton" text="Sticker"/>
-      <ToggleButton fx:id="starButton" text="Star"/>
-      <ToggleButton fx:id="heartButton" text="Heart"/>
-      <ToggleButton fx:id="nGonButton" text="Polygon"/>
-      <ToggleButton fx:id="textButton" text="Text"/>
-      <Button text="Undo" onAction="#onUndoClick"/>
-      <Button text="Redo" onAction="#onRedoClick"/>
-    </HBox>
 
-    <Separator orientation="HORIZONTAL"/>
+   <Menu text="Help">
+     <MenuItem onAction="#onAboutMenuClick" text="About"/>
+   </Menu>
 
-    <!-- Horizontal Menu for Color and Line Width Controls -->
-    <HBox alignment="CENTER" spacing="10">
-      <VBox alignment="CENTER" spacing="5">
-        <Label text="Choose Color:"/>
-        <ColorPicker fx:id="colorPicker"/>
-      </VBox>
-      <VBox alignment="CENTER" spacing="10">
-        <ToggleButton fx:id="colorGrabButton" text="Grab Color"/>
-      </VBox>
-      <VBox alignment="CENTER" spacing="10">
-        <Label text="Line Width:"/>
-        <Slider fx:id="lineWidthSlider" min="1" max="50" value="1" showTickLabels="true" showTickMarks="true" majorTickUnit="10"/>
-      </VBox>
-      <VBox alignment="CENTER" spacing="10">
-        <!-- Use CheckBox for dashed lines -->
-        <Label text="Dashed Line:"/>
-        <CheckBox fx:id="dashedLineCheckBox" />
-      </VBox>
-    </HBox>
-  </VBox>
 
-  <!-- Canvas Area -->
-  <ScrollPane fx:id="scrollPane" fitToHeight="true" fitToWidth="true">
-    <StackPane fx:id="canvasPane" prefHeight="600" prefWidth="800" style="-fx-background-color: lightgray; -fx-border-color: grey; -fx-border-width: 1px;">
-      <Canvas fx:id="canvas" height="600" width="800"/>
-    </StackPane>
-  </ScrollPane>
+   <Menu text="Canvas">
+     <MenuItem onAction="#onCanvaClearCanva" text="Clear Canvas"/>
+     <MenuItem onAction="#setWideCanvas" text="Wide Canvas"/>
+     <MenuItem onAction="#setTallCanvas" text="Tall Canvas"/>
+     <MenuItem onAction="#setCustomSizeCanvas" text="Custom Canvas Size"/>
+     <MenuItem onAction="#setWindowSizeCanvas" text="Window Size Canvas"/>
+   </Menu>
 
-  <Label fx:id="infoText" alignment="CENTER" text="Welcome to Paint-P!"/>
+
+   <Menu text="Advanced settings">
+     <Menu text="Sticker settings">
+         <MenuItem onAction="#setCustomSticker" text="Set custom sticker"/>
+         <MenuItem onAction="#setDefaultSticker" text="Reset to default sticker"/>
+     </Menu>
+     <Menu text="Text settings">
+         <MenuItem onAction="#setCustomText" text="Set text for text tool"/>
+         <MenuItem onAction="#setDefaultText" text="Reset to default text"/>
+          <Menu text="Font">
+                     <MenuItem onAction="#setArialFont" text="Arial"/>
+                     <MenuItem onAction="#setVerdanaFont" text="Verdana"/>
+                     <MenuItem onAction="#setTahomaFont" text="Tahoma"/>
+                     <MenuItem onAction="#setTimesFont" text="Times New Roman"/>
+         </Menu>
+           <Menu text="Style">
+               <CheckMenuItem onAction="#toggleBold" text="Bold"/>
+               <CheckMenuItem onAction="#toggleItalic" text="Italic"/>
+           </Menu>
+     </Menu>
+
+
+     <Menu text="Polygon">
+           <MenuItem onAction="#setPolygonSides" text="Set number of sides"/>
+           <MenuItem onAction="#setDefaultPolygonSides" text="Reset number of sides"/>
+     </Menu>
+
+
+   </Menu>
+
+
+
+
+ </MenuBar>
+
+
+ <!-- Toolbar and Controls -->
+ <VBox alignment="CENTER" spacing="10" style="-fx-background-color: #f0f0f0;">
+   <!-- Horizontal Menu for Buttons -->
+   <HBox alignment="CENTER" spacing="10">
+     <ToggleButton fx:id="pencilButton" text="Pencil"/>
+     <ToggleButton fx:id="eraserButton" text="Eraser"/>
+     <ToggleButton fx:id="lineButton" text="Line"/>
+     <ToggleButton fx:id="rectangleButton" text="Rectangle"/>
+     <ToggleButton fx:id="ellipseButton" text="Ellipse"/>
+     <ToggleButton fx:id="circleButton" text="Circle"/>
+     <ToggleButton fx:id="triangleButton" text="Triangle"/>
+     <ToggleButton fx:id="imageButton" text="Sticker"/>
+     <ToggleButton fx:id="starButton" text="Star"/>
+     <ToggleButton fx:id="heartButton" text="Heart"/>
+     <ToggleButton fx:id="nGonButton" text="Polygon"/>
+     <ToggleButton fx:id="textButton" text="Text"/>
+     <Button text="Undo" onAction="#onUndoClick"/>
+     <Button text="Redo" onAction="#onRedoClick"/>
+   </HBox>
+
+
+   <Separator orientation="HORIZONTAL"/>
+
+
+   <!-- Horizontal Menu for Color and Line Width Controls -->
+   <HBox alignment="CENTER" spacing="10">
+     <VBox alignment="CENTER" spacing="5">
+       <Label text="Choose Color:"/>
+       <ColorPicker fx:id="colorPicker"/>
+     </VBox>
+     <VBox alignment="CENTER" spacing="10">
+       <ToggleButton fx:id="colorGrabButton" text="Grab Color" onAction="#onColorGrabClick"/>
+     </VBox>
+     <VBox alignment="CENTER" spacing="10">
+       <Label text="Line Width:"/>
+       <Slider fx:id="lineWidthSlider" min="1" max="50" value="1" showTickLabels="true" showTickMarks="true" majorTickUnit="10"/>
+     </VBox>
+     <VBox alignment="CENTER" spacing="10">
+       <!-- Use CheckBox for dashed lines -->
+       <Label text="Dashed Line:"/>
+       <CheckBox fx:id="dashedLineCheckBox" />
+     </VBox>
+   </HBox>
+ </VBox>
+
+
+ <!-- Canvas Area
+ <ScrollPane fx:id="scrollPane" fitToHeight="true" fitToWidth="true">
+   <StackPane fx:id="canvasPane" prefHeight="600" prefWidth="800" style="-fx-background-color: lightgray; -fx-border-color: grey; -fx-border-width: 1px;">
+     <Canvas fx:id="canvas" height="600" width="800"/>
+   </StackPane>
+ </ScrollPane>-->
+
+
+ <TabPane fx:id="tabPane">
+       <Tab text="Canvas 1">
+           <ScrollPane fitToHeight="true" fitToWidth="true">
+               <StackPane fx:id="canvasPane" prefHeight="600" prefWidth="800"
+                          style="-fx-background-color: lightgray; -fx-border-color: grey; -fx-border-width: 1px;">
+                   <Canvas fx:id="canvas" height="600" width="800"/>
+               </StackPane>
+           </ScrollPane>
+       </Tab>
+       <!-- Additional tabs can be added in the controller -->
+   </TabPane>
+
+
+ <Label fx:id="infoText" alignment="CENTER" text="Welcome to Paint-P!"/>
 </VBox>
+
+
+
+

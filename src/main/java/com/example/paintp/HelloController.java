@@ -1,9 +1,11 @@
 package com.example.paintp;
 
+import javafx.application.Platform;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.SimpleDoubleProperty;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.fxml.FXML;
+import javafx.scene.Node;
 import javafx.scene.text.Font;
 import javafx.geometry.Insets;
 import javafx.scene.Scene;
@@ -29,17 +31,19 @@ import javafx.stage.Stage;
 import javafx.scene.paint.Color;
 import javafx.scene.control.ToggleGroup;
 import javafx.scene.control.ToggleButton;
+import javafx.event.ActionEvent;
+
 
 import javax.imageio.ImageIO;
 import java.awt.*;
-import java.awt.event.ActionEvent;
+//import java.awt.event.ActionEvent;
 import java.awt.image.BufferedImage;
 import java.io.*;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
+
+import static javax.swing.JOptionPane.showInputDialog;
 
 public class HelloController {
-
 
     @FXML
     private Slider lineWidthSlider;
@@ -66,7 +70,13 @@ public class HelloController {
     @FXML
     private ToggleGroup toolsToggleGroup;
     @FXML
+    private ToggleButton selectButton;
+    @FXML
+    private ToggleButton SelectAndMoveButton;
+    @FXML
     private CheckBox dashedLineCheckBox;
+    @FXML
+    private TabPane tabPane;
 
 
     private double startX, startY;
@@ -90,6 +100,18 @@ public class HelloController {
     private Boolean italic = false;
     private Boolean bold = false;
     private int nGonSides = 5;
+    // Undo and Redo stacks
+    // private Stack<CanvasState> undoStack = new Stack<>();
+    //private Stack<CanvasState> redoStack = new Stack<>();
+
+    private final HashMap<Tab, CanvasTab> canvasTabs = new HashMap<>();
+    private final HashMap<Tab, Stack<CanvasState>> undoStacks = new HashMap<>();
+    private final HashMap<Tab, Stack<CanvasState>> redoStacks = new HashMap<>();
+    private Stack<WritableImage> undoStack = new Stack<>();
+    private Stack<WritableImage> redoStack = new Stack<>();
+
+
+    private Map<Tab, CanvasTab> tabCanvasMap = new HashMap<>();
 
     @FXML
     private Canvas testCanvas;
@@ -99,27 +121,258 @@ public class HelloController {
 
 
     @FXML
+    private ToggleButton pencilButton, eraserButton, lineButton, rectangleButton, ellipseButton, circleButton, triangleButton, starButton, heartButton, imageButton, textButton, nGonButton;
+
+    @FXML
     public void initialize() {
+        System.out.println("Initializing components...");
 
-        // Initialize default canvas size 1240 X 620
-        canvas.setWidth(1240);
-        canvas.setHeight(620);
+        if (tabPane == null) {
+            System.out.println("TabPane is null.");
+        } else {
+            System.out.println("TabPane initialized.");
+        }
 
-        // Initialize KeyCombination instances
-        saveShortCut = new KeyCodeCombination(KeyCode.S, KeyCombination.CONTROL_DOWN);
-        exitShortCut = new KeyCodeCombination(KeyCode.E, KeyCombination.CONTROL_DOWN);
-        clearShortCut = new KeyCodeCombination(KeyCode.C, KeyCombination.CONTROL_DOWN);
+        if (colorPicker == null) {
+            System.out.println("ColorPicker is null.");
+        } else {
+            System.out.println("ColorPicker initialized.");
+        }
 
-        // Set default color and line width
-        colorPicker.setValue(currentColor);
-        lineWidthSlider.setValue(currentLineWidth);
+        colorPicker.setValue(Color.BLACK);  // Default color
+        lineWidthSlider.setValue(1.0);      // Default line width
 
-        // Set default tool (pencil) default color (Black) Line width size (1)
-        gc = canvas.getGraphicsContext2D();
-        gc.setStroke(Color.BLACK);
-        gc.setLineWidth(1);
+        setupToolButtons();
+        setButtonIcons();
+        setupListeners();
 
-        //Toggle Buttons menu
+        // Clear any existing tabs to ensure a clean start
+        tabPane.getTabs().clear();
+
+        // Initialize the first tab with a default canvas size
+        addNewTab("Paint-p 1", 1100, 525); // 1100 and 525 default
+
+        setupShortcuts();//shortcuts set up CTRL S Safe as, CTRL L Clean canvas, CTRL E Exit.
+    }
+
+
+
+    private void setupExistingTab(Tab tab) {
+        // Retrieve components from FXML
+        ScrollPane scrollPane = (ScrollPane) tab.getContent();
+        StackPane canvasPane = (StackPane) scrollPane.getContent();
+        Canvas canvas = (Canvas) canvasPane.getChildren().get(0);
+
+        // Create CanvasTab and store it
+        CanvasTab canvasTab = new CanvasTab(tab.getText(), canvas, canvas.getGraphicsContext2D(), canvasPane);
+        tabCanvasMap.put(tab, canvasTab);
+
+        // Register event handlers to the canvas
+        canvas.addEventHandler(MouseEvent.MOUSE_PRESSED, this::onMousePressed);
+        canvas.addEventHandler(MouseEvent.MOUSE_DRAGGED, this::onMouseDragged);
+        canvas.addEventHandler(MouseEvent.MOUSE_RELEASED, this::onMouseReleased);
+    }
+
+    private void setupShortcuts() {
+        Platform.runLater(() -> {
+            Scene scene = tabPane.getScene();  // Get the Scene object
+            if (scene != null) {
+                System.out.println("Scene is now available. Setting up shortcuts.");
+
+                // Define the key combinations for Save, Exit, and Clear
+                KeyCombination saveShortCut = new KeyCodeCombination(KeyCode.S, KeyCombination.CONTROL_DOWN);
+                KeyCombination exitShortCut = new KeyCodeCombination(KeyCode.E, KeyCombination.CONTROL_DOWN);
+                KeyCombination clearShortCut = new KeyCodeCombination(KeyCode.L, KeyCombination.CONTROL_DOWN);
+
+                // Bind the shortcuts to the corresponding actions
+                scene.getAccelerators().put(saveShortCut, this::onSaveAsClick);  // Save As functionality
+                scene.getAccelerators().put(exitShortCut, this::safetyExit);     // Exit functionality
+                scene.getAccelerators().put(clearShortCut, this::onCanvaClearCanva);  // Clear Canvas functionality
+            } else {
+                System.err.println("Scene is still not available.");
+            }
+        });
+    }
+
+
+    //SA
+    private void saveCanvasState() {
+        CanvasTab canvasTab = getSelectedCanvasTab();
+        if (canvasTab != null) {
+            Canvas currentCanvas = canvasTab.getCanvas();
+
+            // Take a snapshot of the current canvas state
+            WritableImage snapshot = new WritableImage((int) currentCanvas.getWidth(), (int) currentCanvas.getHeight());
+            currentCanvas.snapshot(null, snapshot);
+
+            // Push the snapshot to the undo stack
+            undoStack.push(snapshot);
+
+            // Clear the redo stack since new action is performed
+            redoStack.clear();
+        }
+    }
+
+
+
+    private CanvasTab getSelectedCanvasTab() {
+        Tab selectedTab = tabPane.getSelectionModel().getSelectedItem();
+        return tabCanvasMap.get(selectedTab);
+    }
+
+
+    // Undo action
+    @FXML
+    public void onUndoClick() {
+        CanvasTab canvasTab = getSelectedCanvasTab();
+        if (canvasTab != null) {
+            Canvas currentCanvas = canvasTab.getCanvas();
+            GraphicsContext gc = currentCanvas.getGraphicsContext2D();
+
+            if (!undoStack.isEmpty()) {
+                // Save the current state to the redo stack
+                WritableImage currentSnapshot = new WritableImage((int) currentCanvas.getWidth(), (int) currentCanvas.getHeight());
+                currentCanvas.snapshot(null, currentSnapshot);
+                redoStack.push(currentSnapshot);
+
+                // Pop the last state from the undo stack and restore it
+                WritableImage previousSnapshot = undoStack.pop();
+                gc.clearRect(0, 0, currentCanvas.getWidth(), currentCanvas.getHeight());
+                gc.drawImage(previousSnapshot, 0, 0);
+            }
+        }
+    }
+
+
+
+    @FXML
+    public void onRedoClick() {
+        CanvasTab canvasTab = getSelectedCanvasTab();
+        if (canvasTab != null) {
+            Canvas currentCanvas = canvasTab.getCanvas();
+            GraphicsContext gc = currentCanvas.getGraphicsContext2D();
+
+            if (!redoStack.isEmpty()) {
+                // Save the current state to the undo stack
+                WritableImage currentSnapshot = new WritableImage((int) currentCanvas.getWidth(), (int) currentCanvas.getHeight());
+                currentCanvas.snapshot(null, currentSnapshot);
+                undoStack.push(currentSnapshot);
+
+                // Pop the last state from the redo stack and restore it
+                WritableImage nextSnapshot = redoStack.pop();
+                gc.clearRect(0, 0, currentCanvas.getWidth(), currentCanvas.getHeight());
+                gc.drawImage(nextSnapshot, 0, 0);
+            }
+        }
+    }
+
+    private void clearUndoRedoStacks() {
+        undoStack.clear();
+        redoStack.clear();
+    }
+
+
+    // Helper method to get the canvas from the selected tab
+    private Canvas getCanvasFromTab(Tab tab) {
+        if (tab.getContent() instanceof ScrollPane) {
+            ScrollPane scrollPane = (ScrollPane) tab.getContent();
+            StackPane canvasPane = (StackPane) scrollPane.getContent();
+            return (Canvas) canvasPane.getChildren().get(0);
+        }
+        return null;
+    }
+
+    private void addNewTab(String title, double width, double height) {
+        // Create a new Tab instance with the provided title
+        Tab newTab = new Tab(title);
+
+        // Create a new CanvasTab instance to manage the canvas and its container
+        CanvasTab canvasTab = new CanvasTab(title, width, height);
+
+        // Wrap the canvasPane (which contains the canvas) in a ScrollPane for scrolling capability
+        ScrollPane scrollPane = new ScrollPane(canvasTab.getCanvasPane());
+        scrollPane.setFitToWidth(true);
+        scrollPane.setFitToHeight(true);
+        scrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
+        scrollPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
+
+        // Set the ScrollPane as the content of the new tab
+        newTab.setContent(scrollPane);
+
+        // Map the new tab to its corresponding CanvasTab for easy retrieval
+        tabCanvasMap.put(newTab, canvasTab);
+
+        // Retrieve the canvas from the CanvasTab
+        Canvas canvas = canvasTab.getCanvas();
+
+        // Register event handlers for drawing on the canvas
+        setupCanvasDrawing(canvasTab);
+
+        // Add the new tab to the TabPane and select it
+        tabPane.getTabs().add(newTab);
+        tabPane.getSelectionModel().select(newTab);
+    }
+
+
+
+    private void setupNewTab() {
+        // Create a new CanvasTab with default settings
+        CanvasTab canvasTab = new CanvasTab("Canvas " + (tabPane.getTabs().size() + 1), 800, 600);
+
+        // Create a Tab and set its content to the StackPane containing the canvas
+        Tab newTab = new Tab(canvasTab.getTitle());
+
+        // Wrap the canvas in a ScrollPane
+        ScrollPane scrollPane = new ScrollPane(canvasTab.getCanvasPane());
+        scrollPane.setFitToWidth(true);
+        scrollPane.setFitToHeight(true);
+
+        newTab.setContent(scrollPane);
+
+        // Add to TabPane and select the new tab
+        tabPane.getTabs().add(newTab);
+        tabPane.getSelectionModel().select(newTab);
+
+        // Save initial state
+        saveCanvasState();
+
+        // Store the CanvasTab instance for this Tab
+        canvasTabs.put(newTab, canvasTab);
+
+        // Set up drawing on the canvas
+        setupCanvasDrawing(canvasTab);  // Pass the entire CanvasTab object
+    }
+
+
+
+    private void setupCanvasDrawing(CanvasTab canvasTab) {
+        Canvas tempCanvas = canvasTab.getTempCanvas(); // Temporary canvas for live drawing
+        Canvas mainCanvas = canvasTab.getCanvas(); // Main canvas for final drawing
+
+        // Mouse pressed event to capture the start point
+        tempCanvas.addEventHandler(MouseEvent.MOUSE_PRESSED, event -> {
+            onMousePressed(event); // Use your existing onMousePressed logic
+        });
+
+        // Mouse dragged event for live drawing (draw on the temp canvas)
+        tempCanvas.addEventHandler(MouseEvent.MOUSE_DRAGGED, event -> {
+            onMouseDragged(event); // Use your existing onMouseDragged logic (draw on tempCanvas)
+        });
+
+        // Mouse released event to finalize the drawing (commit to the main canvas)
+        tempCanvas.addEventHandler(MouseEvent.MOUSE_RELEASED, event -> {
+            onMouseReleased(event); // Use your existing onMouseReleased logic (commit drawing to mainCanvas)
+        });
+        // Add the MOUSE_MOVED event handler to update the label with the coordinates
+        tempCanvas.addEventHandler(MouseEvent.MOUSE_MOVED, event -> {
+            updateLabel(event.getX(), event.getY());
+        });
+    }
+
+
+
+    private void setupToolButtons() {
+
         ToggleGroup toolsToggleGroup = new ToggleGroup();
         pencilButton.setToggleGroup(toolsToggleGroup);
         eraserButton.setToggleGroup(toolsToggleGroup);
@@ -133,8 +386,7 @@ public class HelloController {
         heartButton.setToggleGroup(toolsToggleGroup);
         nGonButton.setToggleGroup(toolsToggleGroup);
         textButton.setToggleGroup(toolsToggleGroup);
-
-        // Assign ToggleButton methods
+        // Set the onAction for the tool buttons (example for pencil)
         pencilButton.setOnAction(event -> setPencilTool());
         eraserButton.setOnAction(event -> setEraserTool());
         lineButton.setOnAction(event -> setLineTool());
@@ -147,104 +399,129 @@ public class HelloController {
         heartButton.setOnAction(event -> setHeartTool());
         textButton.setOnAction(event -> setTextTool());
         nGonButton.setOnAction(event -> setNgonTool());
+        // Add similar actions for other tools...
+    }
 
-        //Event for color grabbing
-        colorGrabButton.setOnAction(event -> onColorGrabClick());
 
-        // Set default button icons
-        setButtonIcons();
 
-        // Handle color picker changes
-        colorPicker.setOnAction(event -> onColorChange());
-        colorPicker.setValue(Color.BLACK);
 
-        //Pen Size management
-        penSize.bind(lineWidthSlider.valueProperty());
+    private void updateLabel() { // TS
+        Tab selectedTab = tabPane.getSelectionModel().getSelectedItem();
+        if (selectedTab != null && selectedTab.getContent() instanceof ScrollPane) {
+            ScrollPane scrollPane = (ScrollPane) selectedTab.getContent();
+            if (scrollPane.getContent() instanceof StackPane) {
+                StackPane canvasPane = (StackPane) scrollPane.getContent();
+                if (!canvasPane.getChildren().isEmpty() && canvasPane.getChildren().get(0) instanceof Canvas) {
+                    Canvas currentCanvas = (Canvas) canvasPane.getChildren().get(0);
 
-        //Debugging info
-        System.out.println("Canvas: " + canvas);
-        System.out.println("ColorPicker: " + colorPicker);
-        System.out.println("LineWidthSlider: " + lineWidthSlider);
+                    double width = currentCanvas.getWidth();
+                    double height = currentCanvas.getHeight();
+                    double currentPenSize = lineWidthSlider.getValue(); // Get the current pen size from the slider
 
-        // Ensure canvasPane has focus
-        canvasPane.requestFocus();
-        dashedLineCheckBox.selectedProperty().addListener((observable, oldValue, newValue) -> {
-            isDashedLine = newValue;
-        });
-
-        // Listener to the Scene to set up shortcuts
-        canvasPane.sceneProperty().addListener((obs, oldScene, newScene) -> {
-            if (newScene != null) {
-                System.out.println("Scene is initialized. Setting up shortcuts.");
-                setupShortcuts();
+                    infoText.setText(String.format("Canvas size: %.0f x %.0f | Pen Size: %.0f px", width, height, currentPenSize));
+                } else {
+                    System.err.println("No canvas found in the StackPane.");
+                }
+            } else {
+                System.err.println("The content inside ScrollPane is not a StackPane.");
             }
-        });
-
-        // Label that shows the canvas size/ pixel location / Pencil size
-        updateLabel();
-
-        // Optionally, you can listen for changes and perform additional actions when the slider value changes
-        penSize.addListener((observable, oldValue, newValue) -> {
-            System.out.println("Pen size updated: " + newValue);
-            updateLabel(); // Update the label to reflect the new pen size, if necessary
-        });
-
-        // Canvas
-
-        // Set initial canvas, with a white background
-        GraphicsContext gc = canvas.getGraphicsContext2D();
-        gc.setFill(Color.WHITE);
-        gc.fillRect(0, 0, canvas.getWidth(), canvas.getHeight());
-
-        // Add listeners to track changes in the canvas size and mouse movement
-        canvas.widthProperty().addListener((observable, oldValue, newValue) -> updateLabel());
-        canvas.heightProperty().addListener((observable, oldValue, newValue) -> updateLabel());
-        canvas.setOnMouseMoved(event -> updateLabel(event.getX(), event.getY()));
-        canvas.addEventHandler(MouseEvent.MOUSE_PRESSED, this::onMousePressed);
-        canvas.addEventHandler(MouseEvent.MOUSE_DRAGGED, this::onMouseDragged);
-        canvas.addEventHandler(MouseEvent.MOUSE_RELEASED, this::onMouseReleased);
-
+        } else {
+            System.err.println("The content of the tab is not a ScrollPane.");
+        }
     }
 
     @FXML
-    private void onColorGrabClick() {
-        currentShape = "ColorGrabber";
-        canvas.setOnMouseClicked(this::grabColor);
-    }
-
-    // grabColor method
-    private void grabColor(MouseEvent event) {
-        if ("ColorGrabber".equals(currentShape)) {
-            // Get the coordinates of the click
-            double x = event.getX();
-            double y = event.getY();
-
-            // Capture the snapshot of the canvas to read pixel data
-            WritableImage snapshot = canvas.snapshot(null, null);
-            PixelReader pixelReader = snapshot.getPixelReader();
-
-            // Ensure x and y are within canvas bounds
-            if (x >= 0 && x < snapshot.getWidth() && y >= 0 && y < snapshot.getHeight()) {
-                Color color = pixelReader.getColor((int) x, (int) y);
-
-                // Update the color picker with the grabbed color
-                colorPicker.setValue(color);
-
-                // Optional: Display the color value somewhere
-                System.out.println("Color grabbed: " + color.toString());
-            } else {
-                System.out.println("Click out of canvas bounds.");
+    public void setLineWidth() {
+        // Update the current line width for drawing on the selected canvas
+        Tab selectedTab = tabPane.getSelectionModel().getSelectedItem();
+        if (selectedTab != null) {
+            CanvasTab canvasTab = canvasTabs.get(selectedTab);
+            if (canvasTab != null) {
+                canvasTab.getGraphicsContext().setLineWidth(lineWidthSlider.getValue());
             }
-
-            // Reset the tool back to default
-            currentShape = "Pencil";  // Or whatever the default tool is
-            canvas.setOnMouseClicked(null); // Remove the color grabber handler
         }
     }
 
 
+    // Method to set up drawing on a given canvas
     @FXML
-    private ToggleButton pencilButton, eraserButton, lineButton, rectangleButton, ellipseButton, circleButton, triangleButton, starButton, heartButton, imageButton, textButton, nGonButton;
+    private void onColorGrabClick() {
+        // Toggle the color grab button state
+        if (colorGrabButton.isSelected()) {
+            // Enable color grabbing functionality
+            enableColorGrabMode();
+        } else {
+            // Reset to default if deselected
+            resetToDefaultTool();
+        }
+    }
+
+    private void enableColorGrabMode() {
+        infoText.setText("Click on the canvas to grab a color.");
+
+        // Get the currently selected canvas tab
+        CanvasTab canvasTab = getSelectedCanvasTab();
+        if (canvasTab != null) {
+            Canvas currentCanvas = canvasTab.getCanvas();
+
+            // Clear any existing mouse click handlers before adding the color grab handler
+            currentCanvas.setOnMouseClicked(null);  // Remove any previous click handlers
+
+            // Set up color grabbing on mouse click
+            currentCanvas.setOnMouseClicked(event -> grabColor(event, currentCanvas));
+        }
+    }
+
+
+    private void grabColor(MouseEvent event, Canvas currentCanvas) {
+        // Ensure the snapshot dimensions match the canvas size
+        WritableImage snapshot = new WritableImage((int) currentCanvas.getWidth(), (int) currentCanvas.getHeight());
+        currentCanvas.snapshot(null, snapshot);
+
+        // Debugging: print snapshot size and click coordinates
+        System.out.println("Snapshot dimensions: " + snapshot.getWidth() + "x" + snapshot.getHeight());
+        System.out.println("Mouse click at: " + event.getX() + ", " + event.getY());
+
+        // Get the pixel reader from the snapshot
+        PixelReader pixelReader = snapshot.getPixelReader();
+        double x = event.getX();
+        double y = event.getY();
+
+        // Ensure the click is within canvas bounds
+        if (x >= 0 && x < snapshot.getWidth() && y >= 0 && y < snapshot.getHeight()) {
+            // Grab the color at the clicked position
+            Color grabbedColor = pixelReader.getColor((int) x, (int) y);
+            System.out.println("Grabbed color: " + grabbedColor.toString());
+
+            // Set the grabbed color to the ColorPicker
+            colorPicker.setValue(grabbedColor);
+
+            // Update the info text
+            infoText.setText("Color grabbed: " + grabbedColor.toString());
+
+            // Reset to the default tool after grabbing the color
+            resetToDefaultTool();
+        } else {
+            infoText.setText("Clicked outside canvas bounds.");
+            System.out.println("Click outside canvas bounds.");
+        }
+    }
+
+
+
+    private void resetToDefaultTool() {
+        // Reset tool to the default tool, e.g., Pencil
+        currentTool = "Pencil";
+        colorGrabButton.setSelected(false);  // Deselect the color grab button
+        infoText.setText("Back to pencil tool.");
+
+        // Remove mouse click listener from the canvas to stop grabbing colors
+        CanvasTab canvasTab = getSelectedCanvasTab();
+        if (canvasTab != null) {
+            Canvas currentCanvas = canvasTab.getCanvas();
+            currentCanvas.setOnMouseClicked(null);  // Remove the click listener
+        }
+    }
 
     // Variable to track the current tool
     //private String currentTool = "Pencil"; default
@@ -295,7 +572,9 @@ public class HelloController {
     }
 
     @FXML
-    private void setHeartTool() { currentTool = "Heart";}
+    private void setHeartTool() {
+        currentTool = "Heart";
+    }
 
     @FXML
     private void setTextTool() {
@@ -307,110 +586,179 @@ public class HelloController {
         currentTool = "nGon";
     }
 
-
+    @FXML
     private void onMousePressed(MouseEvent event) {
-        startX = event.getX();
-        startY = event.getY();
+        CanvasTab canvasTab = getSelectedCanvasTab();
+        if (canvasTab != null) {
+            GraphicsContext gc = canvasTab.getGraphicsContext();
+            startX = event.getX();
+            startY = event.getY();
 
-        gc.setStroke(colorPicker.getValue());
-        gc.setLineWidth(lineWidthSlider.getValue());
+            gc.setStroke(colorPicker.getValue());
+            gc.setLineWidth(lineWidthSlider.getValue());
 
-        if (pencilButton.isSelected()) {
-            gc.beginPath();
-            gc.moveTo(startX, startY);
-        } else if (eraserButton.isSelected()) {
-            //gc.clearRect(startX, startY, lineWidthSlider.getValue(), lineWidthSlider.getValue());
-            gc.setStroke(Color.WHITE); // Set eraser stroke color to white
-            gc.setLineWidth(lineWidthSlider.getValue()); // Use lineWidth for eraser as well
-            gc.beginPath();
-            gc.moveTo(startX, startY);
+            if (dashedLineCheckBox.isSelected()) {
+                gc.setLineDashes((2 * lineWidthSlider.getValue()) + 10);
+            } else {
+                gc.setLineDashes(0);
+            }
+
+            if (pencilButton.isSelected() || eraserButton.isSelected()) {
+                if (eraserButton.isSelected()) {
+                    gc.setStroke(Color.WHITE);
+                }
+                gc.beginPath();
+                gc.moveTo(startX, startY);
+                gc.stroke();
+            }
         }
     }
 
+
+
+    @FXML
     private void onMouseDragged(MouseEvent event) {
-        if (pencilButton.isSelected()) {
-            gc.lineTo(event.getX(), event.getY());
-            gc.stroke();
-        } else if (eraserButton.isSelected()) {
-            //gc.clearRect(event.getX(), event.getY(), lineWidthSlider.getValue(), lineWidthSlider.getValue());
-            gc.lineTo(event.getX(), event.getY());
-            gc.stroke(); // Use stroke with white color for eraser
+        CanvasTab canvasTab = getSelectedCanvasTab();
+        if (canvasTab != null) {
+            GraphicsContext gc = canvasTab.getGraphicsContext(); // Main canvas GC
+            GraphicsContext tempGc = canvasTab.getTempGraphicsContext();  // Temporary canvas GC
+            double endX = event.getX();
+            double endY = event.getY();
+
+            if (pencilButton.isSelected() || eraserButton.isSelected()) {
+                // Set stroke and line width for gc
+                if (eraserButton.isSelected()) {
+                    gc.setStroke(Color.WHITE);
+                } else {
+                    gc.setStroke(colorPicker.getValue());
+                }
+                gc.setLineWidth(lineWidthSlider.getValue());
+
+                gc.lineTo(endX, endY);
+                gc.stroke();
+            } else {
+                // Clear the temporary canvas for redrawing
+                tempGc.clearRect(0, 0, canvasTab.getTempCanvas().getWidth(), canvasTab.getTempCanvas().getHeight());
+
+                tempGc.setStroke(colorPicker.getValue()); // Use the color picker value
+                tempGc.setLineWidth(lineWidthSlider.getValue());
+
+                // Draw the selected shape on the temporary canvas
+                if (lineButton.isSelected()) {
+                    tempGc.strokeLine(startX, startY, endX, endY);
+                } else if (rectangleButton.isSelected()) {
+                    double width = Math.abs(endX - startX);
+                    double height = Math.abs(endY - startY);
+                    tempGc.strokeRect(Math.min(startX, endX), Math.min(startY, endY), width, height);
+                } else if (ellipseButton.isSelected()) {
+                    double width = Math.abs(endX - startX);
+                    double height = Math.abs(endY - startY);
+                    tempGc.strokeOval(Math.min(startX, endX), Math.min(startY, endY), width, height);
+                } else if (circleButton.isSelected()) {
+                    double radius = Math.hypot(endX - startX, endY - startY);
+                    tempGc.strokeOval(startX - radius, startY - radius, radius * 2, radius * 2);
+                } else if (triangleButton.isSelected()) {
+                    tempGc.strokePolygon(
+                            new double[]{startX, endX, (startX + endX) / 2},
+                            new double[]{startY, endY, startY - Math.abs(endY - startY)}, 3);
+                } else if (starButton.isSelected()) {
+                    drawStar(tempGc, startX, startY, endX, endY);
+                } else if (heartButton.isSelected()) {
+                    double centerX = (startX + endX) / 2;
+                    double centerY = (startY + endY) / 2;
+                    double size = Math.abs(endX - startX) / 16;
+                    drawHeart(tempGc, centerX, centerY, size);
+                } else if (imageButton.isSelected()) {
+                    double width = Math.abs(endX - startX);
+                    double height = Math.abs(endY - startY);
+                    tempGc.drawImage(customStickerImage, Math.min(startX, endX), Math.min(startY, endY), width, height);
+                } else if (nGonButton.isSelected()) {
+                    int numberOfSides = nGonSides;
+                    drawNgon(tempGc, startX, startY, endX, endY, numberOfSides);
+                } else if (textButton.isSelected()) {
+                    double deltaX = endX - startX;
+                    double deltaY = endY - startY;
+                    double distance = Math.hypot(deltaX, deltaY);
+                    double fontSize = distance / 8;  // Calculate font size based on distance
+                    Font font = createFontWithStyle(fontFamily, fontSize, italic, bold);
+                    drawText(tempGc, startX, startY, endX, endY, stringToolText, font, colorPicker.getValue());
+                }
+            }
+            // Save the canvas state for undo functionality
+            // You can uncomment the following line if needed
+            // saveCanvasState();
         }
     }
 
+
+    @FXML
     private void onMouseReleased(MouseEvent event) {
-        // Check if the dashed lines checkbox is selected
-        if (dashedLineCheckBox.isSelected()) {
-            gc.setLineDashes((2 * lineWidthSlider.getValue()) + 10);  // Set dashes (length of dashes) dynamically, using the lineWidth multiplied by 2 + 10
-            gc.setLineDashOffset((2 * lineWidthSlider.getValue()) + 20);  // Distance between dashes dynamically, using the lineWidth multiplied by 2 + 20
-        } else {
-            gc.setLineDashes(0);  // Solid line (no dashes)
-        }
-
-        // Drawing the selected shapes
-        if (lineButton.isSelected()) {
-            gc.strokeLine(startX, startY, event.getX(), event.getY());
-        } else if (rectangleButton.isSelected()) {
-            double width = Math.abs(event.getX() - startX);
-            double height = Math.abs(event.getY() - startY);
-            gc.strokeRect(Math.min(startX, event.getX()), Math.min(startY, event.getY()), width, height);
-        } else if (ellipseButton.isSelected()) {
-            double width = Math.abs(event.getX() - startX);
-            double height = Math.abs(event.getY() - startY);
-            gc.strokeOval(Math.min(startX, event.getX()), Math.min(startY, event.getY()), width, height);
-        } else if (circleButton.isSelected()) {
-            double radius = Math.abs(event.getX() - startX);
-            gc.strokeOval(Math.min(startX, event.getX()), Math.min(startY, event.getY()), radius, radius);
-        } else if (triangleButton.isSelected()) {
-            gc.strokePolygon(new double[]{startX, event.getX(), (startX + event.getX()) / 2},
-                    new double[]{startY, event.getY(), startY - Math.abs(event.getY() - startY)}, 3);
-        }else if (starButton.isSelected()) {
-            drawStar(startX, startY, event.getX(), event.getY());
-        }else if (heartButton.isSelected()) {
-            double centerX = (startX + event.getX()) / 2;
-            double centerY = (startY + event.getY()) / 2;
-            double size = Math.abs(event.getX() - startX) / 16;  // Scale based on the width of the drawn area
-
-            drawHeart(centerX, centerY, size);
-        }else if (imageButton.isSelected()) {
-            // Load and draw the image
-            //Image image = new Image("/images/paint-P-Logo.png");  // Replace with the correct image path or load dynamically
-            double x = startX;
-            double y = startY;
-            double width = Math.abs(event.getX() - startX);
-            double height = Math.abs(event.getY() - startY);
-
-            gc.drawImage(customStickerImage, Math.min(startX, event.getX()), Math.min(startY, event.getY()), width, height);
-        }else if (nGonButton.isSelected()) {
-            double endX = event.getX();
-            double endY = event.getY();
-            int numberOfSides = nGonSides; // This can be set dynamically based on a user input (e.g., a slider or a text field)
-
-            drawNgon(startX, startY, endX, endY, numberOfSides);
-        } else if (textButton.isSelected()) {
+        CanvasTab canvasTab = getSelectedCanvasTab();
+        if (canvasTab != null) {
+            GraphicsContext gc = canvasTab.getGraphicsContext();  // Main canvas GC
+            GraphicsContext tempGc = canvasTab.getTempGraphicsContext();  // Temporary canvas GC
             double endX = event.getX();
             double endY = event.getY();
 
-            // Calculate the font size
-            double deltaX = endX - startX;
-            double deltaY = endY - startY;
-            double distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
-            double fontSize = distance / 8;  // Adjust the divisor for smaller or larger fonts
+            // Clear the temporary canvas after releasing the mouse
+            tempGc.clearRect(0, 0, canvasTab.getTempCanvas().getWidth(), canvasTab.getTempCanvas().getHeight());
 
-            // Create the font using your existing method
-            Font font = createFontWithStyle(fontFamily, fontSize, italic, bold);
+            // Now commit the final shape to the main canvas
+            gc.setStroke(colorPicker.getValue());
+            gc.setLineWidth(lineWidthSlider.getValue());
 
-            // Get the selected color from the color picker
-            //Color selectedColor = colorPicker.getValue();
-
-            // Call the drawText method
-            drawText(startX, startY, endX, endY, stringToolText, font, colorPicker.getValue());
+            if (pencilButton.isSelected() || eraserButton.isSelected()) {
+                // Nothing to do here; drawing is handled during drag
+            } else if (lineButton.isSelected()) {
+                gc.strokeLine(startX, startY, endX, endY);
+            } else if (rectangleButton.isSelected()) {
+                double width = Math.abs(endX - startX);
+                double height = Math.abs(endY - startY);
+                gc.strokeRect(Math.min(startX, endX), Math.min(startY, endY), width, height);
+            } else if (ellipseButton.isSelected()) {
+                double width = Math.abs(endX - startX);
+                double height = Math.abs(endY - startY);
+                gc.strokeOval(Math.min(startX, endX), Math.min(startY, endY), width, height);
+            } else if (circleButton.isSelected()) {
+                double radius = Math.hypot(endX - startX, endY - startY);
+                gc.strokeOval(startX - radius, startY - radius, radius * 2, radius * 2);
+            } else if (triangleButton.isSelected()) {
+                gc.strokePolygon(
+                        new double[]{startX, endX, (startX + endX) / 2},
+                        new double[]{startY, endY, startY - Math.abs(endY - startY)}, 3);
+            } else if (starButton.isSelected()) {
+                drawStar(gc, startX, startY, endX, endY);
+            } else if (heartButton.isSelected()) {
+                double centerX = (startX + endX) / 2;
+                double centerY = (startY + endY) / 2;
+                double size = Math.abs(endX - startX) / 16;
+                drawHeart(gc, centerX, centerY, size);
+            } else if (imageButton.isSelected()) {
+                double width = Math.abs(endX - startX);
+                double height = Math.abs(endY - startY);
+                gc.drawImage(customStickerImage, Math.min(startX, endX), Math.min(startY, endY), width, height);
+            } else if (nGonButton.isSelected()) {
+                int numberOfSides = nGonSides;
+                drawNgon(gc, startX, startY, endX, endY, numberOfSides);
+            } else if (textButton.isSelected()) {
+                double deltaX = endX - startX;
+                double deltaY = endY - startY;
+                double distance = Math.hypot(deltaX, deltaY);
+                double fontSize = distance / 8;  // Calculate font size based on distance
+                Font font = createFontWithStyle(fontFamily, fontSize, italic, bold);
+                drawText(gc, startX, startY, endX, endY, stringToolText, font, colorPicker.getValue());
+            }
+            // Save the canvas state for undo functionality
+            //saveCanvasState(tabPane.getSelectionModel().getSelectedItem());
+            saveCanvasState();
         }
-        // Reset dashes back to solid for future drawings if needed
-        //gc.setLineDashes(0);
     }
 
-    public void drawNgon(double x1, double y1, double x2, double y2, int n) {
+
+
+
+
+    public void drawNgon(GraphicsContext gc, double x1, double y1, double x2, double y2, int n) {
         double[] xPoints = new double[n];
         double[] yPoints = new double[n];
 
@@ -430,18 +778,11 @@ public class HelloController {
         gc.strokePolygon(xPoints, yPoints, n);
     }
 
-    public void drawText(double startX, double startY, double endX, double endY, String text, Font font, Color color) {
+    public void drawText(GraphicsContext gc, double startX, double startY, double endX, double endY, String text, Font font, Color color) {
         gc.setLineWidth(1); // More than 1 is unreadable for text
 
-        // Calculate the distance between the start and end points (as a basis for the font size)
-        double deltaX = endX - startX;
-        double deltaY = endY - startY;
-        double distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
-
-        // Set the font size relative to the distance
-        double fontSize = distance / 8;  // Adjust the divisor for smaller or larger fonts
-        Font finalFont = Font.font(font.getName(), fontSize);  // Set the font size
-        gc.setFont(finalFont);
+        // Set the font directly without changing it
+        gc.setFont(font);
 
         // Set both stroke and fill colors to the selected color from the ColorPicker
         gc.setStroke(color);
@@ -458,7 +799,8 @@ public class HelloController {
     }
 
 
-    private void drawHeart(double centerX, double centerY, double size) {
+
+    private void drawHeart(GraphicsContext gc, double centerX, double centerY, double size) {
         int points = 100; // Number of points to plot
         double[] xPoints = new double[points];
         double[] yPoints = new double[points];
@@ -536,6 +878,10 @@ public class HelloController {
         });
     }
 
+    public void setDefaultPolygonSides(){
+        nGonSides = 5;
+    }
+
     public int getNGonSides() {
         return nGonSides;
     }
@@ -547,7 +893,21 @@ public class HelloController {
 
         return Font.font(fontFamily, fontWeight, fontPosture, fontSize);
     }
-    private void drawStar(double startX, double startY, double endX, double endY) {
+
+
+    private void drawStar(GraphicsContext gc,double startX, double startY, double endX, double endY) {
+
+        // Debugging print statements
+        System.out.println("Entered drawStar method");
+        System.out.println("GraphicsContext: " + gc);
+        System.out.println("StartX: " + startX + ", StartY: " + startY);
+        System.out.println("EndX: " + endX + ", EndY: " + endY);
+
+        // Check if GraphicsContext is null
+        if (gc == null) {
+            System.err.println("GraphicsContext is null! Exiting drawStar.");
+            return;  // Exit the method if GraphicsContext is not initialized
+        }
         double centerX = (startX + endX) / 2;
         double centerY = (startY + endY) / 2;
         double radius = Math.min(Math.abs(endX - startX), Math.abs(endY - startY)) / 2;
@@ -633,19 +993,41 @@ public class HelloController {
         gc.setFont(customFont);
     }
 
+    private void updateLabel(double mouseX, double mouseY) {
+        // Get the selected tab
+        Tab selectedTab = tabPane.getSelectionModel().getSelectedItem();
+        if (selectedTab != null) {
+            // Retrieve the corresponding CanvasTab for the selected tab
+            CanvasTab canvasTab = tabCanvasMap.get(selectedTab);
+            if (canvasTab != null) {
+                // Get the canvas from the selected CanvasTab
+                Canvas currentCanvas = canvasTab.getCanvas();
 
+                // Get the width, height, and pen size for the current canvas
+                double width = currentCanvas.getWidth();
+                double height = currentCanvas.getHeight();
+                double currentPenSize = lineWidthSlider.getValue(); // Assuming the pen size is controlled by the slider
 
-
+                // Update the label with canvas size, pen size, and mouse coordinates
+                infoText.setText(String.format("Canvas size: %.0f x %.0f | Pen Size: %.0f px | Coordinates X: %.0f, Y: %.0f",
+                        width, height, currentPenSize, mouseX, mouseY));
+            } else {
+                System.err.println("No CanvasTab found for the selected tab.");
+            }
+        } else {
+            System.err.println("No tab is selected.");
+        }
+    }
 
 
     // Ensure this is properly initialized
 
     /*
 
-    FUN FACT
+        FUN FACT
 
-    Most icons in the buttons were created with this app!
-    Painting P!!!!
+        Most icons in the buttons were created with this app!
+        Painting P!!!!
 
      */
     private void setButtonIcons() {
@@ -660,6 +1042,7 @@ public class HelloController {
         Image starIcon = new Image(Objects.requireNonNull(getClass().getResourceAsStream("/images/star_icon.png")));
         Image heartIcon = new Image(Objects.requireNonNull(getClass().getResourceAsStream("/images/heart_icon.png")));
         Image textIcon = new Image(Objects.requireNonNull(getClass().getResourceAsStream("/images/text_icon.png")));
+        Image nGonIcon = new Image(Objects.requireNonNull(getClass().getResourceAsStream("/images/polygon_icon.png")));
 
         ImageView imageView1 = new ImageView(pencilIcon);
         imageView1.setFitHeight(25.0); // Set the image height
@@ -694,6 +1077,9 @@ public class HelloController {
         ImageView imageView11 = new ImageView(textIcon);
         imageView11.setFitHeight(25.0); // Set the image height
         imageView11.setFitWidth(25.0);
+        ImageView imageView12 = new ImageView(nGonIcon);
+        imageView12.setFitHeight(25.0); // Set the image height
+        imageView12.setFitWidth(25.0);
 
         pencilButton.setGraphic(imageView1);
         lineButton.setGraphic(imageView2);
@@ -706,6 +1092,7 @@ public class HelloController {
         imageButton.setGraphic(imageView9);
         heartButton.setGraphic(imageView10);
         textButton.setGraphic(imageView11);
+        nGonButton.setGraphic(imageView12);
     }
 
     // Getter for pen size
@@ -723,20 +1110,6 @@ public class HelloController {
         return penSize;
     }
 
-    private void updateLabel(double mouseX, double mouseY) {
-
-        double width = canvas.getWidth();
-        double height = canvas.getHeight();
-        double currentPenSize = getPenSize(); // Get the current pen size (from the slider)
-
-        // Set label text with width, height, mouse coordinates, and pen size
-        infoText.setText(String.format("Canvas size: %.0f x %.0f | Pen Size: %.0f px | Coordinates X: %.0f, Y: %.0f", width, height, currentPenSize, mouseX, mouseY));
-    }
-
-    // Overloaded method to just update the size without mouse coordinates
-    private void updateLabel() {
-        updateLabel(0, 0);  // Default mouse coordinates to (0, 0)
-    }
 
 
 
@@ -800,7 +1173,7 @@ public class HelloController {
 
         if (result.isPresent() && result.get() == editCanvaButton) {
             // Handle saving the file here
-           return true;// Assuming this exits after
+            return true;// Assuming this exits after
         }else {
 
             // Cancel: do nothing, stay in the application
@@ -811,121 +1184,212 @@ public class HelloController {
 
 
 
-    private void setupShortcuts() {
-        Scene scene = canvasPane.getScene();
-        if (scene != null) {
-            System.out.println("Scene is initialized. Setting up shortcuts.");
-            scene.getAccelerators().put(saveShortCut, this::onSaveAsClick);
-            scene.getAccelerators().put(exitShortCut, this::safetyExit);
-            scene.getAccelerators().put(clearShortCut, this::onCanvaClearCanva);
-        } else {
-            System.out.println("Scene is null. Cannot set up shortcuts.");
+
+    @FXML
+    public void onColorChange() {
+        // Update the current color for drawing on the selected canvas
+        Tab selectedTab = tabPane.getSelectionModel().getSelectedItem();
+        if (selectedTab != null) {
+            CanvasTab canvasTab = canvasTabs.get(selectedTab);
+            if (canvasTab != null) {
+                canvasTab.getGraphicsContext().setStroke(colorPicker.getValue());
+            }
         }
-    }
-
-
-
-
-    @FXML
-    protected void onColorChange() {
-        currentColor = colorPicker.getValue();
-    }
-
-    @FXML
-    public void onUndoClick() {
-        // Your undo logic here
-    }
-
-    @FXML
-    protected void onRedoClick() {
-        // Implement redo functionality here
     }
 
     @FXML
     protected void setWideCanvas() {
         boolean safe = safetyCanvasEdit();
         if (safe) {
-            canvas.setWidth(1240);
-            canvas.setHeight(620);
+            Tab selectedTab = tabPane.getSelectionModel().getSelectedItem();
+            if (selectedTab != null && selectedTab.getContent() instanceof ScrollPane) {
+                ScrollPane scrollPane = (ScrollPane) selectedTab.getContent();
+                if (scrollPane.getContent() instanceof StackPane) {
+                    StackPane canvasPane = (StackPane) scrollPane.getContent();
+                    if (!canvasPane.getChildren().isEmpty() && canvasPane.getChildren().get(0) instanceof Canvas) {
+                        Canvas currentCanvas = (Canvas) canvasPane.getChildren().get(0);
+                        currentCanvas.setWidth(1240);
+                        currentCanvas.setHeight(620);
+                    } else {
+                        System.err.println("No canvas found in the StackPane.");
+                    }
+                } else {
+                    System.err.println("The content inside the ScrollPane is not a StackPane.");
+                }
+            } else {
+                System.err.println("The content of the tab is not a ScrollPane.");
+            }
         }
     }
+
+
+    @FXML
+    protected void setCustomSizeCanvas(ActionEvent event) {
+        boolean safe = safetyCanvasEdit();
+        if (safe) {
+            CanvasTab canvasTab = getSelectedCanvasTab();
+            if (canvasTab != null) {
+                Canvas currentCanvas = canvasTab.getCanvas();
+
+                // Load the icon image for dialogs
+                Image icon = new Image(Objects.requireNonNull(getClass().getResourceAsStream("/images/paint-P-Logo.png")));
+
+                // Create dialog for width input
+                TextInputDialog widthDialog = new TextInputDialog();
+                widthDialog.setTitle("Custom Canvas Size");
+                widthDialog.setHeaderText("Set Custom Canvas Size");
+                widthDialog.setContentText("Enter canvas width (in pixels):");
+
+                // Set the icon for the width dialog
+                Stage widthStage = (Stage) widthDialog.getDialogPane().getScene().getWindow();
+                widthStage.getIcons().add(icon);
+
+                Optional<String> widthInput = widthDialog.showAndWait();
+                if (!widthInput.isPresent()) {
+                    return; // Exit if user cancels the width input dialog
+                }
+
+                // Create dialog for height input
+                TextInputDialog heightDialog = new TextInputDialog();
+                heightDialog.setTitle("Custom Canvas Size");
+                heightDialog.setHeaderText("Set Custom Canvas Size");
+                heightDialog.setContentText("Enter canvas height (in pixels):");
+
+                // Set the icon for the height dialog
+                Stage heightStage = (Stage) heightDialog.getDialogPane().getScene().getWindow();
+                heightStage.getIcons().add(icon);
+
+                Optional<String> heightInput = heightDialog.showAndWait();
+                if (!heightInput.isPresent()) {
+                    return; // Exit if user cancels the height input dialog
+                }
+
+                try {
+                    // Parse the width and height values
+                    double newWidth = Double.parseDouble(widthInput.get());
+                    double newHeight = Double.parseDouble(heightInput.get());
+
+                    // Validate the size values
+                    if (newWidth <= 0 || newHeight <= 0) {
+                        throw new IllegalArgumentException("Canvas size must be positive.");
+                    }
+
+                    // Set the new canvas size
+                    currentCanvas.setWidth(newWidth);
+                    currentCanvas.setHeight(newHeight);
+
+                    // Re-fill the canvas background to ensure the new size is visible
+                    GraphicsContext gc = currentCanvas.getGraphicsContext2D();
+                    gc.setFill(Color.WHITE);  // Set default background color (white)
+                    gc.fillRect(0, 0, newWidth, newHeight);
+
+                    // Update any UI elements or labels reflecting the new size
+                    updateLabel();  // Refresh the label to show the updated canvas size
+
+                } catch (NumberFormatException e) {
+                    // Handle invalid input (non-numeric values)
+                    showErrorDialog("Invalid input", "Please enter valid numeric values for the canvas size.");
+                } catch (IllegalArgumentException e) {
+                    // Handle size out of bounds
+                    showErrorDialog("Invalid size", e.getMessage());
+                }
+            } else {
+                System.err.println("No canvas found in the selected tab.");
+            }
+        }
+    }
+
+    @FXML
+    protected void setWindowSizeCanvas() {
+        boolean safe = safetyCanvasEdit();
+        if (safe) {
+            CanvasTab canvasTab = getSelectedCanvasTab();
+            if (canvasTab != null) {
+                Canvas currentCanvas = canvasTab.getCanvas();
+
+                // Get the current stage's dimensions
+                Stage stage = (Stage) currentCanvas.getScene().getWindow();
+                double width = stage.getWidth();
+                double height = stage.getHeight();
+
+                // Adjust the canvas size according to the window size (with some padding)
+                currentCanvas.setWidth(width - 30);
+                currentCanvas.setHeight(height - 50);
+
+                // Re-fill the canvas background to ensure the new size is visible
+                GraphicsContext gc = currentCanvas.getGraphicsContext2D();
+                gc.setFill(Color.WHITE);
+                gc.fillRect(0, 0, currentCanvas.getWidth(), currentCanvas.getHeight());
+
+                // Update any UI elements or labels reflecting the new size
+                updateLabel();  // Refresh the label to show the updated canvas size
+            } else {
+                System.err.println("No CanvasTab found for the selected tab.");
+            }
+        }
+    }
+
+
 
     @FXML
     protected void setTallCanvas() {
         boolean safe = safetyCanvasEdit();
         if (safe) {
-            canvas.setWidth(600);
-            canvas.setHeight(650);
-        }
-    }
-
-    @FXML
-    protected void setCustomSizeCanvas() {
-        boolean safe = safetyCanvasEdit();
-        if (safe) {
-            // Load the icon image
-            Image icon = new Image(Objects.requireNonNull(getClass().getResourceAsStream("/images/paint-P-Logo.png")));
-
-            // Create two dialogs for input: one for width, one for height
-            TextInputDialog widthDialog = new TextInputDialog();
-            widthDialog.setTitle("Custom Canvas Size");
-            widthDialog.setHeaderText("Set Custom Canvas Size");
-            widthDialog.setContentText("Enter canvas width (in pixels):");
-
-            // Set the icon for the width dialog
-            Stage widthStage = (Stage) widthDialog.getDialogPane().getScene().getWindow();
-            widthStage.getIcons().add(icon);
-
-            Optional<String> widthInput = widthDialog.showAndWait();
-            if (!widthInput.isPresent()) {
-                return; // If the user cancels the dialog, exit the method
-            }
-
-            TextInputDialog heightDialog = new TextInputDialog();
-            heightDialog.setTitle("Custom Canvas Size");
-            heightDialog.setHeaderText("Set Custom Canvas Size");
-            heightDialog.setContentText("Enter canvas height (in pixels):");
-
-            // Set the icon for the height dialog
-            Stage heightStage = (Stage) heightDialog.getDialogPane().getScene().getWindow();
-            heightStage.getIcons().add(icon);
-
-            Optional<String> heightInput = heightDialog.showAndWait();
-            if (!heightInput.isPresent()) {
-                return; // If the user cancels the dialog, exit the method
-            }
-
-            // Try to parse the input values and apply them to the canvas
-            try {
-                double newWidth = Double.parseDouble(widthInput.get());
-                double newHeight = Double.parseDouble(heightInput.get());
-
-                // Validate the size values (e.g., minimum and maximum size)
-                if (newWidth <= 0 || newHeight <= 0) {
-                    throw new IllegalArgumentException("Canvas size must be positive.");
+            Tab selectedTab = tabPane.getSelectionModel().getSelectedItem();
+            if (selectedTab != null) {
+                Node content = selectedTab.getContent();
+                StackPane canvasPane;
+                if (content instanceof ScrollPane) {
+                    ScrollPane scrollPane = (ScrollPane) content;
+                    canvasPane = (StackPane) scrollPane.getContent();
+                } else if (content instanceof StackPane) {
+                    canvasPane = (StackPane) content;
+                } else {
+                    System.err.println("The content is neither a ScrollPane nor a StackPane.");
+                    return;
                 }
 
-                // Set the new canvas size
-                canvas.setWidth(newWidth);
-                canvas.setHeight(newHeight);
+                if (!canvasPane.getChildren().isEmpty() && canvasPane.getChildren().get(0) instanceof Canvas) {
+                    Canvas currentCanvas = (Canvas) canvasPane.getChildren().get(0);
+                    currentCanvas.setWidth(600);
+                    currentCanvas.setHeight(650);
 
-                // Re-fill the canvas background to ensure the new size is visible
-                GraphicsContext gc = canvas.getGraphicsContext2D();
-                gc.setFill(Color.WHITE); // Set default background color (if any)
-                gc.fillRect(0, 0, newWidth, newHeight);
+                    // Re-fill the canvas background to ensure the new size is visible
+                    GraphicsContext gc = currentCanvas.getGraphicsContext2D();
+                    gc.setFill(Color.WHITE);
+                    gc.fillRect(0, 0, currentCanvas.getWidth(), currentCanvas.getHeight());
 
-                // Update any UI elements or labels reflecting the new size
-                updateLabel(); // Refresh the label to show the updated canvas size
-
-            } catch (NumberFormatException e) {
-                // Handle invalid input (non-numeric values)
-                showErrorDialog("Invalid input", "Please enter valid numeric values for the canvas size.");
-            } catch (IllegalArgumentException e) {
-                // Handle size out of bounds
-                showErrorDialog("Invalid size", e.getMessage());
+                    updateLabel();  // Update any UI elements or labels reflecting the new size
+                } else {
+                    System.err.println("No canvas found in the StackPane.");
+                }
             }
         }
     }
+
+    private void setupListeners() {
+        // Add listener for tab selection
+        tabPane.getSelectionModel().selectedItemProperty().addListener((observable, oldTab, newTab) -> {
+            if (newTab != null) {
+                CanvasTab canvasTab = tabCanvasMap.get(newTab);
+                if (canvasTab != null) {
+                    Canvas currentCanvas = canvasTab.getCanvas();
+
+                    // Add listeners to the width and height properties of the Canvas
+                    currentCanvas.widthProperty().addListener((obs, oldValue, newValue) -> updateLabel());
+                    currentCanvas.heightProperty().addListener((obs, oldValue, newValue) -> updateLabel());
+                } else {
+                    System.err.println("CanvasTab not found for the new tab.");
+                }
+            }
+        });
+    }
+
+
+
+
+
+
 
     private void showErrorDialog(String title, String message) {
         // Utility method to show an error dialog
@@ -936,17 +1400,9 @@ public class HelloController {
         alert.showAndWait();
     }
 
-    @FXML
-    protected void setWindowSizeCanvas() {
-        boolean safe = safetyCanvasEdit();
-        if (safe) {
-            Stage stage = (Stage) canvas.getScene().getWindow();
-            double height = stage.getHeight();
-            double width = stage.getWidth();
-            canvas.setWidth(width - 30);
-            canvas.setHeight(height - 50);
-        }
-    }
+
+
+
 
 
 
@@ -954,169 +1410,228 @@ public class HelloController {
     protected void onCanvaClearCanva() {
         boolean safe = safetyCanvasEdit();
         if (safe) {
-            if (canvas != null) {
+            CanvasTab canvasTab = getSelectedCanvasTab();
+            if (canvasTab != null) {
+                Canvas currentCanvas = canvasTab.getCanvas();
+                GraphicsContext gc = currentCanvas.getGraphicsContext2D();
 
-                GraphicsContext gc = canvas.getGraphicsContext2D();
-                if (gc != null) {
-
-                    gc.setFill(Color.WHITE);
-                    gc.fillRect(0, 0, canvas.getWidth(), canvas.getHeight());
-
-
-                } else {
-
-                    System.err.println("GraphicsContext is not initialized.");
-
-                }
+                gc.setFill(Color.WHITE);
+                gc.fillRect(0, 0, currentCanvas.getWidth(), currentCanvas.getHeight());
             } else {
-
-                System.err.println("Canvas is not initialized.");
-
+                System.err.println("No CanvasTab found for the selected tab.");
             }
         }
     }
 
     @FXML
-    protected void onOpenImageClickCanvasSize() {
+    protected void onOpenImageClickCanvasSize(ActionEvent event) {
         onOpenImageClick(false);
     }
 
     @FXML
-    protected void onOpenImageClickOriginalSize() {
+    protected void onOpenImageClickOriginalSize(ActionEvent event) {
         onOpenImageClick(true);
     }
 
     @FXML
-    protected void onOpenImageClick(boolean originalSize) {
-        FileChooser fileChooser = new FileChooser();
-        fileChooser.getExtensionFilters().add(
-                new FileChooser.ExtensionFilter("Image Files", "*.png", "*.jpg", "*.jpeg", "*.gif")
-        );
+    protected void onOpenImageClick(boolean originalSize) {  //TS
+        Tab selectedTab = tabPane.getSelectionModel().getSelectedItem();
+        if (selectedTab != null && selectedTab.getContent() instanceof ScrollPane) {
+            ScrollPane scrollPane = (ScrollPane) selectedTab.getContent();
+            if (scrollPane.getContent() instanceof StackPane) {
+                StackPane canvasPane = (StackPane) scrollPane.getContent();
+                if (!canvasPane.getChildren().isEmpty() && canvasPane.getChildren().get(0) instanceof Canvas) {
+                    Canvas currentCanvas = (Canvas) canvasPane.getChildren().get(0);
 
-        File selectedFile = fileChooser.showOpenDialog(canvas.getScene().getWindow());
+                    FileChooser fileChooser = new FileChooser();
+                    fileChooser.getExtensionFilters().add(
+                            new FileChooser.ExtensionFilter("Image Files", "*.png", "*.jpg", "*.jpeg", "*.gif")
+                    );
 
-        if (selectedFile != null) {
-            Image image = new Image(selectedFile.toURI().toString());
+                    File selectedFile = fileChooser.showOpenDialog(currentCanvas.getScene().getWindow());
 
-            double imageWidth = image.getWidth();
-            double imageHeight = image.getHeight();
+                    if (selectedFile != null) {
+                        Image image = new Image(selectedFile.toURI().toString());
 
-            GraphicsContext gc = canvas.getGraphicsContext2D();
+                        double imageWidth = image.getWidth();
+                        double imageHeight = image.getHeight();
 
-            if (originalSize) {
-                canvas.setWidth(imageWidth);
-                canvas.setHeight(imageHeight);
-                gc.drawImage(image, 0, 0, imageWidth, imageHeight);
-            } else {
-                gc.drawImage(image, 0, 0, canvas.getWidth(), canvas.getHeight());
-            }
-        }
-    }
+                        GraphicsContext gc = currentCanvas.getGraphicsContext2D();
 
-    @FXML
-    protected void onSafeClick() {
-
-        // Make sure the canvas is initialized
-        if (canvas == null) {
-            System.err.println("Canvas is not initialized bro.");
-            return;
-        }
-
-        // FileChooser to select the save location
-        FileChooser fileChooser = new FileChooser();
-        fileChooser.setTitle("Save Canvas As");
-        fileChooser.getExtensionFilters().add(
-                new FileChooser.ExtensionFilter("JPEG Files", "*.jpg", "*.jpeg")
-        );
-
-        // Set default paint_p name and extension
-        fileChooser.setInitialFileName("paint_p.jpg");
-
-        File selectedFile = fileChooser.showSaveDialog(canvas.getScene().getWindow());
-
-        if (selectedFile != null) {
-
-            // Ensure the file extension is ".jpg" if not correct it
-            if (!selectedFile.getName().toLowerCase().endsWith(".jpg")) {
-                selectedFile = new File(selectedFile.getAbsolutePath() + ".jpg");
-            }
-
-            // Create a WritableImage from the Canvas
-            WritableImage writableImage = new WritableImage((int) canvas.getWidth(), (int) canvas.getHeight());
-            canvas.snapshot(null, writableImage);
-
-            // Convert WritableImage to BufferedImage
-            BufferedImage bufferedImage = SwingFXUtils.fromFXImage(writableImage, null);
-
-            // Save BufferedImage as JPEG
-            try {
-                ImageIO.write(bufferedImage, "jpg", selectedFile);
-            } catch (IOException e) {
-                e.printStackTrace();
-
-                // Error alert if the fails
-                Alert alert = new Alert(Alert.AlertType.ERROR, "Failed to save the image.");
-                alert.setTitle("Error");
-                alert.showAndWait();
-            }
-        }
-    }
-
-    @FXML
-    protected void onSaveAsClick() {
-        FileChooser fileChooser = new FileChooser();
-        fileChooser.setTitle("Save As");
-        fileChooser.getExtensionFilters().addAll(
-                new FileChooser.ExtensionFilter("PNG Files", "*.png"),
-                new FileChooser.ExtensionFilter("JPEG Files", "*.jpg", "*.jpeg"),
-                new FileChooser.ExtensionFilter("GIF Files", "*.gif"),
-                new FileChooser.ExtensionFilter("BMP Files", "*.bmp")
-        );
-        File selectedFile = fileChooser.showSaveDialog(canvas.getScene().getWindow());
-
-        if (selectedFile != null) {
-            String format = selectedFile.getName().substring(selectedFile.getName().lastIndexOf('.') + 1).toLowerCase();
-            WritableImage writableImage = new WritableImage((int) canvas.getWidth(), (int) canvas.getHeight());
-            canvas.snapshot(null, writableImage);
-            BufferedImage bufferedImage = SwingFXUtils.fromFXImage(writableImage, null);
-
-            try {
-                switch (format) {
-                    case "png":
-                        ImageIO.write(bufferedImage, "png", selectedFile);
-                        break;
-                    case "jpg":
-                    case "jpeg":
-                        saveAsJPEG(bufferedImage, selectedFile);
-                        break;
-                    case "bmp":
-                        saveAsBMP(bufferedImage, selectedFile);
-                        break;
-                    case "gif":
-                        saveAsGIF(bufferedImage, selectedFile);
-                        break;
-                    default:
-                        System.err.println("Unsupported format: " + format);
-                        break;
+                        if (originalSize) {
+                            currentCanvas.setWidth(imageWidth);
+                            currentCanvas.setHeight(imageHeight);
+                            gc.drawImage(image, 0, 0, imageWidth, imageHeight);
+                        } else {
+                            gc.drawImage(image, 0, 0, currentCanvas.getWidth(), currentCanvas.getHeight());
+                        }
+                    }
                 }
-            } catch (IOException e) {
-                e.printStackTrace();
-                showAlert("Error", "An error occurred while saving the file.");
             }
+        } else {
+            System.err.println("No canvas is selected.");
         }
+    }
+
+    @FXML
+    protected void onSafeClick() { //TS
+        Tab selectedTab = tabPane.getSelectionModel().getSelectedItem();
+        if (selectedTab != null && selectedTab.getContent() instanceof ScrollPane) {
+            ScrollPane scrollPane = (ScrollPane) selectedTab.getContent();
+            if (scrollPane.getContent() instanceof StackPane) {
+                StackPane canvasPane = (StackPane) scrollPane.getContent();
+                if (!canvasPane.getChildren().isEmpty() && canvasPane.getChildren().get(0) instanceof Canvas) {
+                    Canvas currentCanvas = (Canvas) canvasPane.getChildren().get(0);
+
+                    FileChooser fileChooser = new FileChooser();
+                    fileChooser.setTitle("Save Canvas As");
+                    fileChooser.getExtensionFilters().add(
+                            new FileChooser.ExtensionFilter("JPEG Files", "*.jpg", "*.jpeg")
+                    );
+
+                    fileChooser.setInitialFileName("paint_p.jpg");
+
+                    File selectedFile = fileChooser.showSaveDialog(currentCanvas.getScene().getWindow());
+
+                    if (selectedFile != null) {
+                        if (!selectedFile.getName().toLowerCase().endsWith(".jpg")) {
+                            selectedFile = new File(selectedFile.getAbsolutePath() + ".jpg");
+                        }
+
+                        WritableImage writableImage = new WritableImage((int) currentCanvas.getWidth(), (int) currentCanvas.getHeight());
+                        currentCanvas.snapshot(null, writableImage);
+                        BufferedImage bufferedImage = SwingFXUtils.fromFXImage(writableImage, null);
+
+                        try {
+                            ImageIO.write(bufferedImage, "jpg", selectedFile);
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                            showAlert("Error", "Failed to save the image.");
+                        }
+                    }
+                }
+            }
+        } else {
+            System.err.println("No canvas is selected.");
+        }
+    }
+
+
+
+    @FXML
+    protected void onSaveAsClick() {  //TS
+        Tab selectedTab = tabPane.getSelectionModel().getSelectedItem();
+        if (selectedTab != null && selectedTab.getContent() instanceof ScrollPane) {
+            ScrollPane scrollPane = (ScrollPane) selectedTab.getContent();
+            if (scrollPane.getContent() instanceof StackPane) {
+                StackPane canvasPane = (StackPane) scrollPane.getContent();
+                if (!canvasPane.getChildren().isEmpty() && canvasPane.getChildren().get(0) instanceof Canvas) {
+                    Canvas currentCanvas = (Canvas) canvasPane.getChildren().get(0);
+
+                    FileChooser fileChooser = new FileChooser();
+                    fileChooser.setTitle("Save As");
+                    fileChooser.getExtensionFilters().addAll(
+                            new FileChooser.ExtensionFilter("PNG Files", "*.png"),
+                            new FileChooser.ExtensionFilter("JPEG Files", "*.jpg", "*.jpeg"),
+                            new FileChooser.ExtensionFilter("GIF Files", "*.gif"),
+                            new FileChooser.ExtensionFilter("BMP Files", "*.bmp")
+                    );
+                    File selectedFile = fileChooser.showSaveDialog(currentCanvas.getScene().getWindow());
+
+                    if (selectedFile != null) {
+                        String format = selectedFile.getName().substring(selectedFile.getName().lastIndexOf('.') + 1).toLowerCase();
+                        WritableImage writableImage = new WritableImage((int) currentCanvas.getWidth(), (int) currentCanvas.getHeight());
+                        currentCanvas.snapshot(null, writableImage);
+                        BufferedImage bufferedImage = SwingFXUtils.fromFXImage(writableImage, null);
+
+                        try {
+                            switch (format) {
+                                case "png":
+                                    ImageIO.write(bufferedImage, "png", selectedFile);
+                                    break;
+                                case "jpg":
+                                case "jpeg":
+                                    saveAsJPEG(bufferedImage, selectedFile);
+                                    break;
+                                case "bmp":
+                                    saveAsBMP(bufferedImage, selectedFile);
+                                    break;
+                                case "gif":
+                                    saveAsGIF(bufferedImage, selectedFile);
+                                    break;
+                                default:
+                                    System.err.println("Unsupported format: " + format);
+                                    break;
+                            }
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                            showAlert("Error", "An error occurred while saving the file.");
+                        }
+                    }
+                }
+            }
+        } else {
+            System.err.println("No canvas is selected.");
+        }
+    }
+
+
+    //DO NOT TOUCH BMP IS WORKING
+    private void saveAsBMP(BufferedImage bufferedImage, File selectedFile) {
+        // Ensure the file has a .bmp extension
+        if (!selectedFile.getName().toLowerCase().endsWith(".bmp")) {
+            selectedFile = new File(selectedFile.getAbsolutePath() + ".bmp");
+        }
+
+        // Convert the image to 24-bit BMP format
+        BufferedImage bmpImage = convertToBmp(bufferedImage);
+
+        try {
+            ImageIO.write(bmpImage, "bmp", selectedFile);
+        } catch (IOException e) {
+            e.printStackTrace();
+            // Show error alert if saving fails
+            System.out.println("Error Failed to save the BMP image.");
+        }
+    }
+
+    private static BufferedImage convertToBmp(BufferedImage image) {
+        if (image.getType() == BufferedImage.TYPE_3BYTE_BGR) {
+            return image; // Already in BMP format
+        }
+
+        BufferedImage bmpImage = new BufferedImage(
+                image.getWidth(),
+                image.getHeight(),
+                BufferedImage.TYPE_3BYTE_BGR);
+
+        // Draw a white background and put the original image on it
+        bmpImage.createGraphics().drawImage(image, 0, 0, java.awt.Color.WHITE, null);
+        return bmpImage;
     }
 
     private void saveAsJPEG(BufferedImage bufferedImage, File file) throws IOException {
-        ImageIO.write(bufferedImage, "jpg", file);
-    }
+        // Convert the image to RGB, which removes the alpha channel (transparency)
+        BufferedImage rgbImage = new BufferedImage(bufferedImage.getWidth(), bufferedImage.getHeight(), BufferedImage.TYPE_INT_RGB);
 
-    private void saveAsBMP(BufferedImage bufferedImage, File file) throws IOException {
-        ImageIO.write(bufferedImage, "bmp", file);
+        // Draw the original image onto the new RGB image (without alpha)
+        Graphics2D g = rgbImage.createGraphics();
+        g.drawImage(bufferedImage, 0, 0, java.awt.Color.WHITE, null);  // Fills transparent areas with white
+        g.dispose();
+
+        // Save the image as JPEG
+        ImageIO.write(rgbImage, "jpg", file);
     }
 
     private void saveAsGIF(BufferedImage bufferedImage, File file) throws IOException {
-        ImageIO.write(bufferedImage, "gif", file);
+        try {
+            // Save as GIF using ImageIO with TwelveMonkeys
+            ImageIO.write(bufferedImage, "gif", file);
+        } catch (IOException e) {
+            throw new IOException("GIF format is not supported by ImageIO in your setup.", e);
+        }
     }
+
 
     private void showAlert(String title, String message) {
         Alert alert = new Alert(Alert.AlertType.ERROR);
@@ -1175,8 +1690,31 @@ public class HelloController {
     }
 
     @FXML
-    protected void onNewMenuClick() {
+    private void onNewMenuClick() {
+        // Create a TextInputDialog to ask for the new file name
+        String title = "Paint-p " + (tabPane.getTabs().size() + 1);
+        TextInputDialog dialog = new TextInputDialog(title);
+        dialog.setTitle("Create New Canvas");
+        dialog.setHeaderText("Enter a name for the new canvas:");
+        dialog.setContentText("Canvas name:");
+
+        // Set the icon for the dialog
+        Stage stage = (Stage) dialog.getDialogPane().getScene().getWindow();
+        Image icon = new Image(Objects.requireNonNull(getClass().getResourceAsStream("/images/paint-P-Logo.png")));
+        stage.getIcons().add(icon);
+
+        // Show the dialog and capture the result
+        Optional<String> result = dialog.showAndWait();
+
+        // If the user provides input, use that input as the new tab name
+        result.ifPresent(canvasName -> {
+            // Add a new tab with the specified name and default size
+            addNewTab(canvasName, 1100, 525);
+        });
+
+        // If no input is provided (user cancels), do nothing
     }
+
 
     @FXML
     protected void onExitMenuClick() {
