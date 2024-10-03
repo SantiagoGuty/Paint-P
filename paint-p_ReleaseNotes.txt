@@ -3,22 +3,37 @@
 Release Notes Paint-P
 By Santiago Gutiérrez Morales
 
+
+-Version 1.4.0 (September 27, 2024)
+    New features
+    - The software has 3 unit tests. (testPenSize(), testUpdateLabel(), testAutosaveTimeChange())
+    - The software has a timer that allows for autosave. It is customizable and conditional. The time is visible to the user.
+    - The software incorporates a webserver to present one or more of the images (in tabs), as selected by the user.
+      If no images are selected, an appropriate message is displayed or the functionality will be offline.
+    - The code has some JavaDoc commenting.
+    - The software can save in an alternative file format than the one that was the original for the image.
+    - The software has a warning image features/data loss can happen
+    Known Issues
+    - Controller File is huge and confusing
+     Expected Next Version
+    - Better UI design
+
+
 -Version 1.3.0 (September 20, 2024)
     New features
-    - Undo and Redo - this MUST use at least (more is ok) one "stack" (this is an abstract data structure in Java)
-
-    - provide a blank starting image and a clear canvas (with "are you sure" check) tool
-    - draw yet another additional shape of your choice
-    - be able to draw a regular side polygon with any #of sides
-    - select and copy/paste a piece of the image  - "live draw" is required for this and other edits/draws
-    - select and move a piece of the image
-    - allow the addition of text from user-typed input to your image.
-    - tabs
-
+        - Undo and Redo
+        - Starts with a blank starting image and a clear canvas (with "are you sure" check)
+        - Draw a heart
+        - The user is able to draw a regular side polygon with any #of sides
+        - Select and copy/paste a piece of the image  -
+        - "Live draw" functionality
+        - Select and move a piece of the image
+        - Allow the addition of text from user-typed input to your image.
+        - Tabs and the option of changing their title
     Known Issues
-        -
+        - Grab color is not working with the other tabs
     Expected Next Version
-        -
+        - Better Life draw functionality
 
 
 -Version 1.2.0 (September 16, 2024)
@@ -42,7 +57,6 @@ By Santiago Gutiérrez Morales
         -The dragged image is not visible
     Expected Next Version
         -tabs
-
 
 
 -Version 1.1.0 (September 6, 2024)

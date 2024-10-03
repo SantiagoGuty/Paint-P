@@ -4,11 +4,15 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="d2182c53-f702-4aa5-b38f-eb010e10bf54" name="Changes" comment="Upgrade on dashed lines, Polygons with any amount of sides and visuals in general">
-      <change afterPath="$PROJECT_DIR$/src/main/java/com/example/paintp/CanvasState.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/resources/images/polygon_icon.png" afterDir="false" />
+    <list default="true" id="d2182c53-f702-4aa5-b38f-eb010e10bf54" name="Changes" comment="Life draw and tabs fully functioning">
+      <change afterPath="$PROJECT_DIR$/src/main/java/com/example/paintp/HelloControllerTest.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/com/example/paintp/SingleImageHandler.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/com/example/paintp/StaticFileHandler.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/paint-p_ReleaseNotes.txt" beforeDir="false" afterPath="$PROJECT_DIR$/paint-p_ReleaseNotes.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/pom.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/example/paintp/CanvasTab.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/example/paintp/CanvasTab.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/com/example/paintp/HelloApplication.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/example/paintp/HelloApplication.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/com/example/paintp/HelloController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/example/paintp/HelloController.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/resources/com/example/paintp/hello-view.fxml" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/com/example/paintp/hello-view.fxml" afterDir="false" />
@@ -62,7 +66,7 @@
   </component>
   <component name="PropertiesComponent"><![CDATA[{
   "keyToString": {
-    "Application.HelloApplication.executor": "Run-with-SE",
+    "Application.HelloApplication.executor": "Run",
     "Application.PaintPApplication.executor": "Run",
     "Downloaded.Files.Path.Enabled": "false",
     "Maven.Paint-P [clean].executor": "Run",
@@ -79,8 +83,8 @@
     "SHARE_PROJECT_CONFIGURATION_FILES": "true",
     "git-widget-placeholder": "master",
     "kotlin-language-version-configured": "true",
-    "last_opened_file_path": "C:/Users/sangu/OneDrive/Escritorio/CS250/Paint-P/src/main/resources/images",
-    "project.structure.last.edited": "Libraries",
+    "last_opened_file_path": "C:/Users/sangu/Downloads/openjfx-23_windows-x64_bin-sdk (1)/javafx-sdk-23/lib",
+    "project.structure.last.edited": "Project",
     "project.structure.proportion": "0.15",
     "project.structure.side.proportion": "0.42873564",
     "settings.editor.selected.configurable": "project.propVCSSupport.Mappings"
@@ -100,9 +104,9 @@
   <component name="RunManager">
     <configuration name="HelloApplication" type="Application" factoryName="Application" nameIsGenerated="true">
       <option name="ALTERNATIVE_JRE_PATH" value="11" />
-      <option name="ALTERNATIVE_JRE_PATH_ENABLED" value="true" />
       <option name="MAIN_CLASS_NAME" value="com.example.paintp.HelloApplication" />
       <module name="Paint-P" />
+      <option name="VM_PARAMETERS" value="--module-path &quot;C:\Users\sangu\Downloads\openjfx-23_windows-x64_bin-sdk\javafx-sdk-23\lib&quot; --add-modules javafx.controls,javafx.fxml " />
       <extension name="coverage">
         <pattern>
           <option name="PATTERN" value="com.example.paintp.*" />
@@ -187,7 +191,15 @@
       <option name="project" value="LOCAL" />
       <updated>1726793540477</updated>
     </task>
-    <option name="localTasksCounter" value="9" />
+    <task id="LOCAL-00009" summary="Life draw and tabs fully functioning">
+      <option name="closed" value="true" />
+      <created>1727235739821</created>
+      <option name="number" value="00009" />
+      <option name="presentableId" value="LOCAL-00009" />
+      <option name="project" value="LOCAL" />
+      <updated>1727235739821</updated>
+    </task>
+    <option name="localTasksCounter" value="10" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -239,10 +251,11 @@
     <MESSAGE value="Sprint 3 update&#10;&#10;-Version 1.2.0 (September 16, 2024)&#10;    New features&#10;        -have width controls  (width controls as in control width of a regular line or the line-edges of shapes)&#10;        -draw square, circle, rectangle, ellipse, triangle&#10;        -keyboard shortcuts (control S for save, control E for exit, control C to clear canvas)&#10;        -inform the user as to pixel size of width&#10;        -text label for colors (hex/rgb/English name)&#10;        -color grabber (has to modify shapes)&#10;        -pencil straight line&#10;        -dashed outline of every shape&#10;        -smart/aware save (&quot;Are you sure you want to exit?&quot;)&#10;        -Custom size resize canvas&#10;        -Eraser&#10;        -Inform the user of their pixel coordinate, the pixel size, and the canvas size measurements on the bottom left corner of the screen&#10;       - Custom shape: Star!" />
     <MESSAGE value="2.5 Update&#10;&#10;-Version 1.2.1 (September 19, 2024)&#10;    New features&#10;        -Stickers!&#10;        -Safety on altering canvas&#10;        -text display on the canvas" />
     <MESSAGE value="Upgrade on dashed lines, Polygons with any amount of sides and visuals in general" />
-    <option name="LAST_COMMIT_MESSAGE" value="Upgrade on dashed lines, Polygons with any amount of sides and visuals in general" />
+    <MESSAGE value="Life draw and tabs fully functioning" />
+    <option name="LAST_COMMIT_MESSAGE" value="Life draw and tabs fully functioning" />
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
-    <SUITE FILE_PATH="coverage/Paint_P$HelloApplication.ic" NAME="HelloApplication Coverage Results" MODIFIED="1726854226691" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="idea" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="true">
+    <SUITE FILE_PATH="coverage/Paint_P$HelloApplication.ic" NAME="HelloApplication Coverage Results" MODIFIED="1727451183509" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="idea" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="true">
       <FILTER>com.example.paintp.*</FILTER>
     </SUITE>
   </component>

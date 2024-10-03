@@ -1,5 +1,9 @@
 package com.example.paintp;
 
+import com.sun.net.httpserver.HttpExchange;
+import com.sun.net.httpserver.HttpHandler;
+import javafx.animation.KeyFrame;
+import javafx.animation.Timeline;
 import javafx.application.Platform;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.SimpleDoubleProperty;
@@ -32,16 +36,29 @@ import javafx.scene.paint.Color;
 import javafx.scene.control.ToggleGroup;
 import javafx.scene.control.ToggleButton;
 import javafx.event.ActionEvent;
-
-
+import javafx.util.Duration;
+import javafx.scene.image.Image;
 import javax.imageio.ImageIO;
 import java.awt.*;
 //import java.awt.event.ActionEvent;
 import java.awt.image.BufferedImage;
+import java.awt.image.RenderedImage;
 import java.io.*;
+import java.net.InetSocketAddress;
 import java.util.*;
-
+import java.util.List;
+import com.sun.net.httpserver.HttpServer;
 import static javax.swing.JOptionPane.showInputDialog;
+
+
+
+/**
+ * Main Controller class, it is the bones of all the Paint-p app functionality
+ * handling the canvas operations, user interactions, and HTTP server setup for serving Tabs, canvases and images.
+ * @author SantiagoGuty
+ * @version 1.4.0
+ *
+ */
 
 public class HelloController {
 
@@ -78,6 +95,8 @@ public class HelloController {
     @FXML
     private TabPane tabPane;
 
+    @FXML
+    private CheckMenuItem autosaveMenuItem;
 
     private double startX, startY;
     private Color currentColor = Color.BLACK;
@@ -100,15 +119,18 @@ public class HelloController {
     private Boolean italic = false;
     private Boolean bold = false;
     private int nGonSides = 5;
-    // Undo and Redo stacks
-    // private Stack<CanvasState> undoStack = new Stack<>();
-    //private Stack<CanvasState> redoStack = new Stack<>();
+
+
+
+    private List<Image> selectedImages = new ArrayList<>(); // ArrayList for the web server
+
 
     private final HashMap<Tab, CanvasTab> canvasTabs = new HashMap<>();
     private final HashMap<Tab, Stack<CanvasState>> undoStacks = new HashMap<>();
     private final HashMap<Tab, Stack<CanvasState>> redoStacks = new HashMap<>();
     private Stack<WritableImage> undoStack = new Stack<>();
     private Stack<WritableImage> redoStack = new Stack<>();
+    private Map<Tab, File> savedFilesMap = new HashMap<>(); //Track of the save files in the download directory
 
 
     private Map<Tab, CanvasTab> tabCanvasMap = new HashMap<>();
@@ -119,10 +141,29 @@ public class HelloController {
     private GraphicsContext testGc;
     private String currentTool = "Pencil";
 
+    private Timeline autosaveTimer;
+    private int autosaveInterval = 60; // Default to 60 seconds
+    private int countdownValue;
+    private boolean autosaveEnabled = true; // Enable autosave by default
+
+    @FXML
+    private CheckBox autosaveCheckbox;
+    @FXML
+    private Label countdownLabel;
+    private HttpServer httpServer;
+    private Stage primaryStage;
+
+
 
     @FXML
     private ToggleButton pencilButton, eraserButton, lineButton, rectangleButton, ellipseButton, circleButton, triangleButton, starButton, heartButton, imageButton, textButton, nGonButton;
 
+
+    /**
+     * Initializes the Paint-P controller by setting up the default UI configurations, canvas
+     * tool buttons, shortcuts, and listeners.
+     * (Order of the functions matters, A lot!)
+     */
     @FXML
     public void initialize() {
         System.out.println("Initializing components...");
@@ -153,6 +194,420 @@ public class HelloController {
         addNewTab("Paint-p 1", 1100, 525); // 1100 and 525 default
 
         setupShortcuts();//shortcuts set up CTRL S Safe as, CTRL L Clean canvas, CTRL E Exit.
+
+        setupAutosaveTimer();
+
+    }
+
+
+    /**
+     * Captures the currently selected canvas as a snapshot, stores it, and makes it accessible via HTTP.
+     */
+
+    @FXML
+    public void onCaptureCanvasClick() {
+        // Get the currently selected tab
+        Tab selectedTab = tabPane.getSelectionModel().getSelectedItem();
+
+        if (selectedTab != null && selectedTab.getContent() instanceof ScrollPane) {
+            ScrollPane scrollPane = (ScrollPane) selectedTab.getContent();
+            if (scrollPane.getContent() instanceof StackPane) {
+                StackPane canvasPane = (StackPane) scrollPane.getContent();
+                if (!canvasPane.getChildren().isEmpty() && canvasPane.getChildren().get(0) instanceof Canvas) {
+                    Canvas currentCanvas = (Canvas) canvasPane.getChildren().get(0);
+
+                    // Capture the canvas as a WritableImage
+                    WritableImage canvasSnapshot = new WritableImage((int) currentCanvas.getWidth(), (int) currentCanvas.getHeight());
+                    currentCanvas.snapshot(null, canvasSnapshot);
+
+                    // Get the current tab index and create a unique context path
+                    int tabIndex = tabPane.getTabs().indexOf(selectedTab);
+                    String contextPath = "/canvas" + tabIndex;
+
+                    // Store the snapshot in the map
+                    canvasSnapshots.put(tabIndex, canvasSnapshot); // Store in map with the tabIndex as the key
+
+                    // Create a new SingleImageHandler for the snapshot
+                    httpServer.createContext(contextPath, new SingleImageHandler(canvasSnapshot));
+
+                    // Serve the latest canvas snapshot at the root URL (http://localhost:8000/)
+                    httpServer.createContext("/", new RootHandler());  // Use RootHandler to list all snapshots
+
+                    System.out.println("Canvas screenshot served at: http://localhost:8000" + contextPath);
+                    System.out.println("Canvas screenshot also available at: http://localhost:8000/");
+                }
+            }
+        } else {
+            System.out.println("No canvas found to capture.");
+        }
+    }
+
+
+
+    private Map<String, WritableImage> canvasImages = new HashMap<>();
+
+    /**
+     * Updates the stored canvas image for a selected  tab.
+     *
+     * @param image The WritableImage to be updated.
+     * @param tab The Tab associated with the canvas image.
+     */
+
+    private void updateCanvasImageForContext(WritableImage image, Tab tab) {
+        String contextPath = "/canvas" + tabPane.getTabs().indexOf(tab);
+        canvasImages.put(contextPath, image);  // Store the latest image for this context
+        System.out.println("Updated image for " + contextPath);
+    }
+
+
+    /**
+     * Captures the current canvas as a WritableImage, for making it accessible via HTTP.
+     *
+     * @param canvas The Canvas to be captured.
+     * @return A WritableImage containing the canvas snapshot, or null if the canvas is invalid.
+     *
+     */
+
+    public WritableImage captureCanvas(Canvas canvas) {
+        if (canvas.getWidth() > 0 && canvas.getHeight() > 0) {
+            System.out.println("Capturing canvas: " + canvas.getWidth() + "x" + canvas.getHeight());
+            WritableImage writableImage = new WritableImage((int) canvas.getWidth(), (int) canvas.getHeight());
+            canvas.snapshot(null, writableImage);  // Capture the canvas
+            return writableImage;
+        } else {
+            System.err.println("Canvas size is invalid.");
+            return null;  // Return null if the canvas size is invalid
+        }
+    }
+
+
+    /**
+     * Updates the selected image list when images are selected or deselected.
+     *
+     * @param image The Image object that was selected/deselected.
+     * @param isSelected A boolean indicating if the image was selected.
+     */
+
+    public void onImageSelectionChanged(Image image, boolean isSelected) {
+        if (isSelected) {
+            selectedImages.add(image);
+        } else {
+            selectedImages.remove(image);
+        }
+    }
+
+
+    /**
+     * Sets the HTTP server for serving canvas and images over localhost.
+     *
+     * @param httpServer The HttpServer object for managing the HTTP server.
+     */
+
+    public void setHttpServer(HttpServer httpServer) {
+        this.httpServer = httpServer;
+    }
+
+    /**
+     * Sets the primary stage of the application.
+     *
+     * @param primaryStage The main stage of the JavaFX application.
+     */
+    public void setPrimaryStage(Stage primaryStage) {
+        this.primaryStage = primaryStage;
+    }
+
+    private List<String> imageContexts = new ArrayList<>();
+
+
+    /**
+     * Starts the HTTP server for the application.
+     * Serves the canvas snapshots and other content on localhost.
+     */
+
+    public void startHttpServer() {
+        if (httpServer != null) {
+            if (tabPane.getTabs().isEmpty()) {
+                System.out.println("No canvases available. Server functionality is offline.");
+                // Optionally, you can disable the server start by returning early.
+                return;
+            }
+
+            System.out.println("Starting HTTP server...");
+
+            // Create context for the root handler
+            httpServer.createContext("/", new RootHandler());
+
+            // Serve static images from the local filesystem
+            String imagePath = "C:/Users/sangu/OneDrive/Escritorio/CS250/Paint-P/src/main/resources/images";
+            httpServer.createContext("/images", new StaticFileHandler(imagePath));
+
+            httpServer.setExecutor(null); // Use default executor
+            httpServer.start();
+            System.out.println("Server started at http://localhost:8000. Number of images: " + selectedImages.size());
+        } else {
+            System.err.println("HttpServer is null. Cannot start the server.");
+        }
+    }
+
+
+    // Map to store snapshots for each canvas (key: tab index, value: WritableImage)
+    private Map<Integer, WritableImage> canvasSnapshots = new HashMap<>();
+
+    public class RootHandler implements HttpHandler {
+        @Override
+        public void handle(HttpExchange exchange) throws IOException {
+            // Build HTML content with styling
+            StringBuilder response = new StringBuilder();
+            response.append("<html>");
+            response.append("<head>");
+            response.append("<title>Painting P - Available Canvases</title>");
+
+            // Add CSS for styling
+            response.append("<style>");
+            response.append("body { font-family: Arial, sans-serif; background-color: #f4f4f4; margin: 0; padding: 0; }");
+            response.append("h1 { color: #2c3e50; text-align: center; padding: 20px; background-color: #3498db; margin: 0; }");
+            response.append("h3 { color: #2980b9; text-align: center; margin: 20px 0; }");
+            response.append("ul { list-style-type: none; padding: 0; display: flex; justify-content: center; flex-wrap: wrap; }");
+            response.append("li { margin: 10px; }");
+            response.append("a { text-decoration: none; color: white; background-color: #2980b9; padding: 10px 20px; border-radius: 5px; font-size: 18px; }");
+            response.append("a:hover { background-color: #1abc9c; }");
+            response.append("p { text-align: center; color: #7f8c8d; }");
+            response.append("img { display: block; margin: 20px auto; width: 200px; height: auto; }"); // Add styling for image
+            response.append("</style>");
+
+            response.append("</head>");
+            response.append("<body>");
+
+            // Header and Canvas List
+            response.append("<h1>Painting-p!</h1>");
+            response.append("<h3>Available Canvases</h3>");
+
+            // Check if there are any snapshots available in canvasSnapshots map
+            boolean hasSnapshots = !canvasSnapshots.isEmpty(); // Check if the map is empty
+
+            if (!hasSnapshots) {
+                // No snapshots available, show a message
+                response.append("<p>No canvases available at the moment.</p>");
+            } else {
+                // Snapshots available, show the list of canvases
+                response.append("<ul>");
+                for (int i = 0; i < tabPane.getTabs().size(); i++) {
+                    if (canvasSnapshots.containsKey(i) && canvasSnapshots.get(i) != null) {
+                        String contextPath = "/canvas" + i;
+                        response.append("<li><a href='").append(contextPath).append("'>Canvas screenshot ").append(i + 1).append("</a></li>");
+                    }
+                }
+                response.append("</ul>");
+                response.append("<p>Click on a canvas link to view the canvas screenshot.</p>");
+            }
+
+            // Add logo image after the last <p>
+            response.append("<img src='/images/paint-P-Logo.png' alt='Paint-P Logo'>");
+
+            response.append("</body>");
+            response.append("</html>");
+
+            // Send the response
+            byte[] responseBytes = response.toString().getBytes("UTF-8");
+            exchange.getResponseHeaders().set("Content-Type", "text/html");
+            exchange.sendResponseHeaders(200, responseBytes.length);
+            OutputStream os = exchange.getResponseBody();
+            os.write(responseBytes);
+            os.close();
+        }
+    }
+
+
+
+
+    @FXML
+    public void onSelectImageClick() {
+        FileChooser fileChooser = new FileChooser();
+
+        // Filter for image files (e.g., PNG, JPG)
+        fileChooser.getExtensionFilters().addAll(
+                new FileChooser.ExtensionFilter("Image Files", "*.png", "*.jpg", "*.jpeg", "*.gif")
+        );
+
+        // Open the file chooser dialog
+        File selectedFile = fileChooser.showOpenDialog(primaryStage);
+
+        if (selectedFile != null) {
+            // Convert the selected file into a JavaFX Image
+            Image image = new Image(selectedFile.toURI().toString());
+
+            // Add the selected image to the list of selectedImages
+            selectedImages.add(image);
+
+            // Create a unique context path for each image
+            String contextPath = "/image" + selectedImages.size();
+
+            // Now create a new SingleImageHandler, passing the correct Image object
+            httpServer.createContext(contextPath, new SingleImageHandler(image));
+
+
+            System.out.println("Selected image: " + selectedFile.getName());
+            System.out.println("Image served at: http://localhost:8000" + contextPath);
+        } else {
+            System.out.println("No image selected.");
+        }
+    }
+
+
+
+    public class ImageHandler implements HttpHandler {
+        private List<Image> selectedImages;
+
+        public ImageHandler(List<Image> selectedImages) {
+            this.selectedImages = selectedImages;
+        }
+
+        @Override
+        public void handle(HttpExchange exchange) throws IOException {
+            String response;
+
+            if (selectedImages.isEmpty()) {
+                response = "<html><body><h1>No images available.</h1></body></html>";
+            } else {
+                response = "<html><body><h1>Available Images:</h1><ul>";
+                for (int i = 0; i < selectedImages.size(); i++) {
+                    response += "<li><a href=\"/image" + (i + 1) + "\" target=\"_blank\">Image " + (i + 1) + "</a></li>";
+                }
+                response += "</ul></body></html>";
+            }
+
+            exchange.getResponseHeaders().set("Content-Type", "text/html");
+            exchange.sendResponseHeaders(200, response.getBytes().length);
+            OutputStream os = exchange.getResponseBody();
+            os.write(response.getBytes());
+            os.close();
+        }
+    }
+
+
+    private String generateHtmlForImages(List<Image> images) {
+        StringBuilder html = new StringBuilder("<html><head>");
+        html.append("<style>");
+        html.append("body { font-family: Arial; }");
+        html.append(".tab { overflow: hidden; border: 1px solid #ccc; background-color: #f1f1f1; }");
+        html.append(".tab button { background-color: inherit; float: left; border: none; outline: none; cursor: pointer;");
+        html.append("padding: 14px 16px; transition: 0.3s; }");
+        html.append(".tabcontent { display: none; padding: 6px 12px; border: 1px solid #ccc; }");
+        html.append("</style></head><body>");
+
+        html.append("<h1>Selected Images</h1>");
+
+        // Create tab buttons
+        html.append("<div class=\"tab\">");
+        for (int i = 0; i < images.size(); i++) {
+            html.append("<button class=\"tablinks\" onclick=\"openTab(event, 'Image").append(i).append("')\">Image ")
+                    .append(i + 1).append("</button>");
+        }
+        html.append("</div>");
+
+        // Create tab content
+        for (int i = 0; i < images.size(); i++) {
+            html.append("<div id=\"Image").append(i).append("\" class=\"tabcontent\">");
+            html.append("<img src=\"/image").append(i).append("\" style=\"max-width:100%;height:auto;\"/>");
+            html.append("</div>");
+        }
+
+        // JavaScript for tabs
+        html.append("<script>");
+        html.append("function openTab(evt, tabName) {");
+        html.append("var i, tabcontent, tablinks;");
+        html.append("tabcontent = document.getElementsByClassName('tabcontent');");
+        html.append("for (i = 0; i < tabcontent.length; i++) {");
+        html.append("tabcontent[i].style.display = 'none'; }");
+        html.append("tablinks = document.getElementsByClassName('tablinks');");
+        html.append("for (i = 0; i < tablinks.length; i++) {");
+        html.append("tablinks[i].className = tablinks[i].className.replace(' active', ''); }");
+        html.append("document.getElementById(tabName).style.display = 'block';");
+        html.append("evt.currentTarget.className += ' active'; }");
+        html.append("</script>");
+
+        html.append("</body></html>");
+        return html.toString();
+    }
+
+
+
+
+    @FXML
+    private void toggleAutosave() {
+        autosaveEnabled = autosaveMenuItem.isSelected();
+        if (autosaveEnabled) {
+            countdownValue = autosaveInterval; // Reset countdown
+            countdownLabel.setVisible(true);
+        } else {
+            countdownLabel.setVisible(false);
+        }
+    }
+
+
+    /**
+     *
+     * Set up Save timer with the autosaveInterval previously variable
+     *
+     */
+    private void setupAutosaveTimer() {
+        countdownValue = autosaveInterval;
+        autosaveTimer = new Timeline(
+                new KeyFrame(Duration.seconds(1), event -> {
+                    if (autosaveEnabled) {
+                        countdownValue--;
+                        Platform.runLater(() -> updateLabel(0, 0)); // Trigger updateLabel to refresh autosave info
+
+                        if (countdownValue <= 0) {
+                            onAutoSave();
+                            countdownValue = autosaveInterval; // Reset the countdown
+                        }
+                    }
+                })
+        );
+        autosaveTimer.setCycleCount(Timeline.INDEFINITE);
+        autosaveTimer.play();
+    }
+
+
+    /**
+     * Automatic save functionality
+     */
+    private void onAutoSave() {
+        System.out.println("Autosaving...");
+
+        // Get the currently selected tab
+        Tab selectedTab = tabPane.getSelectionModel().getSelectedItem();
+        if (selectedTab != null && selectedTab.getContent() instanceof ScrollPane) {
+            ScrollPane scrollPane = (ScrollPane) selectedTab.getContent();
+            if (scrollPane.getContent() instanceof StackPane) {
+                StackPane canvasPane = (StackPane) scrollPane.getContent();
+                if (!canvasPane.getChildren().isEmpty() && canvasPane.getChildren().get(0) instanceof Canvas) {
+                    Canvas currentCanvas = (Canvas) canvasPane.getChildren().get(0);
+
+                    // Get the tab name
+                    String tabName = selectedTab.getText();
+
+                    // Set the autosave location to Downloads directory
+                    String downloadDir = "C:\\Users\\sangu\\Downloads\\";
+                    File file = new File(downloadDir + tabName + ".png");
+
+                    // Save the canvas snapshot as a PNG file
+                    WritableImage writableImage = new WritableImage((int) currentCanvas.getWidth(), (int) currentCanvas.getHeight());
+                    currentCanvas.snapshot(null, writableImage);
+                    BufferedImage bufferedImage = SwingFXUtils.fromFXImage(writableImage, null);
+
+                    try {
+                        ImageIO.write(bufferedImage, "png", file);
+                        System.out.println("Autosaved to " + file.getAbsolutePath());
+                        Platform.runLater(() -> infoText.setText("Autosaved at " + new Date().toString() + " to " + file.getAbsolutePath()));
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                        Platform.runLater(() -> infoText.setText("Failed to autosave."));
+                    }
+                }
+            }
+        }
     }
 
 
@@ -307,6 +762,9 @@ public class HelloController {
 
         // Register event handlers for drawing on the canvas
         setupCanvasDrawing(canvasTab);
+
+        //tring contextPath = "/canvas" + tabPane.getTabs().size();
+        //httpServer.createContext(contextPath, new SingleImageHandler(contextPath));
 
         // Add the new tab to the TabPane and select it
         tabPane.getTabs().add(newTab);
@@ -591,6 +1049,8 @@ public class HelloController {
         CanvasTab canvasTab = getSelectedCanvasTab();
         if (canvasTab != null) {
             GraphicsContext gc = canvasTab.getGraphicsContext();
+            GraphicsContext tempGc = canvasTab.getTempGraphicsContext();  // Temporary canvas GC
+
             startX = event.getX();
             startY = event.getY();
 
@@ -599,8 +1059,10 @@ public class HelloController {
 
             if (dashedLineCheckBox.isSelected()) {
                 gc.setLineDashes((2 * lineWidthSlider.getValue()) + 10);
+                tempGc.setLineDashes((2 * lineWidthSlider.getValue()) + 10);
             } else {
                 gc.setLineDashes(0);
+                tempGc.setLineDashes(0);
             }
 
             if (pencilButton.isSelected() || eraserButton.isSelected()) {
@@ -822,6 +1284,16 @@ public class HelloController {
         gc.strokePolygon(xPoints, yPoints, points);
     }
 
+    private void drawCube(GraphicsContext gc, double centerX, double centerY){
+
+        /*
+        double width = Math.abs(endX - startX);
+                double height = Math.abs(endY - startY);
+                gc.strokeRect(Math.min(startX, endX), Math.min(startY, endY), width, height);
+         */
+
+    }
+
     @FXML
     public void setCustomSticker() {
 
@@ -1008,9 +1480,18 @@ public class HelloController {
                 double height = currentCanvas.getHeight();
                 double currentPenSize = lineWidthSlider.getValue(); // Assuming the pen size is controlled by the slider
 
-                // Update the label with canvas size, pen size, and mouse coordinates
-                infoText.setText(String.format("Canvas size: %.0f x %.0f | Pen Size: %.0f px | Coordinates X: %.0f, Y: %.0f",
-                        width, height, currentPenSize, mouseX, mouseY));
+                // Prepare the canvas information
+                String canvasInfo = String.format("Canvas size: %.0f x %.0f | Pen Size: %.0f px | Coordinates X: %.0f, Y: %.0f",
+                        width, height, currentPenSize, mouseX, mouseY);
+
+                // Append the autosave message only if autosave is enabled
+                if (autosaveEnabled) {
+                    String autosaveMessage = " | Autosave in: " + countdownValue + "s";
+                    canvasInfo += autosaveMessage;
+                }
+
+                // Update the infoText label with the complete message
+                infoText.setText(canvasInfo);
             } else {
                 System.err.println("No CanvasTab found for the selected tab.");
             }
@@ -1018,6 +1499,7 @@ public class HelloController {
             System.err.println("No tab is selected.");
         }
     }
+
 
 
     // Ensure this is properly initialized
@@ -1043,6 +1525,8 @@ public class HelloController {
         Image heartIcon = new Image(Objects.requireNonNull(getClass().getResourceAsStream("/images/heart_icon.png")));
         Image textIcon = new Image(Objects.requireNonNull(getClass().getResourceAsStream("/images/text_icon.png")));
         Image nGonIcon = new Image(Objects.requireNonNull(getClass().getResourceAsStream("/images/polygon_icon.png")));
+        Image undoIcon = new Image(Objects.requireNonNull(getClass().getResourceAsStream("/images/undo_icon.png")));
+        Image redoIcon = new Image(Objects.requireNonNull(getClass().getResourceAsStream("/images/redo_icon.png")));
 
         ImageView imageView1 = new ImageView(pencilIcon);
         imageView1.setFitHeight(25.0); // Set the image height
@@ -1080,6 +1564,12 @@ public class HelloController {
         ImageView imageView12 = new ImageView(nGonIcon);
         imageView12.setFitHeight(25.0); // Set the image height
         imageView12.setFitWidth(25.0);
+        ImageView imageView13 = new ImageView(undoIcon);
+        imageView13.setFitHeight(25.0); // Set the image height
+        imageView13.setFitWidth(25.0);
+        ImageView imageView14 = new ImageView(redoIcon);
+        imageView14.setFitHeight(25.0); // Set the image height
+        imageView14.setFitWidth(25.0);
 
         pencilButton.setGraphic(imageView1);
         lineButton.setGraphic(imageView2);
@@ -1093,6 +1583,8 @@ public class HelloController {
         heartButton.setGraphic(imageView10);
         textButton.setGraphic(imageView11);
         nGonButton.setGraphic(imageView12);
+        undoButton.setGraphic(imageView13);
+        redoButton.setGraphic(imageView14);
     }
 
     // Getter for pen size
@@ -1387,25 +1879,6 @@ public class HelloController {
 
 
 
-
-
-
-
-    private void showErrorDialog(String title, String message) {
-        // Utility method to show an error dialog
-        Alert alert = new Alert(Alert.AlertType.ERROR);
-        alert.setTitle(title);
-        alert.setHeaderText(null);
-        alert.setContentText(message);
-        alert.showAndWait();
-    }
-
-
-
-
-
-
-
     @FXML
     protected void onCanvaClearCanva() {
         boolean safe = safetyCanvasEdit();
@@ -1474,8 +1947,10 @@ public class HelloController {
     }
 
     @FXML
-    protected void onSafeClick() { //TS
+    protected void onSafeClick() {
+        // Get the currently selected tab
         Tab selectedTab = tabPane.getSelectionModel().getSelectedItem();
+
         if (selectedTab != null && selectedTab.getContent() instanceof ScrollPane) {
             ScrollPane scrollPane = (ScrollPane) selectedTab.getContent();
             if (scrollPane.getContent() instanceof StackPane) {
@@ -1483,43 +1958,63 @@ public class HelloController {
                 if (!canvasPane.getChildren().isEmpty() && canvasPane.getChildren().get(0) instanceof Canvas) {
                     Canvas currentCanvas = (Canvas) canvasPane.getChildren().get(0);
 
-                    FileChooser fileChooser = new FileChooser();
-                    fileChooser.setTitle("Save Canvas As");
-                    fileChooser.getExtensionFilters().add(
-                            new FileChooser.ExtensionFilter("JPEG Files", "*.jpg", "*.jpeg")
-                    );
+                    // Get the tab name to use as the file name
+                    String tabName = selectedTab.getText();
 
-                    fileChooser.setInitialFileName("paint_p.jpg");
+                    // Check if a file for this tab already exists in the map
+                    File savedFile = savedFilesMap.get(selectedTab);
 
-                    File selectedFile = fileChooser.showSaveDialog(currentCanvas.getScene().getWindow());
+                    if (savedFile != null) {
+                        // If file already exists, save it directly without prompting
+                        saveCanvasToFile(currentCanvas, savedFile);
+                        System.out.println("File saved: " + savedFile.getAbsolutePath());
+                    } else {
+                        // Define the default location for saving files in the Downloads folder
+                        File defaultSaveLocation = new File(System.getProperty("user.home") + "/Downloads/" + tabName + ".png");
 
-                    if (selectedFile != null) {
-                        if (!selectedFile.getName().toLowerCase().endsWith(".jpg")) {
-                            selectedFile = new File(selectedFile.getAbsolutePath() + ".jpg");
-                        }
-
-                        WritableImage writableImage = new WritableImage((int) currentCanvas.getWidth(), (int) currentCanvas.getHeight());
-                        currentCanvas.snapshot(null, writableImage);
-                        BufferedImage bufferedImage = SwingFXUtils.fromFXImage(writableImage, null);
-
-                        try {
-                            ImageIO.write(bufferedImage, "jpg", selectedFile);
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                            showAlert("Error", "Failed to save the image.");
+                        if (defaultSaveLocation.exists()) {
+                            // If file exists in Downloads, overwrite it directly
+                            saveCanvasToFile(currentCanvas, defaultSaveLocation);
+                            savedFilesMap.put(selectedTab, defaultSaveLocation); // Update the saved file location in the map
+                            System.out.println("File overwritten in Downloads: " + defaultSaveLocation.getAbsolutePath());
+                        } else {
+                            // Save the canvas to a new file in Downloads
+                            saveCanvasToFile(currentCanvas, defaultSaveLocation);
+                            savedFilesMap.put(selectedTab, defaultSaveLocation); // Track the saved file
+                            System.out.println("New file saved in Downloads: " + defaultSaveLocation.getAbsolutePath());
                         }
                     }
+
+                    // Reset the autosave countdown after manual save
+                    countdownValue = autosaveInterval;
+                    updateLabel(0, 0);  // Update the label to show the reset timer
                 }
             }
         } else {
-            System.err.println("No canvas is selected.");
+            System.err.println("No canvas is selected or available for saving.");
         }
     }
 
 
 
+
+    private void saveCanvasToFile(Canvas canvas, File file) {
+        try {
+            WritableImage writableImage = new WritableImage((int) canvas.getWidth(), (int) canvas.getHeight());
+            canvas.snapshot(null, writableImage);
+            RenderedImage renderedImage = SwingFXUtils.fromFXImage(writableImage, null);
+            ImageIO.write(renderedImage, "png", file);
+        } catch (IOException e) {
+            System.err.println("Error saving canvas to file: " + e.getMessage());
+        }
+    }
+
+
+
+
+
     @FXML
-    protected void onSaveAsClick() {  //TS
+    protected void onSaveAsClick() {
         Tab selectedTab = tabPane.getSelectionModel().getSelectedItem();
         if (selectedTab != null && selectedTab.getContent() instanceof ScrollPane) {
             ScrollPane scrollPane = (ScrollPane) selectedTab.getContent();
@@ -1528,6 +2023,10 @@ public class HelloController {
                 if (!canvasPane.getChildren().isEmpty() && canvasPane.getChildren().get(0) instanceof Canvas) {
                     Canvas currentCanvas = (Canvas) canvasPane.getChildren().get(0);
 
+                    // Get the tab name
+                    String tabName = selectedTab.getText();
+
+                    // FileChooser for saving the image
                     FileChooser fileChooser = new FileChooser();
                     fileChooser.setTitle("Save As");
                     fileChooser.getExtensionFilters().addAll(
@@ -1536,15 +2035,35 @@ public class HelloController {
                             new FileChooser.ExtensionFilter("GIF Files", "*.gif"),
                             new FileChooser.ExtensionFilter("BMP Files", "*.bmp")
                     );
+                    fileChooser.setInitialFileName(tabName); // Set the default name
+
                     File selectedFile = fileChooser.showSaveDialog(currentCanvas.getScene().getWindow());
 
                     if (selectedFile != null) {
                         String format = selectedFile.getName().substring(selectedFile.getName().lastIndexOf('.') + 1).toLowerCase();
+
+                        // Check if the file already exists, prompt the user if they want to overwrite
+                        if (selectedFile.exists()) {
+                            boolean overwrite = confirmOverwrite(selectedFile);
+                            if (!overwrite) {
+                                // If the user doesn't want to overwrite, stop the process
+                                return;
+                            }
+                        }
+
                         WritableImage writableImage = new WritableImage((int) currentCanvas.getWidth(), (int) currentCanvas.getHeight());
                         currentCanvas.snapshot(null, writableImage);
                         BufferedImage bufferedImage = SwingFXUtils.fromFXImage(writableImage, null);
 
+                        // Check if the format conversion may result in data loss (e.g., from PNG to JPEG)
+                        if (format.equals("jpg") || format.equals("jpeg")) {
+                            showDataLossWarning("Warning: JPEG format may result in loss of transparency.");
+                        } else if (format.equals("bmp")) {
+                            showDataLossWarning("Warning: BMP format may not support all features.");
+                        }
+
                         try {
+                            // Handle saving to various formats and overwriting if needed
                             switch (format) {
                                 case "png":
                                     ImageIO.write(bufferedImage, "png", selectedFile);
@@ -1561,8 +2080,13 @@ public class HelloController {
                                     break;
                                 default:
                                     System.err.println("Unsupported format: " + format);
-                                    break;
                             }
+                            System.out.println("Saved as " + selectedFile.getAbsolutePath());
+
+                            // Reset the autosave countdown after manual save
+                            countdownValue = autosaveInterval;
+                            updateLabel(0, 0);
+
                         } catch (IOException e) {
                             e.printStackTrace();
                             showAlert("Error", "An error occurred while saving the file.");
@@ -1574,6 +2098,109 @@ public class HelloController {
             System.err.println("No canvas is selected.");
         }
     }
+
+
+
+    private boolean confirmOverwrite(File file) {
+        // Create an alert of type CONFIRMATION
+        Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+        alert.setTitle("Confirm Overwrite");
+        alert.setHeaderText("File already exists");
+        alert.setContentText("The file " + file.getName() + " already exists. Do you want to overwrite it?");
+
+        // Define the buttons for the alert
+        ButtonType yesButton = new ButtonType("Yes");
+        ButtonType noButton = new ButtonType("No", ButtonBar.ButtonData.CANCEL_CLOSE);
+
+        // Add buttons to the alert dialog
+        alert.getButtonTypes().setAll(yesButton, noButton);
+
+        // Ensure the alert is executed on the JavaFX thread
+        Optional<ButtonType> result = alert.showAndWait();
+
+        // Return true if "Yes" is clicked, otherwise false
+        return result.isPresent() && result.get() == yesButton;
+    }
+
+
+    private void showDataLossWarning(String message) {
+        Alert alert = new Alert(Alert.AlertType.WARNING);
+        alert.setTitle("Data Loss Warning");
+        alert.setHeaderText("Potential Data Loss");
+        alert.setContentText(message);
+
+        // Add a warning icon (optional)
+        Stage stage = (Stage) alert.getDialogPane().getScene().getWindow();
+        Image icon = new Image(Objects.requireNonNull(getClass().getResourceAsStream("/images/paint-P-Logo.png")));
+        stage.getIcons().add(icon);
+
+        alert.showAndWait();
+    }
+
+    @FXML
+    private void onChangeAutosaveTimeClick() {
+        // Create a TextInputDialog for setting the autosave time
+        TextInputDialog dialog = new TextInputDialog(String.valueOf(autosaveInterval));
+        dialog.setTitle("Change Autosave Time");
+        dialog.setHeaderText("Set Autosave Time Interval");
+        dialog.setContentText("Enter autosave time (in seconds):");
+
+        // Load the icon for the dialog
+        Image icon = new Image(Objects.requireNonNull(getClass().getResourceAsStream("/images/paint-P-Logo.png")));
+        Stage stage = (Stage) dialog.getDialogPane().getScene().getWindow();
+        stage.getIcons().add(icon);
+
+        // Show the dialog and capture the input
+        Optional<String> result = dialog.showAndWait();
+
+        if (result.isPresent()) {
+            try {
+                // Parse the input as an integer
+                int newInterval = Integer.parseInt(result.get());
+
+                // Validate that the input is positive
+                if (newInterval <= 0) {
+                    throw new IllegalArgumentException("Autosave time must be greater than 0.");
+                }
+
+                // Update the autosave interval and restart the timer
+                autosaveInterval = newInterval;
+                countdownValue = autosaveInterval;  // Reset the countdown
+                updateLabel(0, 0);  // Update the label to reflect the new time
+
+                System.out.println("Autosave interval updated to: " + autosaveInterval + " seconds");
+
+            } catch (NumberFormatException e) {
+                // Handle invalid input (non-numeric values)
+                showErrorDialog("Invalid input", "Please enter a valid number for the autosave time.");
+            } catch (IllegalArgumentException e) {
+                // Handle negative or zero input
+                showErrorDialog("Invalid input", e.getMessage());
+            }
+        }
+    }
+
+    private void showErrorDialog(String title, String message) {
+        // Create an error alert
+        Alert alert = new Alert(Alert.AlertType.ERROR);
+        alert.setTitle(title);
+        alert.setHeaderText(null);
+        alert.setContentText(message);
+
+        // Set the logo for the error alert
+        try {
+            Image icon = new Image(Objects.requireNonNull(getClass().getResourceAsStream("/images/paint-P-Logo.png")));
+            Stage stage = (Stage) alert.getDialogPane().getScene().getWindow();
+            stage.getIcons().add(icon);
+        } catch (NullPointerException e) {
+            System.err.println("Error icon not found. Proceeding without an icon.");
+        }
+
+        alert.showAndWait();
+    }
+
+
+
 
 
     //DO NOT TOUCH BMP IS WORKING
@@ -1687,6 +2314,11 @@ public class HelloController {
     protected void onShapeButtonClick(ActionEvent event) {
         ToggleButton source = (ToggleButton) event.getSource();
         currentShape = source.getText();
+    }
+
+    @FXML
+    private void onSelectButtonClick(){
+        System.out.println("Select button clicked");
     }
 
     @FXML
