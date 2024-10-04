@@ -20,6 +20,7 @@
 <?import javafx.scene.control.Tab?>
 <?import javafx.scene.control.CheckMenuItem?>
 <?import javafx.scene.control.CheckBox?>
+<?import javafx.scene.control.Tooltip?>
 
 
 
@@ -86,10 +87,15 @@
 
 
 
-     <Menu text="Polygon">
+       <Menu text="Polygon">
            <MenuItem onAction="#setPolygonSides" text="Set number of sides"/>
            <MenuItem onAction="#setDefaultPolygonSides" text="Reset number of sides"/>
-     </Menu>
+       </Menu>
+
+       <Menu text="Star">
+           <MenuItem onAction="#setStarPoints" text="Set Number of star points"/>
+           <MenuItem onAction="#resetStarPoints" text="Reset number of points"/>
+       </Menu>
 
 
      <Menu text="Server">
@@ -98,14 +104,7 @@
      </Menu>
 
 
-
-
-
    </Menu>
-
-
-
-
 
 
  </MenuBar>
@@ -116,30 +115,99 @@
 
    <!-- Horizontal Menu for Buttons -->
    <HBox alignment="CENTER" spacing="10">
+
      <Button fx:id="undoButton"  onAction="#onUndoClick" />
      <Button fx:id="redoButton" onAction="#onRedoClick"/>
+
      <Separator orientation="VERTICAL"/>
-     <ToggleButton fx:id="pencilButton" />
-     <ToggleButton fx:id="eraserButton" />
-     <ToggleButton fx:id="lineButton" />
-     <ToggleButton fx:id="rectangleButton" />
-     <ToggleButton fx:id="ellipseButton"/>
-     <ToggleButton fx:id="circleButton" />
-     <ToggleButton fx:id="triangleButton" />
-     <ToggleButton fx:id="imageButton" />
-     <ToggleButton fx:id="starButton" />
-     <ToggleButton fx:id="heartButton" />
-     <ToggleButton fx:id="nGonButton" />
-     <ToggleButton fx:id="textButton" />
 
-     <ToggleButton fx:id="selectButton" text="Select" onAction="#onSelectButtonClick" />
 
-     <VBox alignment="CENTER" spacing="5">
+       <ToggleButton fx:id="pencilButton">
+           <tooltip>
+               <Tooltip text="Pencil Tool"/>
+           </tooltip>
+       </ToggleButton>
+
+       <ToggleButton fx:id="eraserButton">
+           <tooltip>
+               <Tooltip text="Eraser Tool"/>
+           </tooltip>
+       </ToggleButton>
+
+       <ToggleButton fx:id="lineButton">
+           <tooltip>
+               <Tooltip text="Line Tool"/>
+           </tooltip>
+       </ToggleButton>
+
+       <ToggleButton fx:id="rectangleButton">
+           <tooltip>
+               <Tooltip text="Rectangle Tool"/>
+           </tooltip>
+       </ToggleButton>
+
+       <ToggleButton fx:id="ellipseButton">
+           <tooltip>
+               <Tooltip text="Ellipse Tool"/>
+           </tooltip>
+       </ToggleButton>
+
+       <ToggleButton fx:id="circleButton">
+           <tooltip>
+               <Tooltip text="Circle Tool"/>
+           </tooltip>
+       </ToggleButton>
+
+       <ToggleButton fx:id="triangleButton">
+           <tooltip>
+               <Tooltip text="Triangle Tool"/>
+           </tooltip>
+       </ToggleButton>
+
+       <ToggleButton fx:id="imageButton">
+           <tooltip>
+               <Tooltip text="Image Tool"/>
+           </tooltip>
+       </ToggleButton>
+
+       <ToggleButton fx:id="starButton">
+           <tooltip>
+               <Tooltip text="Star Tool"/>
+           </tooltip>
+       </ToggleButton>
+
+       <ToggleButton fx:id="heartButton">
+           <tooltip>
+               <Tooltip text="Heart Tool"/>
+           </tooltip>
+       </ToggleButton>
+
+       <ToggleButton fx:id="nGonButton">
+           <tooltip>
+               <Tooltip text="Polygon Tool"/>
+           </tooltip>
+       </ToggleButton>
+
+       <ToggleButton fx:id="textButton">
+           <tooltip>
+               <Tooltip text="Text Tool"/>
+           </tooltip>
+       </ToggleButton>
+
+       <ToggleButton fx:id="selectButton" text="Select" onAction="#onSelectButtonClick">
+           <tooltip>
+               <Tooltip text="Select Tool"/>
+           </tooltip>
+       </ToggleButton>
+
+
+
+       <VBox alignment="CENTER" spacing="5">
             <Label text="Choose Color:"/>
             <ColorPicker fx:id="colorPicker"/>
           </VBox>
           <VBox alignment="CENTER" spacing="10">
-            <ToggleButton fx:id="colorGrabButton" text="Grab Color" onAction="#onColorGrabClick"/>
+            <ToggleButton fx:id="colorGrabButton" text="Grab Color" onAction="#testNotification"/>
           </VBox>
           <VBox alignment="CENTER" spacing="10">
             <Label text="Line Width:"/>

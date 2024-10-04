@@ -19,27 +19,27 @@
     <dependency>
       <groupId>org.openjfx</groupId>
       <artifactId>javafx-controls</artifactId>
-      <version>17.0.2</version>
+      <version>23</version>
     </dependency>
     <dependency>
       <groupId>org.openjfx</groupId>
       <artifactId>javafx-fxml</artifactId>
-      <version>17.0.2</version>
+      <version>23</version>
     </dependency>
     <dependency>
       <groupId>org.openjfx</groupId>
       <artifactId>javafx-web</artifactId>
-      <version>17.0.2</version>
+      <version>23</version>
     </dependency>
     <dependency>
       <groupId>org.openjfx</groupId>
       <artifactId>javafx-swing</artifactId>
-      <version>17.0.2</version>
+      <version>23</version>
     </dependency>
     <dependency>
       <groupId>org.openjfx</groupId>
       <artifactId>javafx-media</artifactId>
-      <version>17.0.2</version>
+      <version>23</version>
     </dependency>
 
     <!-- ControlsFX dependency -->
@@ -153,8 +153,8 @@
         <artifactId>maven-compiler-plugin</artifactId>
         <version>3.11.0</version>
         <configuration>
-          <source>11</source>
-          <target>11</target>
+          <source>21</source>
+          <target>21</target>
         </configuration>
       </plugin>
 
@@ -180,5 +180,6 @@
       </plugin>
     </plugins>
   </build>
+
 
 </project>

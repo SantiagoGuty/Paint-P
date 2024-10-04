@@ -49,6 +49,12 @@ import java.util.*;
 import java.util.List;
 import com.sun.net.httpserver.HttpServer;
 import static javax.swing.JOptionPane.showInputDialog;
+import java.awt.AWTException;
+import java.awt.SystemTray;
+import java.awt.TrayIcon;
+import java.awt.Toolkit;
+import javafx.application.Platform;
+
 
 
 
@@ -119,6 +125,8 @@ public class HelloController {
     private Boolean italic = false;
     private Boolean bold = false;
     private int nGonSides = 5;
+    private int starPoints = 5; // Default number of points for the star
+
 
 
 
@@ -152,6 +160,9 @@ public class HelloController {
     private Label countdownLabel;
     private HttpServer httpServer;
     private Stage primaryStage;
+    private TrayIcon trayIcon;
+
+
 
 
 
@@ -191,12 +202,88 @@ public class HelloController {
         tabPane.getTabs().clear();
 
         // Initialize the first tab with a default canvas size
-        addNewTab("Paint-p 1", 1100, 525); // 1100 and 525 default
+        addNewTab("Paint-p 1", 1450, 575);
 
         setupShortcuts();//shortcuts set up CTRL S Safe as, CTRL L Clean canvas, CTRL E Exit.
+        initializeTooltips(); // tool tips for all buttons
+
+        setupSystemTray(); // set up notifications
 
         setupAutosaveTimer();
 
+    }
+
+    @FXML
+    private void testNotification() {
+        if (SystemTray.isSupported()) {
+            trayIcon.displayMessage("Test Notification", "This is a test message from Paint-P!", TrayIcon.MessageType.INFO);
+            System.out.println("Notification displayed."); // Debug log
+        }
+    }
+
+
+    // Method to set-up the system tray for notifications
+    private void setupSystemTray() {
+        if (SystemTray.isSupported()) {
+            SystemTray tray = SystemTray.getSystemTray();
+
+            // Load the AWT image from a file
+            java.awt.Image image = Toolkit.getDefaultToolkit().getImage(getClass().getResource("/images/paint-P-Logo.png")); // Ensure you use the correct path
+
+            trayIcon = new TrayIcon(image, "Paint-P Autosave Notification");
+            trayIcon.setImageAutoSize(true);
+
+            try {
+                tray.add(trayIcon);
+                System.out.println("System tray setup completed."); // Debug log
+            } catch (AWTException e) {
+                e.printStackTrace();
+                System.out.println("System tray setup failed."); // Debug log
+            }
+        } else {
+            System.out.println("System tray is not supported on this system.");
+        }
+    }
+
+
+    // Method to display notifications
+    private void showNotification(String message) {
+        if (SystemTray.isSupported()) {
+            trayIcon.displayMessage("Autosave Notification", message, TrayIcon.MessageType.INFO);
+        }
+    }
+
+
+
+    private void initializeTooltips() {
+        setToggleTooltip(pencilButton, "Pencil Tool");
+        setToggleTooltip(eraserButton, "Eraser Tool");
+        setToggleTooltip(lineButton, "Line Tool");
+        setToggleTooltip(rectangleButton, "Rectangle Tool");
+        setToggleTooltip(ellipseButton, "Ellipse Tool");
+        setToggleTooltip(circleButton, "Circle Tool");
+        setToggleTooltip(triangleButton, "Triangle Tool");
+        setToggleTooltip(imageButton, "Image Tool");
+        setToggleTooltip(starButton, "Star Tool");
+        setToggleTooltip(heartButton, "Heart Tool");
+        setToggleTooltip(nGonButton, "Polygon Tool");
+        setToggleTooltip(textButton, "Text Tool");
+        setToggleTooltip(selectButton, "Select Tool");
+        setToggleTooltip(colorGrabButton, "Grab color Tool");
+        setButtonTooltip(undoButton, "Undo button");
+        setButtonTooltip(redoButton, "Redo button");
+    }
+
+    // Helper method to set tooltip with no delay
+    private void setToggleTooltip(ToggleButton button, String tooltipText) {
+        Tooltip tooltip = new Tooltip(tooltipText);
+       // tooltip.setShowDelay(Duration.ZERO);  // Set delay to zero
+        button.setTooltip(tooltip);
+    }
+    private void setButtonTooltip( Button button, String tooltipText) {
+        Tooltip tooltip = new Tooltip(tooltipText);
+        // tooltip.setShowDelay(Duration.ZERO);  // Set delay to zero
+        button.setTooltip(tooltip);
     }
 
 
@@ -536,13 +623,29 @@ public class HelloController {
     @FXML
     private void toggleAutosave() {
         autosaveEnabled = autosaveMenuItem.isSelected();
+
         if (autosaveEnabled) {
-            countdownValue = autosaveInterval; // Reset countdown
-            countdownLabel.setVisible(true);
+            // Reset the countdown to the autosave interval
+            countdownValue = autosaveInterval;
+
+            // Show notification for autosave enabled
+            showNotification("Autosave Enabled");
+
+            // Start or reset the autosave timer
+            setupAutosaveTimer();
         } else {
-            countdownLabel.setVisible(false);
+            // Show notification for autosave disabled
+            showNotification("Autosave Disabled");
+
+            // Stop the autosave timer by setting autosaveEnabled to false
+            autosaveTimer.stop();
         }
+
+        // Update the info text to reflect the current state of autosave
+        updateLabel(0, 0);  // This will refresh any status in the UI
     }
+
+
 
 
     /**
@@ -1124,7 +1227,7 @@ public class HelloController {
                             new double[]{startX, endX, (startX + endX) / 2},
                             new double[]{startY, endY, startY - Math.abs(endY - startY)}, 3);
                 } else if (starButton.isSelected()) {
-                    drawStar(tempGc, startX, startY, endX, endY);
+                    drawStar(tempGc, startX, startY, endX, endY, starPoints); // Preview on temporary canvas
                 } else if (heartButton.isSelected()) {
                     double centerX = (startX + endX) / 2;
                     double centerY = (startY + endY) / 2;
@@ -1189,7 +1292,7 @@ public class HelloController {
                         new double[]{startX, endX, (startX + endX) / 2},
                         new double[]{startY, endY, startY - Math.abs(endY - startY)}, 3);
             } else if (starButton.isSelected()) {
-                drawStar(gc, startX, startY, endX, endY);
+                drawStar(gc, startX, startY, endX, endY, starPoints);
             } else if (heartButton.isSelected()) {
                 double centerX = (startX + endX) / 2;
                 double centerY = (startY + endY) / 2;
@@ -1202,7 +1305,7 @@ public class HelloController {
             } else if (nGonButton.isSelected()) {
                 int numberOfSides = nGonSides;
                 drawNgon(gc, startX, startY, endX, endY, numberOfSides);
-            } else if (textButton.isSelected()) {
+            }else if (textButton.isSelected()) {
                 double deltaX = endX - startX;
                 double deltaY = endY - startY;
                 double distance = Math.hypot(deltaX, deltaY);
@@ -1217,7 +1320,68 @@ public class HelloController {
     }
 
 
+    public void drawStar(GraphicsContext gc, double x1, double y1, double x2, double y2, int points) {
+        if (points < 4) {
+            throw new IllegalArgumentException("Number of points must be 4 or more to draw a valid star.");
+        }
 
+        double[] xPoints = new double[points * 2];
+        double[] yPoints = new double[points * 2];
+
+        // Calculate the radius of the outer and inner points
+        double outerRadius = Math.sqrt(Math.pow((x2 - x1), 2) + Math.pow((y2 - y1), 2));
+        double innerRadius = outerRadius / 2.5; // Adjust the ratio between the outer and inner points
+        double startAngle = Math.atan2(y2 - y1, x2 - x1); // Start angle based on the direction of drag
+
+        // Calculate the vertices for the star
+        for (int i = 0; i < points * 2; i++) {
+            double angle = ((Math.PI * i) / points) + startAngle;
+            double radius = (i % 2 == 0) ? outerRadius : innerRadius; // Alternate between outer and inner points
+            xPoints[i] = x1 + radius * Math.cos(angle);
+            yPoints[i] = y1 + radius * Math.sin(angle);
+        }
+
+        // Draw the star
+        gc.strokePolygon(xPoints, yPoints, points * 2);
+    }
+
+
+    public void setStarPoints() {
+        TextInputDialog dialog = new TextInputDialog(String.valueOf(starPoints));
+        dialog.setTitle("Set Star Points");
+        dialog.setHeaderText("Star Tool");
+        dialog.setContentText("Enter the number of points for the star:");
+
+        // Set the icon for the dialog
+        Stage stage = (Stage) dialog.getDialogPane().getScene().getWindow();
+        Image icon = new Image(Objects.requireNonNull(getClass().getResourceAsStream("/images/paint-P-Logo.png")));
+        stage.getIcons().add(icon);
+
+        // Get user input
+        dialog.showAndWait().ifPresent(input -> {
+            try {
+                int points = Integer.parseInt(input);
+                if (points >= 4) {  // Minimum 4 points for a valid star
+                    starPoints = points;
+                } else {
+                    // Show error message if input is invalid
+                    System.out.println("Please enter a number greater than or equal to 4.");
+                }
+            } catch (NumberFormatException e) {
+                // Handle invalid input (not a number)
+                System.out.println("Invalid input! Please enter a valid number.");
+            }
+        });
+    }
+
+    @FXML
+    private void resetStarPoints() {
+        setDefaultStarPoints();
+    }
+
+    public void setDefaultStarPoints() {
+        starPoints = 5; // Default to 5 points
+    }
 
 
     public void drawNgon(GraphicsContext gc, double x1, double y1, double x2, double y2, int n) {
@@ -1366,7 +1530,7 @@ public class HelloController {
         return Font.font(fontFamily, fontWeight, fontPosture, fontSize);
     }
 
-
+/*
     private void drawStar(GraphicsContext gc,double startX, double startY, double endX, double endY) {
 
         // Debugging print statements
@@ -1396,6 +1560,8 @@ public class HelloController {
 
         gc.strokePolygon(xPoints, yPoints, 10);
     }
+
+ */
 
     @FXML
     public void setCustomText() {
@@ -1700,8 +1866,8 @@ public class HelloController {
                     StackPane canvasPane = (StackPane) scrollPane.getContent();
                     if (!canvasPane.getChildren().isEmpty() && canvasPane.getChildren().get(0) instanceof Canvas) {
                         Canvas currentCanvas = (Canvas) canvasPane.getChildren().get(0);
-                        currentCanvas.setWidth(1240);
-                        currentCanvas.setHeight(620);
+                        currentCanvas.setWidth(1450);
+                        currentCanvas.setHeight(575);
                     } else {
                         System.err.println("No canvas found in the StackPane.");
                     }
@@ -2341,7 +2507,7 @@ public class HelloController {
         // If the user provides input, use that input as the new tab name
         result.ifPresent(canvasName -> {
             // Add a new tab with the specified name and default size
-            addNewTab(canvasName, 1100, 525);
+            addNewTab(canvasName, 1450, 575);
         });
 
         // If no input is provided (user cancels), do nothing
