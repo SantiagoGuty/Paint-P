@@ -127,6 +127,11 @@ public class HelloController {
     private int nGonSides = 5;
     private int starPoints = 5; // Default number of points for the star
     private LogWriter logWriter;
+    @FXML
+    private CheckMenuItem notificationsToggle;
+
+    private boolean notificationsEnabled = true;  // Show notifications fault to tr
+
 
 
 
@@ -164,9 +169,6 @@ public class HelloController {
     private TrayIcon trayIcon;
 
 
-
-
-
     @FXML
     private ToggleButton pencilButton, eraserButton, lineButton, rectangleButton, ellipseButton, circleButton, triangleButton, starButton, heartButton, imageButton, textButton, nGonButton;
 
@@ -180,16 +182,17 @@ public class HelloController {
     public void initialize() {
         System.out.println("Initializing components...");
 
-        // Set the log file path to a desired location
+        // Set the log file path to the desired location
         logWriter = new LogWriter("user_actions.log");
 
         // Example of logging the initialization
-        logWriter.logEvent("new tab", "Application initialized");
+        //logWriter.logEvent("new tab", "Application initialized");
 
         if (tabPane == null) {
             System.out.println("TabPane is null.");
         } else {
             System.out.println("TabPane initialized.");
+            logWriter.logEvent(getCurrentTabName(), "Tab initiated");
         }
 
         if (colorPicker == null) {
@@ -219,6 +222,180 @@ public class HelloController {
         setupAutosaveTimer();
 
     }
+
+    private void rotateCanvas(int angle) {
+        CanvasTab canvasTab = getSelectedCanvasTab();
+        if (canvasTab != null) {
+            Canvas currentCanvas = canvasTab.getCanvas();
+            GraphicsContext gc = currentCanvas.getGraphicsContext2D();
+
+            // Store the original canvas size
+            double originalWidth = currentCanvas.getWidth();
+            double originalHeight = currentCanvas.getHeight();
+
+            // Create a snapshot of the current canvas state
+            WritableImage snapshot = captureCanvas(currentCanvas);
+
+            // Adjust the canvas size for 90 or 270-degree rotations
+            if (angle == 90 || angle == 270) {
+                currentCanvas.setWidth(originalHeight);
+                currentCanvas.setHeight(originalWidth);
+            }
+
+            // Clear the canvas before applying the rotation
+            gc.clearRect(0, 0, currentCanvas.getWidth(), currentCanvas.getHeight());
+
+            // Apply the rotation transformation
+            gc.save(); // Save the current transformation state
+            gc.translate(currentCanvas.getWidth() / 2, currentCanvas.getHeight() / 2);
+            gc.rotate(angle); // Rotate by the specified angle
+            gc.translate(-originalWidth / 2, -originalHeight / 2); // Adjust translation based on original size
+
+            // Redraw the snapshot after rotating
+            gc.drawImage(snapshot, 0, 0);
+
+            gc.restore(); // Restore the original state
+        }
+    }
+
+    @FXML
+    protected void onRotate90() {
+        rotateCanvas(90);
+    }
+
+    @FXML
+    protected void onRotate180() {
+        rotateCanvas(180);
+    }
+
+    @FXML
+    protected void onRotate270() {
+        rotateCanvas(270);
+    }
+
+
+
+    private Canvas getSelectedCanvas() {
+        Tab selectedTab = tabPane.getSelectionModel().getSelectedItem();
+        if (selectedTab != null && selectedTab.getContent() instanceof ScrollPane) {
+            ScrollPane scrollPane = (ScrollPane) selectedTab.getContent();
+            if (scrollPane.getContent() instanceof StackPane) {
+                StackPane canvasPane = (StackPane) scrollPane.getContent();
+                if (!canvasPane.getChildren().isEmpty() && canvasPane.getChildren().get(0) instanceof Canvas) {
+                    return (Canvas) canvasPane.getChildren().get(0);
+                }
+            }
+        }
+        System.err.println("No canvas found in the selected tab.");
+        return null;
+    }
+
+
+    private void updateCanvasWithImage(Canvas canvas, WritableImage newImage) {
+        GraphicsContext gc = canvas.getGraphicsContext2D();
+        gc.clearRect(0, 0, canvas.getWidth(), canvas.getHeight());
+        gc.drawImage(newImage, 0, 0, canvas.getWidth(), canvas.getHeight());
+    }
+
+
+    private WritableImage flipCanvas(Canvas canvas, boolean horizontal) {
+        WritableImage snapshot = new WritableImage((int) canvas.getWidth(), (int) canvas.getHeight());
+        canvas.snapshot(null, snapshot);
+
+        // Create a new canvas for the flipped image
+        Canvas flippedCanvas = new Canvas(canvas.getWidth(), canvas.getHeight());
+        GraphicsContext gc = flippedCanvas.getGraphicsContext2D();
+
+        if (horizontal) {
+            gc.translate(snapshot.getWidth(), 0);
+            gc.scale(-1, 1); // Flip horizontally
+        } else {
+            gc.translate(0, snapshot.getHeight());
+            gc.scale(1, -1); // Flip vertically
+        }
+
+        gc.drawImage(snapshot, 0, 0);
+
+        WritableImage flippedImage = new WritableImage((int) flippedCanvas.getWidth(), (int) flippedCanvas.getHeight());
+        flippedCanvas.snapshot(null, flippedImage);
+
+        return flippedImage;
+    }
+
+    @FXML
+    private void onFlipHorizontalClick() {
+        Canvas currentCanvas = getSelectedCanvas();
+        if (currentCanvas != null) {
+            WritableImage flippedImage = flipCanvas(currentCanvas, true);
+            updateCanvasWithImage(currentCanvas, flippedImage);
+        }
+    }
+
+    @FXML
+    private void onFlipVerticalClick() {
+        Canvas currentCanvas = getSelectedCanvas();
+        if (currentCanvas != null) {
+            WritableImage flippedImage = flipCanvas(currentCanvas, false);
+            updateCanvasWithImage(currentCanvas, flippedImage);
+        }
+    }
+
+
+
+/*
+    private WritableImage rotateCanvas(Canvas canvas, double angle) {
+        WritableImage snapshot = new WritableImage((int) canvas.getWidth(), (int) canvas.getHeight());
+        canvas.snapshot(null, snapshot);
+
+        // Create a new canvas to draw the rotated image
+        Canvas rotatedCanvas = new Canvas(snapshot.getHeight(), snapshot.getWidth());
+        GraphicsContext gc = rotatedCanvas.getGraphicsContext2D();
+
+        // Perform the rotation
+        gc.translate(snapshot.getHeight() / 2, snapshot.getWidth() / 2);
+        gc.rotate(angle);
+        gc.translate(-snapshot.getWidth() / 2, -snapshot.getHeight() / 2);
+        gc.drawImage(snapshot, 0, 0);
+
+        // Create WritableImage from rotated canvas
+        WritableImage rotatedImage = new WritableImage((int) rotatedCanvas.getWidth(), (int) rotatedCanvas.getHeight());
+        rotatedCanvas.snapshot(null, rotatedImage);
+
+        return rotatedImage;
+    }
+
+
+    @FXML
+    private void onRotate90Click() {
+        Canvas currentCanvas = getSelectedCanvas();
+        if (currentCanvas != null) {
+            WritableImage rotatedImage = rotateCanvas(currentCanvas, 90);
+            updateCanvasWithImage(currentCanvas, rotatedImage);
+        }
+    }
+
+    @FXML
+    private void onRotate180Click() {
+        Canvas currentCanvas = getSelectedCanvas();
+        if (currentCanvas != null) {
+            WritableImage rotatedImage = rotateCanvas(currentCanvas, 180);
+            updateCanvasWithImage(currentCanvas, rotatedImage);
+        }
+    }
+
+    @FXML
+    private void onRotate270Click() {
+        Canvas currentCanvas = getSelectedCanvas();
+        if (currentCanvas != null) {
+            WritableImage rotatedImage = rotateCanvas(currentCanvas, 270);
+            updateCanvasWithImage(currentCanvas, rotatedImage);
+        }
+    }
+
+
+
+ */
+
 
     private String getCurrentTabName() {
         Tab selectedTab = tabPane.getSelectionModel().getSelectedItem();
@@ -260,8 +437,8 @@ public class HelloController {
 
     // Method to display notifications
     private void showNotification(String message) {
-        if (SystemTray.isSupported()) {
-            trayIcon.displayMessage("Autosave Notification", message, TrayIcon.MessageType.INFO);
+        if (notificationsEnabled && SystemTray.isSupported()) {
+            trayIcon.displayMessage("Notification", message, TrayIcon.MessageType.INFO);
         }
     }
 
@@ -631,6 +808,15 @@ public class HelloController {
 
 
 
+    @FXML
+    public void toggleNotifications() {
+        notificationsEnabled = notificationsToggle.isSelected();  // Update based on CheckMenuItem state
+        if (notificationsEnabled) {
+            System.out.println("Notifications enabled");
+        } else {
+            System.out.println("Notifications disabled");
+        }
+    }
 
     @FXML
     private void toggleAutosave() {
@@ -2179,6 +2365,7 @@ public class HelloController {
                     // Reset the autosave countdown after manual save
                     countdownValue = autosaveInterval;
                     updateLabel(0, 0);  // Update the label to show the reset timer
+                    logWriter.logEvent(getCurrentTabName(),"File saved");
                 }
             }
         } else {
@@ -2277,6 +2464,7 @@ public class HelloController {
                             // Reset the autosave countdown after manual save
                             countdownValue = autosaveInterval;
                             updateLabel(0, 0);
+                            logWriter.logEvent(getCurrentTabName(), "file saved as " + selectedFile.getAbsolutePath());
 
                         } catch (IOException e) {
                             e.printStackTrace();
@@ -2360,6 +2548,7 @@ public class HelloController {
                 updateLabel(0, 0);  // Update the label to reflect the new time
 
                 System.out.println("Autosave interval updated to: " + autosaveInterval + " seconds");
+                logWriter.logEvent(getCurrentTabName(), "Autosave time interval changed to "+ autosaveInterval );
 
             } catch (NumberFormatException e) {
                 // Handle invalid input (non-numeric values)
@@ -2494,6 +2683,7 @@ public class HelloController {
 
         popupStage.setScene(scene);
         popupStage.show();
+        logWriter.logEvent(getCurrentTabName(), "About menu clicked");
     }
 
     @FXML
@@ -2533,6 +2723,7 @@ public class HelloController {
         result.ifPresent(canvasName -> {
             // Add a new tab with the specified name and default size
             addNewTab(canvasName, 1450, 575);
+            logWriter.logEvent(getCurrentTabName(), "New tab created");
         });
 
         // If no input is provided (user cancels), do nothing
@@ -2542,7 +2733,7 @@ public class HelloController {
     @FXML
     protected void onExitMenuClick() {
         logWriter.logEvent(getCurrentTabName(), "Application exit");
-        logWriter.shutdown();  // Gracefully shut down the logging thread
+        logWriter.shutdown();  // shut down the logging thread
         System.exit(0);
     }
 }
