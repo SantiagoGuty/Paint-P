@@ -126,6 +126,7 @@ public class HelloController {
     private Boolean bold = false;
     private int nGonSides = 5;
     private int starPoints = 5; // Default number of points for the star
+    private LogWriter logWriter;
 
 
 
@@ -179,6 +180,12 @@ public class HelloController {
     public void initialize() {
         System.out.println("Initializing components...");
 
+        // Set the log file path to a desired location
+        logWriter = new LogWriter("user_actions.log");
+
+        // Example of logging the initialization
+        logWriter.logEvent("new tab", "Application initialized");
+
         if (tabPane == null) {
             System.out.println("TabPane is null.");
         } else {
@@ -211,6 +218,11 @@ public class HelloController {
 
         setupAutosaveTimer();
 
+    }
+
+    private String getCurrentTabName() {
+        Tab selectedTab = tabPane.getSelectionModel().getSelectedItem();
+        return selectedTab != null ? selectedTab.getText() : "unknown tab";
     }
 
     @FXML
@@ -704,6 +716,7 @@ public class HelloController {
                         ImageIO.write(bufferedImage, "png", file);
                         System.out.println("Autosaved to " + file.getAbsolutePath());
                         Platform.runLater(() -> infoText.setText("Autosaved at " + new Date().toString() + " to " + file.getAbsolutePath()));
+                        logWriter.logEvent(getCurrentTabName(), "Autosave");
                     } catch (IOException e) {
                         e.printStackTrace();
                         Platform.runLater(() -> infoText.setText("Failed to autosave."));
@@ -1090,61 +1103,73 @@ public class HelloController {
     @FXML
     private void setPencilTool() {
         currentTool = "Pencil";
+        logWriter.logEvent(getCurrentTabName(), "Pencil tool selected");
     }
 
     @FXML
     private void setEraserTool() {
         currentTool = "Eraser";
+        logWriter.logEvent(getCurrentTabName(), "Eraser tool selected");
     }
 
     @FXML
     private void setLineTool() {
         currentTool = "Line";
+        logWriter.logEvent(getCurrentTabName(), "Pencil tool selected");
     }
 
     @FXML
     private void setRectangleTool() {
         currentTool = "Rectangle";
+        logWriter.logEvent(getCurrentTabName(), "Rectangle tool selected");
     }
 
     @FXML
     private void setEllipseTool() {
         currentTool = "Ellipse";
+        logWriter.logEvent(getCurrentTabName(), "Ellipse tool selected");
     }
 
     @FXML
     private void setCircleTool() {
         currentTool = "Circle";
+        logWriter.logEvent(getCurrentTabName(), "Circle tool selected");
     }
 
     @FXML
     private void setTriangleTool() {
         currentTool = "Triangle";
+        logWriter.logEvent(getCurrentTabName(), "Triangle tool selected");
     }
 
     @FXML
     private void setImageTool() {
         currentTool = "Image";
+        logWriter.logEvent(getCurrentTabName(), "Sticker tool selected");
     }
 
     @FXML
     private void setStarTool() {
         currentTool = "Star";
+        logWriter.logEvent(getCurrentTabName(), "Star tool selected");
     }
 
     @FXML
     private void setHeartTool() {
         currentTool = "Heart";
+        logWriter.logEvent(getCurrentTabName(), "Heart tool selected");
     }
 
     @FXML
     private void setTextTool() {
         currentTool = "Text";
+        logWriter.logEvent(getCurrentTabName(), "Text tool selected");
     }
 
     @FXML
     private void setNgonTool() {
         currentTool = "nGon";
+        logWriter.logEvent(getCurrentTabName(), "Polygon tool selected");
     }
 
     @FXML
@@ -2516,6 +2541,8 @@ public class HelloController {
 
     @FXML
     protected void onExitMenuClick() {
+        logWriter.logEvent(getCurrentTabName(), "Application exit");
+        logWriter.shutdown();  // Gracefully shut down the logging thread
         System.exit(0);
     }
 }

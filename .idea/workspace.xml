@@ -4,11 +4,10 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="d2182c53-f702-4aa5-b38f-eb010e10bf54" name="Changes" comment="Sprint 5">
+    <list default="true" id="d2182c53-f702-4aa5-b38f-eb010e10bf54" name="Changes" comment="notifications implementation, tool tips and star with customizable points">
+      <change afterPath="$PROJECT_DIR$/src/main/java/com/example/paintp/LogWriter.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/pom.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/com/example/paintp/HelloController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/example/paintp/HelloController.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/resources/com/example/paintp/hello-view.fxml" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/com/example/paintp/hello-view.fxml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -18,8 +17,8 @@
   <component name="FileTemplateManagerImpl">
     <option name="RECENT_TEMPLATES">
       <list>
-        <option value="Class" />
         <option value="FxmlFile" />
+        <option value="Class" />
       </list>
     </option>
   </component>
@@ -200,7 +199,15 @@
       <option name="project" value="LOCAL" />
       <updated>1727967757427</updated>
     </task>
-    <option name="localTasksCounter" value="11" />
+    <task id="LOCAL-00011" summary="notifications implementation, tool tips and star with customizable points">
+      <option name="closed" value="true" />
+      <created>1728023183866</created>
+      <option name="number" value="00011" />
+      <option name="presentableId" value="LOCAL-00011" />
+      <option name="project" value="LOCAL" />
+      <updated>1728023183866</updated>
+    </task>
+    <option name="localTasksCounter" value="12" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -254,7 +261,8 @@
     <MESSAGE value="Upgrade on dashed lines, Polygons with any amount of sides and visuals in general" />
     <MESSAGE value="Life draw and tabs fully functioning" />
     <MESSAGE value="Sprint 5" />
-    <option name="LAST_COMMIT_MESSAGE" value="Sprint 5" />
+    <MESSAGE value="notifications implementation, tool tips and star with customizable points" />
+    <option name="LAST_COMMIT_MESSAGE" value="notifications implementation, tool tips and star with customizable points" />
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
     <SUITE FILE_PATH="coverage/Paint_P$HelloApplication.ic" NAME="HelloApplication Coverage Results" MODIFIED="1727451183509" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="idea" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="true">
