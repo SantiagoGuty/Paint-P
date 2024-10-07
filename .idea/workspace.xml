@@ -4,10 +4,11 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="d2182c53-f702-4aa5-b38f-eb010e10bf54" name="Changes" comment="Logger implementation">
+    <list default="true" id="d2182c53-f702-4aa5-b38f-eb010e10bf54" name="Changes" comment="Rotate and mirror canvas implementation">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/paint-p_ReleaseNotes.txt" beforeDir="false" afterPath="$PROJECT_DIR$/paint-p_ReleaseNotes.txt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/com/example/paintp/HelloController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/example/paintp/HelloController.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/resources/com/example/paintp/hello-view.fxml" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/com/example/paintp/hello-view.fxml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/example/paintp/LogWriter.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/example/paintp/LogWriter.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -215,7 +216,15 @@
       <option name="project" value="LOCAL" />
       <updated>1728024155527</updated>
     </task>
-    <option name="localTasksCounter" value="13" />
+    <task id="LOCAL-00013" summary="Rotate and mirror canvas implementation">
+      <option name="closed" value="true" />
+      <created>1728060467706</created>
+      <option name="number" value="00013" />
+      <option name="presentableId" value="LOCAL-00013" />
+      <option name="project" value="LOCAL" />
+      <updated>1728060467706</updated>
+    </task>
+    <option name="localTasksCounter" value="14" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -271,7 +280,8 @@
     <MESSAGE value="Sprint 5" />
     <MESSAGE value="notifications implementation, tool tips and star with customizable points" />
     <MESSAGE value="Logger implementation" />
-    <option name="LAST_COMMIT_MESSAGE" value="Logger implementation" />
+    <MESSAGE value="Rotate and mirror canvas implementation" />
+    <option name="LAST_COMMIT_MESSAGE" value="Rotate and mirror canvas implementation" />
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
     <SUITE FILE_PATH="coverage/Paint_P$HelloApplication.ic" NAME="HelloApplication Coverage Results" MODIFIED="1727451183509" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="idea" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="true">

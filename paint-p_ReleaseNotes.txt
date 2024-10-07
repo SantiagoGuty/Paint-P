@@ -3,6 +3,23 @@
 Release Notes Paint-P
 By Santiago Gutiérrez Morales
 
+-Version 1.5.0 (October 4, 2024)
+    New features
+    - Rotate Functionality: Users can now rotate the canvas by 90°, 180°, or 270°.
+    - Mirroring/Flipping: The software supports horizontal mirroring (left to right)
+      and vertical mirroring (top to bottom) entire canvas.
+    - Icons for every tool (Most of them were created in this app!)
+    - Tool tips for the tool buttons that appear on hover
+    - The user is able to draw a regular star with any # of corners
+    - Logging functionality on the 'user_actions.log' file
+    
+    Known Issues
+    - Controller File is huge and confusing
+     Expected Next Version
+    - Better UI design
+    - Issues with the web server, created by the threads from the Log
+
+
 
 -Version 1.4.0 (September 27, 2024)
     New features
@@ -49,12 +66,12 @@ By Santiago Gutiérrez Morales
         -smart/aware save ("Are you sure you want to exit?")
         -Custom size resize canvas
         -Eraser
-        -Inform the user of their pixel coordinate, the pixel size, and the canvas size measurements on the bottom left corner of the screen
+        -Inform the user of their pixel coordinate, the pixel size, and the canvas size measurements in the bottom left corner of the screen
        - Custom shape: Star!
 
     Known Issues
         -Controller needs to be divided into multiple files
-        -The dragged image is not visible
+        -The dragged image is not visibly
     Expected Next Version
         -tabs
 

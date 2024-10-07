@@ -12,7 +12,7 @@ public class LogWriter {
     private final ExecutorService executorService;
     private final String logFilePath;
 
-    // Constructor
+    // Constructor bb
     public LogWriter(String logFilePath) {
         this.logFilePath = logFilePath;
         this.executorService = Executors.newSingleThreadExecutor(); // Single-threaded executor for writing
@@ -30,7 +30,7 @@ public class LogWriter {
         });
     }
 
-    // Method to gracefully shut down the executor service
+    // Method to kill or 'shut down' the executor service
     public void shutdown() {
         executorService.shutdown();
     }

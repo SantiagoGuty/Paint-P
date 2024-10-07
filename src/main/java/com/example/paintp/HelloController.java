@@ -171,6 +171,10 @@ public class HelloController {
 
     @FXML
     private ToggleButton pencilButton, eraserButton, lineButton, rectangleButton, ellipseButton, circleButton, triangleButton, starButton, heartButton, imageButton, textButton, nGonButton;
+    private boolean isSelecting = false;
+    private WritableImage selectedChunk;
+    private double selectionStartX, selectionStartY, selectionEndX, selectionEndY;
+    private double rotationAngle = 0;  // To track the rotation angle
 
 
     /**
@@ -340,61 +344,6 @@ public class HelloController {
         }
     }
 
-
-
-/*
-    private WritableImage rotateCanvas(Canvas canvas, double angle) {
-        WritableImage snapshot = new WritableImage((int) canvas.getWidth(), (int) canvas.getHeight());
-        canvas.snapshot(null, snapshot);
-
-        // Create a new canvas to draw the rotated image
-        Canvas rotatedCanvas = new Canvas(snapshot.getHeight(), snapshot.getWidth());
-        GraphicsContext gc = rotatedCanvas.getGraphicsContext2D();
-
-        // Perform the rotation
-        gc.translate(snapshot.getHeight() / 2, snapshot.getWidth() / 2);
-        gc.rotate(angle);
-        gc.translate(-snapshot.getWidth() / 2, -snapshot.getHeight() / 2);
-        gc.drawImage(snapshot, 0, 0);
-
-        // Create WritableImage from rotated canvas
-        WritableImage rotatedImage = new WritableImage((int) rotatedCanvas.getWidth(), (int) rotatedCanvas.getHeight());
-        rotatedCanvas.snapshot(null, rotatedImage);
-
-        return rotatedImage;
-    }
-
-
-    @FXML
-    private void onRotate90Click() {
-        Canvas currentCanvas = getSelectedCanvas();
-        if (currentCanvas != null) {
-            WritableImage rotatedImage = rotateCanvas(currentCanvas, 90);
-            updateCanvasWithImage(currentCanvas, rotatedImage);
-        }
-    }
-
-    @FXML
-    private void onRotate180Click() {
-        Canvas currentCanvas = getSelectedCanvas();
-        if (currentCanvas != null) {
-            WritableImage rotatedImage = rotateCanvas(currentCanvas, 180);
-            updateCanvasWithImage(currentCanvas, rotatedImage);
-        }
-    }
-
-    @FXML
-    private void onRotate270Click() {
-        Canvas currentCanvas = getSelectedCanvas();
-        if (currentCanvas != null) {
-            WritableImage rotatedImage = rotateCanvas(currentCanvas, 270);
-            updateCanvasWithImage(currentCanvas, rotatedImage);
-        }
-    }
-
-
-
- */
 
 
     private String getCurrentTabName() {
@@ -1146,9 +1095,10 @@ public class HelloController {
         heartButton.setToggleGroup(toolsToggleGroup);
         nGonButton.setToggleGroup(toolsToggleGroup);
         textButton.setToggleGroup(toolsToggleGroup);
+        selectButton.setToggleGroup(toolsToggleGroup);
         // Set the onAction for the tool buttons (example for pencil)
-        pencilButton.setOnAction(event -> setPencilTool());
-        eraserButton.setOnAction(event -> setEraserTool());
+        pencilButton.setOnAction(event -> setToolDrawing("Pencil"));
+        eraserButton.setOnAction(event -> setToolDrawing("Eraser"));
         lineButton.setOnAction(event -> setLineTool());
         rectangleButton.setOnAction(event -> setRectangleTool());
         ellipseButton.setOnAction(event -> setEllipseTool());
@@ -1159,7 +1109,35 @@ public class HelloController {
         heartButton.setOnAction(event -> setHeartTool());
         textButton.setOnAction(event -> setTextTool());
         nGonButton.setOnAction(event -> setNgonTool());
+        selectButton.setOnAction(event -> setToolSelection());
         // Add similar actions for other tools...
+    }
+
+    private void setToolSelection() {
+        // Set the listeners for selecting areas
+        CanvasTab canvasTab = getSelectedCanvasTab();
+        if (canvasTab != null) {
+            Canvas currentCanvas = canvasTab.getCanvas();
+
+            // Clear any previous listeners
+            currentCanvas.setOnMousePressed(this::onMousePressed);
+            currentCanvas.setOnMouseDragged(this::onMouseDragged);
+            currentCanvas.setOnMouseReleased(this::onMouseReleased);
+        }
+    }
+
+    private void setToolDrawing(String tool) {
+        // Set the current tool and its listeners
+        currentTool = tool;
+        CanvasTab canvasTab = getSelectedCanvasTab();
+        if (canvasTab != null) {
+            Canvas currentCanvas = canvasTab.getCanvas();
+
+            // Clear any previous listeners
+            currentCanvas.setOnMousePressed(this::onMousePressed);
+            currentCanvas.setOnMouseDragged(this::onMouseDragged);
+            currentCanvas.setOnMouseReleased(this::onMouseReleased);
+        }
     }
 
 
@@ -1268,6 +1246,132 @@ public class HelloController {
     }
 
 
+    @FXML
+    private void onSelectButtonClick() {
+        currentTool = "Select";  // Update the tool to select
+        isSelecting = true;  // Enter selection mode
+
+        CanvasTab canvasTab = getSelectedCanvasTab();
+        if (canvasTab != null) {
+            Canvas currentCanvas = canvasTab.getCanvas();
+            GraphicsContext tempGc = canvasTab.getTempGraphicsContext();
+
+            // Clear previously set mouse listeners to avoid conflicts
+            currentCanvas.setOnMousePressed(null);
+            currentCanvas.setOnMouseDragged(null);
+            currentCanvas.setOnMouseReleased(null);
+
+            // Mouse press - start selection
+            currentCanvas.setOnMousePressed(event -> {
+                if (isSelecting && currentTool.equals("Select")) {
+                    selectionStartX = event.getX();
+                    selectionStartY = event.getY();
+                    tempGc.clearRect(0, 0, currentCanvas.getWidth(), currentCanvas.getHeight());
+                }
+            });
+
+            // Mouse drag - draw selection rectangle
+            currentCanvas.setOnMouseDragged(event -> {
+                if (isSelecting && currentTool.equals("Select")) {
+                    selectionEndX = event.getX();
+                    selectionEndY = event.getY();
+                    tempGc.clearRect(0, 0, currentCanvas.getWidth(), currentCanvas.getHeight());
+                    tempGc.setStroke(Color.RED);
+                    tempGc.strokeRect(Math.min(selectionStartX, selectionEndX), Math.min(selectionStartY, selectionEndY),
+                            Math.abs(selectionEndX - selectionStartX), Math.abs(selectionEndY - selectionStartY));
+                }
+            });
+
+            // Mouse release - finalize selection
+            currentCanvas.setOnMouseReleased(event -> {
+                if (isSelecting && currentTool.equals("Select")) {
+                    // Capture the selected chunk as a WritableImage
+                    double width = Math.abs(selectionEndX - selectionStartX);
+                    double height = Math.abs(selectionEndY - selectionStartY);
+                    selectedChunk = new WritableImage((int) width, (int) height);
+                    System.out.println("Selection area: startX = " + selectionStartX + ", startY = " + selectionStartY +
+                            ", width = " + width + ", height = " + height);
+
+                    // Take snapshot of the selected chunk
+                    currentCanvas.snapshot(null, selectedChunk);
+
+                    // Exit selection mode
+                    isSelecting = false;
+                    tempGc.clearRect(0, 0, currentCanvas.getWidth(), currentCanvas.getHeight());
+                }
+            });
+        }
+    }
+
+
+
+    @FXML
+    private void onRotateChunk(double angle) {
+        if (selectedChunk != null) {
+            CanvasTab canvasTab = getSelectedCanvasTab();
+            if (canvasTab != null) {
+                GraphicsContext tempGc = canvasTab.getTempGraphicsContext();
+
+                // Clear the temp canvas before drawing the rotated image
+                tempGc.clearRect(0, 0, canvasTab.getTempCanvas().getWidth(), canvasTab.getTempCanvas().getHeight());
+
+                // Save the current transformation state
+                tempGc.save();
+
+                // Move the canvas origin to the center of the selected chunk
+                tempGc.translate(selectionStartX + selectedChunk.getWidth() / 2, selectionStartY + selectedChunk.getHeight() / 2);
+
+                // Apply the rotation
+                tempGc.rotate(angle);
+
+                // Draw the selected chunk centered
+                tempGc.drawImage(selectedChunk, -selectedChunk.getWidth() / 2, -selectedChunk.getHeight() / 2);
+
+                // Restore the transformation state
+                tempGc.restore();
+            }
+        }
+    }
+
+
+    @FXML
+    private void onMoveChunk(double deltaX, double deltaY) {
+        if (selectedChunk != null) {
+            CanvasTab canvasTab = getSelectedCanvasTab();
+            if (canvasTab != null) {
+                GraphicsContext tempGc = canvasTab.getTempGraphicsContext();
+
+                // Clear the temporary canvas
+                tempGc.clearRect(0, 0, canvasTab.getTempCanvas().getWidth(), canvasTab.getTempCanvas().getHeight());
+
+                // Move the selected chunk by deltaX and deltaY
+                tempGc.drawImage(selectedChunk, selectionStartX + deltaX, selectionStartY + deltaY);
+            }
+        }
+    }
+
+
+    @FXML
+    private void onCommitChunkChanges() {
+        if (selectedChunk != null) {
+            CanvasTab canvasTab = getSelectedCanvasTab();
+            if (canvasTab != null) {
+                GraphicsContext gc = canvasTab.getGraphicsContext();
+
+                // Clear the selection highlight
+                canvasTab.getTempGraphicsContext().clearRect(0, 0, canvasTab.getTempCanvas().getWidth(), canvasTab.getTempCanvas().getHeight());
+
+                // Draw the selected chunk on the main canvas
+                gc.drawImage(selectedChunk, selectionStartX, selectionStartY);
+
+                // Clear the selected chunk
+                selectedChunk = null;
+            }
+        }
+    }
+
+
+
 
     private void resetToDefaultTool() {
         // Reset tool to the default tool, e.g., Pencil
@@ -1283,13 +1387,23 @@ public class HelloController {
         }
     }
 
+
     // Variable to track the current tool
     //private String currentTool = "Pencil"; default
 
     @FXML
     private void setPencilTool() {
         currentTool = "Pencil";
-        logWriter.logEvent(getCurrentTabName(), "Pencil tool selected");
+        CanvasTab canvasTab = getSelectedCanvasTab();
+        if (canvasTab != null) {
+            Canvas currentCanvas = canvasTab.getCanvas();
+
+            // Clear selection mode and set new mouse handlers for drawing
+            isSelecting = false;
+            currentCanvas.setOnMousePressed(this::onMousePressed);
+            currentCanvas.setOnMouseDragged(this::onMouseDragged);
+            currentCanvas.setOnMouseReleased(this::onMouseReleased);
+        }
     }
 
     @FXML
@@ -1356,6 +1470,12 @@ public class HelloController {
     private void setNgonTool() {
         currentTool = "nGon";
         logWriter.logEvent(getCurrentTabName(), "Polygon tool selected");
+    }
+
+    @FXML
+    private void setSelectTool() {
+        currentTool = "Select";
+        logWriter.logEvent(getCurrentTabName(), "Select tool selected");
     }
 
     @FXML
@@ -1668,6 +1788,7 @@ public class HelloController {
          */
 
     }
+
 
     @FXML
     public void setCustomSticker() {
@@ -2697,10 +2818,6 @@ public class HelloController {
         currentShape = source.getText();
     }
 
-    @FXML
-    private void onSelectButtonClick(){
-        System.out.println("Select button clicked");
-    }
 
     @FXML
     private void onNewMenuClick() {
