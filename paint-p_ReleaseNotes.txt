@@ -3,6 +3,10 @@
 Release Notes Paint-P
 By Santiago Gutiérrez Morales
 
+-Version 2.0.0 (October 4, 2024)
+    New features
+
+
 -Version 1.5.0 (October 4, 2024)
     New features
     - Rotate Functionality: Users can now rotate the canvas by 90°, 180°, or 270°.

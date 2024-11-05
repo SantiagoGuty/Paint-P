@@ -220,6 +220,12 @@
            </tooltip>
        </ToggleButton>
 
+       <ToggleButton fx:id="fillButton">
+           <tooltip>
+               <Tooltip text="Fil; Tool"/>
+           </tooltip>
+       </ToggleButton>
+
 
 
        <VBox alignment="CENTER" spacing="5">

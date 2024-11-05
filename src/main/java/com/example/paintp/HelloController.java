@@ -10,6 +10,7 @@ import javafx.beans.property.SimpleDoubleProperty;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
+import javafx.scene.image.*;
 import javafx.scene.text.Font;
 import javafx.geometry.Insets;
 import javafx.scene.Scene;
@@ -20,10 +21,6 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextArea;
-import javafx.scene.image.Image;
-import javafx.scene.image.ImageView;
-import javafx.scene.image.PixelReader;
-import javafx.scene.image.WritableImage;
 import javafx.scene.input.*;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
@@ -40,7 +37,6 @@ import javafx.util.Duration;
 import javafx.scene.image.Image;
 import javax.imageio.ImageIO;
 import java.awt.*;
-//import java.awt.event.ActionEvent;
 import java.awt.image.BufferedImage;
 import java.awt.image.RenderedImage;
 import java.io.*;
@@ -100,9 +96,16 @@ public class HelloController {
     private CheckBox dashedLineCheckBox;
     @FXML
     private TabPane tabPane;
-
     @FXML
     private CheckMenuItem autosaveMenuItem;
+    @FXML
+    private CheckMenuItem notificationsToggle;
+    @FXML
+    private CheckBox autosaveCheckbox;
+    @FXML
+    private Label countdownLabel;
+    @FXML
+    private Canvas testCanvas;
 
     private double startX, startY;
     private Color currentColor = Color.BLACK;
@@ -127,50 +130,29 @@ public class HelloController {
     private int nGonSides = 5;
     private int starPoints = 5; // Default number of points for the star
     private LogWriter logWriter;
-    @FXML
-    private CheckMenuItem notificationsToggle;
-
     private boolean notificationsEnabled = true;  // Show notifications fault to tr
-
-
-
-
-
     private List<Image> selectedImages = new ArrayList<>(); // ArrayList for the web server
-
-
     private final HashMap<Tab, CanvasTab> canvasTabs = new HashMap<>();
     private final HashMap<Tab, Stack<CanvasState>> undoStacks = new HashMap<>();
     private final HashMap<Tab, Stack<CanvasState>> redoStacks = new HashMap<>();
     private Stack<WritableImage> undoStack = new Stack<>();
     private Stack<WritableImage> redoStack = new Stack<>();
     private Map<Tab, File> savedFilesMap = new HashMap<>(); //Track of the save files in the download directory
-
-
     private Map<Tab, CanvasTab> tabCanvasMap = new HashMap<>();
-
-    @FXML
-    private Canvas testCanvas;
     private GraphicsContext gc;
     private GraphicsContext testGc;
     private String currentTool = "Pencil";
-
     private Timeline autosaveTimer;
     private int autosaveInterval = 60; // Default to 60 seconds
     private int countdownValue;
     private boolean autosaveEnabled = true; // Enable autosave by default
-
-    @FXML
-    private CheckBox autosaveCheckbox;
-    @FXML
-    private Label countdownLabel;
     private HttpServer httpServer;
     private Stage primaryStage;
     private TrayIcon trayIcon;
 
 
     @FXML
-    private ToggleButton pencilButton, eraserButton, lineButton, rectangleButton, ellipseButton, circleButton, triangleButton, starButton, heartButton, imageButton, textButton, nGonButton;
+    private ToggleButton pencilButton, eraserButton, lineButton, rectangleButton, ellipseButton, circleButton, triangleButton, starButton, heartButton, imageButton, textButton, nGonButton, fillButton;
     private boolean isSelecting = false;
     private WritableImage selectedChunk;
     private double selectionStartX, selectionStartY, selectionEndX, selectionEndY;
@@ -232,6 +214,7 @@ public class HelloController {
         if (canvasTab != null) {
             Canvas currentCanvas = canvasTab.getCanvas();
             GraphicsContext gc = currentCanvas.getGraphicsContext2D();
+            GraphicsContext tempGc = canvasTab.getTempGraphicsContext();
 
             // Store the original canvas size
             double originalWidth = currentCanvas.getWidth();
@@ -244,10 +227,14 @@ public class HelloController {
             if (angle == 90 || angle == 270) {
                 currentCanvas.setWidth(originalHeight);
                 currentCanvas.setHeight(originalWidth);
+                canvasTab.getTempCanvas().setWidth(originalHeight);
+                canvasTab.getTempCanvas().setHeight(originalWidth);
             }
 
             // Clear the canvas before applying the rotation
             gc.clearRect(0, 0, currentCanvas.getWidth(), currentCanvas.getHeight());
+            tempGc.clearRect(0, 0, canvasTab.getTempCanvas().getWidth(), canvasTab.getTempCanvas().getHeight());
+
 
             // Apply the rotation transformation
             gc.save(); // Save the current transformation state
@@ -1862,39 +1849,6 @@ public class HelloController {
         return Font.font(fontFamily, fontWeight, fontPosture, fontSize);
     }
 
-/*
-    private void drawStar(GraphicsContext gc,double startX, double startY, double endX, double endY) {
-
-        // Debugging print statements
-        System.out.println("Entered drawStar method");
-        System.out.println("GraphicsContext: " + gc);
-        System.out.println("StartX: " + startX + ", StartY: " + startY);
-        System.out.println("EndX: " + endX + ", EndY: " + endY);
-
-        // Check if GraphicsContext is null
-        if (gc == null) {
-            System.err.println("GraphicsContext is null! Exiting drawStar.");
-            return;  // Exit the method if GraphicsContext is not initialized
-        }
-        double centerX = (startX + endX) / 2;
-        double centerY = (startY + endY) / 2;
-        double radius = Math.min(Math.abs(endX - startX), Math.abs(endY - startY)) / 2;
-        double angle = Math.PI / 5;  // 36 degrees for star points
-
-        double[] xPoints = new double[10];
-        double[] yPoints = new double[10];
-
-        for (int i = 0; i < 10; i++) {
-            double radiusFactor = (i % 2 == 0) ? 1 : 0.5;  // Alternate between outer and inner points
-            xPoints[i] = centerX + Math.cos(i * 2 * angle) * radius * radiusFactor;
-            yPoints[i] = centerY - Math.sin(i * 2 * angle) * radius * radiusFactor;
-        }
-
-        gc.strokePolygon(xPoints, yPoints, 10);
-    }
-
- */
-
     @FXML
     public void setCustomText() {
         // Create the TextInputDialog
@@ -2000,7 +1954,59 @@ public class HelloController {
 
 
 
-    // Ensure this is properly initialized
+    @FXML
+    private void onCanvasClickForFill(MouseEvent event) {
+        if (fillButton.isSelected()) {
+            CanvasTab canvasTab = getSelectedCanvasTab();
+            if (canvasTab != null) {
+                double x = event.getX();
+                double y = event.getY();
+                Color fillColor = colorPicker.getValue(); // Get the color from the color picker
+
+                floodFill(canvasTab, x, y, fillColor);
+            }
+        }
+    }
+
+    private void floodFill(CanvasTab canvasTab, double x, double y, Color fillColor) {
+        // Get image from the canvas
+        WritableImage writableImage = new WritableImage((int) canvasTab.getCanvas().getWidth(), (int) canvasTab.getCanvas().getHeight());
+        canvasTab.getCanvas().snapshot(null, writableImage);
+
+        PixelReader pixelReader = writableImage.getPixelReader();
+        PixelWriter pixelWriter = writableImage.getPixelWriter();
+
+        Color targetColor = pixelReader.getColor((int) x, (int) y);
+
+        if (fillColor.equals(targetColor)) {
+            return; // Avoid unnecessary fill
+        }
+
+        Queue<int[]> queue = new LinkedList<>();
+        queue.add(new int[]{(int) x, (int) y});
+
+        while (!queue.isEmpty()) {
+            int[] point = queue.poll();
+            int px = point[0];
+            int py = point[1];
+
+            // Check boundaries and color match
+            if (px < 0 || px >= writableImage.getWidth() || py < 0 || py >= writableImage.getHeight()) continue;
+            if (!pixelReader.getColor(px, py).equals(targetColor)) continue;
+
+            // Set pixel to fill color
+            pixelWriter.setColor(px, py, fillColor);
+
+            // Add neighboring pixels
+            queue.add(new int[]{px + 1, py});
+            queue.add(new int[]{px - 1, py});
+            queue.add(new int[]{px, py + 1});
+            queue.add(new int[]{px, py - 1});
+        }
+
+        // Draw the updated image back onto the canvas
+        canvasTab.getGraphicsContext().drawImage(writableImage, 0, 0);
+    }
 
     /*
 
@@ -2129,6 +2135,7 @@ public class HelloController {
         if (result.isPresent() && result.get() == saveButton) {
             // Handle saving the file here
             System.out.println("Save the file");
+            onSafeClick();
             onExitMenuClick(); // Assuming this exits after saving
         } else if (result.isPresent() && result.get() == dontSaveButton) {
             // Just exit without saving
@@ -2186,7 +2193,7 @@ public class HelloController {
             }
         }
     }
-
+/*
     @FXML
     protected void setWideCanvas() {
         boolean safe = safetyCanvasEdit();
@@ -2213,6 +2220,46 @@ public class HelloController {
     }
 
 
+ */
+    @FXML
+    protected void setWideCanvas() {
+        boolean safe = safetyCanvasEdit();
+        if (safe) {
+            CanvasTab canvasTab = getSelectedCanvasTab();
+            if (canvasTab != null) {
+                Canvas currentCanvas = canvasTab.getCanvas();
+                Canvas tempCanvas = canvasTab.getTempCanvas(); // Temporary canvas
+
+                double newWidth = 1450;
+                double newHeight = 575;
+
+                // Update size for both canvases
+                currentCanvas.setWidth(newWidth);
+                currentCanvas.setHeight(newHeight);
+                tempCanvas.setWidth(newWidth);
+                tempCanvas.setHeight(newHeight);
+
+                // Clear and set background for both canvases
+                GraphicsContext gc = currentCanvas.getGraphicsContext2D();
+                GraphicsContext tempGc = tempCanvas.getGraphicsContext2D();
+
+                gc.clearRect(0, 0, newWidth, newHeight);
+                gc.setFill(Color.WHITE);
+                gc.fillRect(0, 0, newWidth, newHeight);
+
+                tempGc.clearRect(0, 0, newWidth, newHeight);
+                tempGc.setFill(Color.WHITE);
+                tempGc.fillRect(0, 0, newWidth, newHeight);
+
+                updateLabel(); // Update any UI elements or labels reflecting the new size
+            } else {
+                System.err.println("No CanvasTab found for the selected tab.");
+            }
+        }
+    }
+
+
+
     @FXML
     protected void setCustomSizeCanvas(ActionEvent event) {
         boolean safe = safetyCanvasEdit();
@@ -2220,6 +2267,7 @@ public class HelloController {
             CanvasTab canvasTab = getSelectedCanvasTab();
             if (canvasTab != null) {
                 Canvas currentCanvas = canvasTab.getCanvas();
+                Canvas tempCanvas = canvasTab.getTempCanvas();
 
                 // Load the icon image for dialogs
                 Image icon = new Image(Objects.requireNonNull(getClass().getResourceAsStream("/images/paint-P-Logo.png")));
@@ -2267,11 +2315,19 @@ public class HelloController {
                     // Set the new canvas size
                     currentCanvas.setWidth(newWidth);
                     currentCanvas.setHeight(newHeight);
+                    tempCanvas.setWidth(newWidth);
+                    tempCanvas.setHeight(newHeight);
 
                     // Re-fill the canvas background to ensure the new size is visible
                     GraphicsContext gc = currentCanvas.getGraphicsContext2D();
+                    GraphicsContext tempGc = tempCanvas.getGraphicsContext2D();
+
                     gc.setFill(Color.WHITE);  // Set default background color (white)
                     gc.fillRect(0, 0, newWidth, newHeight);
+
+                    //tempGc.clearRect(0, 0, newWidth, newHeight);
+                    tempGc.setFill(Color.WHITE);
+                    tempGc.fillRect(0, 0, newWidth, newHeight);
 
                     // Update any UI elements or labels reflecting the new size
                     updateLabel();  // Refresh the label to show the updated canvas size
@@ -2321,6 +2377,7 @@ public class HelloController {
 
 
 
+    /*
     @FXML
     protected void setTallCanvas() {
         boolean safe = safetyCanvasEdit();
@@ -2356,6 +2413,45 @@ public class HelloController {
             }
         }
     }
+
+     */
+    @FXML
+    protected void setTallCanvas() {
+        boolean safe = safetyCanvasEdit();
+        if (safe) {
+            CanvasTab canvasTab = getSelectedCanvasTab();
+            if (canvasTab != null) {
+                Canvas currentCanvas = canvasTab.getCanvas();
+                Canvas tempCanvas = canvasTab.getTempCanvas(); // Temporary canvas
+
+                double newWidth = 600;
+                double newHeight = 650;
+
+                // Update size for both canvases
+                currentCanvas.setWidth(newWidth);
+                currentCanvas.setHeight(newHeight);
+                tempCanvas.setWidth(newWidth);
+                tempCanvas.setHeight(newHeight);
+
+                // Clear and set background for both canvases
+                GraphicsContext gc = currentCanvas.getGraphicsContext2D();
+                GraphicsContext tempGc = tempCanvas.getGraphicsContext2D();
+
+                gc.clearRect(0, 0, newWidth, newHeight);
+                gc.setFill(Color.WHITE);
+                gc.fillRect(0, 0, newWidth, newHeight);
+
+                tempGc.clearRect(0, 0, newWidth, newHeight);
+                tempGc.setFill(Color.WHITE);
+                tempGc.fillRect(0, 0, newWidth, newHeight);
+
+                updateLabel(); // Update any UI elements or labels reflecting the new size
+            } else {
+                System.err.println("No CanvasTab found for the selected tab.");
+            }
+        }
+    }
+
 
     private void setupListeners() {
         // Add listener for tab selection
