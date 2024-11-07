@@ -10,7 +10,11 @@ import javafx.beans.property.SimpleDoubleProperty;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
+import javafx.scene.control.Dialog;
 import javafx.scene.image.*;
+import javafx.scene.paint.*;
+import javafx.scene.paint.Color;
+import javafx.scene.shape.StrokeLineCap;
 import javafx.scene.text.Font;
 import javafx.geometry.Insets;
 import javafx.scene.Scene;
@@ -29,7 +33,6 @@ import javafx.scene.text.FontPosture;
 import javafx.scene.text.FontWeight;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
-import javafx.scene.paint.Color;
 import javafx.scene.control.ToggleGroup;
 import javafx.scene.control.ToggleButton;
 import javafx.event.ActionEvent;
@@ -53,7 +56,6 @@ import javafx.application.Platform;
 
 
 
-
 /**
  * Main Controller class, it is the bones of all the Paint-p app functionality
  * handling the canvas operations, user interactions, and HTTP server setup for serving Tabs, canvases and images.
@@ -61,7 +63,6 @@ import javafx.application.Platform;
  * @version 1.4.0
  *
  */
-
 public class HelloController {
 
     @FXML
@@ -89,8 +90,6 @@ public class HelloController {
     @FXML
     private ToggleGroup toolsToggleGroup;
     @FXML
-    private ToggleButton selectButton;
-    @FXML
     private ToggleButton SelectAndMoveButton;
     @FXML
     private CheckBox dashedLineCheckBox;
@@ -106,6 +105,22 @@ public class HelloController {
     private Label countdownLabel;
     @FXML
     private Canvas testCanvas;
+    @FXML
+    private CheckMenuItem fillCheckMenuItem;
+    @FXML
+    private ToggleButton pencilButton, eraserButton, lineButton,
+            rectangleButton, ellipseButton, circleButton, triangleButton,
+            starButton, heartButton, imageButton, textButton, nGonButton,
+            cubeButton, fillButton, spiralButton, standardBrushButton,
+            calligraphyBrushButton, charcoalBrushButton, sprayPaintBrushButton;;
+
+    private boolean fillShapes = false; // To track if filling is enabled
+    private Color fillColor = Color.BLACK; // Default fill color
+    private enum BrushType {
+        STANDARD, CALLIGRAPHY, CHARCOAL, SPRAY_PAINT
+    }
+
+    private BrushType selectedBrush = BrushType.STANDARD; // Default brush
 
     private double startX, startY;
     private Color currentColor = Color.BLACK;
@@ -150,9 +165,10 @@ public class HelloController {
     private Stage primaryStage;
     private TrayIcon trayIcon;
 
+    private double endX, endY;     // End point
+    private int clickCount = 0;
 
-    @FXML
-    private ToggleButton pencilButton, eraserButton, lineButton, rectangleButton, ellipseButton, circleButton, triangleButton, starButton, heartButton, imageButton, textButton, nGonButton, fillButton;
+
     private boolean isSelecting = false;
     private WritableImage selectedChunk;
     private double selectionStartX, selectionStartY, selectionEndX, selectionEndY;
@@ -188,7 +204,9 @@ public class HelloController {
         }
 
         colorPicker.setValue(Color.BLACK);  // Default color
+        fillColor = colorPicker.getValue();
         lineWidthSlider.setValue(1.0);      // Default line width
+
 
         setupToolButtons();
         setButtonIcons();
@@ -265,6 +283,44 @@ public class HelloController {
     }
 
 
+    @FXML
+    private void toggleFill(ActionEvent event) {
+        fillShapes = fillCheckMenuItem.isSelected();
+    }
+
+    @FXML
+    private void setFillingColor() {
+        // Create a new ColorPicker with the current fill color as the default
+        ColorPicker colorPicker = new ColorPicker(fillColor);
+
+        // Create a new dialog
+        Dialog<Color> dialog = new Dialog<>();
+        dialog.setTitle("Choose Fill Color");
+        dialog.setHeaderText("Select a color for filling shapes");
+
+        // Add ColorPicker to the dialog content
+        dialog.getDialogPane().setContent(colorPicker);
+
+        // Add OK and Cancel buttons
+        dialog.getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
+
+        // Convert result to the selected color
+        dialog.setResultConverter(dialogButton -> {
+            if (dialogButton == ButtonType.OK) {
+                return colorPicker.getValue(); // Return the selected color
+            }
+            return null; // Return null if canceled
+        });
+
+        // Show the dialog and get the result
+        Optional<Color> result = dialog.showAndWait();
+        result.ifPresent(selectedColor -> fillColor = selectedColor); // Update fillColor if a color was chosen
+    }
+
+    @FXML
+    private void resetFillingColor() {
+        fillColor = Color.BLACK; // Set to default color
+    }
 
     private Canvas getSelectedCanvas() {
         Tab selectedTab = tabPane.getSelectionModel().getSelectedItem();
@@ -391,12 +447,15 @@ public class HelloController {
         setToggleTooltip(imageButton, "Image Tool");
         setToggleTooltip(starButton, "Star Tool");
         setToggleTooltip(heartButton, "Heart Tool");
+        setToggleTooltip(spiralButton, "Spiral Tool");
+        setToggleTooltip(cubeButton, "Cube tool");
         setToggleTooltip(nGonButton, "Polygon Tool");
         setToggleTooltip(textButton, "Text Tool");
-        setToggleTooltip(selectButton, "Select Tool");
         setToggleTooltip(colorGrabButton, "Grab color Tool");
         setButtonTooltip(undoButton, "Undo button");
         setButtonTooltip(redoButton, "Redo button");
+        setToggleTooltip(charcoalBrushButton, "Bubbles button");
+        setToggleTooltip(sprayPaintBrushButton, "Spray paint button");
     }
 
     // Helper method to set tooltip with no delay
@@ -1080,9 +1139,14 @@ public class HelloController {
         imageButton.setToggleGroup(toolsToggleGroup);
         starButton.setToggleGroup(toolsToggleGroup);
         heartButton.setToggleGroup(toolsToggleGroup);
+        spiralButton.setToggleGroup(toolsToggleGroup);
+        cubeButton.setToggleGroup(toolsToggleGroup);
         nGonButton.setToggleGroup(toolsToggleGroup);
         textButton.setToggleGroup(toolsToggleGroup);
-        selectButton.setToggleGroup(toolsToggleGroup);
+        colorGrabButton.setToggleGroup(toolsToggleGroup);
+        charcoalBrushButton.setToggleGroup(toolsToggleGroup);
+        sprayPaintBrushButton.setToggleGroup(toolsToggleGroup);
+
         // Set the onAction for the tool buttons (example for pencil)
         pencilButton.setOnAction(event -> setToolDrawing("Pencil"));
         eraserButton.setOnAction(event -> setToolDrawing("Eraser"));
@@ -1094,9 +1158,14 @@ public class HelloController {
         imageButton.setOnAction(event -> setImageTool());
         starButton.setOnAction(event -> setStarTool());
         heartButton.setOnAction(event -> setHeartTool());
+        spiralButton.setOnAction(event -> setSpiralTool());
+        cubeButton.setOnAction(event -> setCubeTool());
         textButton.setOnAction(event -> setTextTool());
         nGonButton.setOnAction(event -> setNgonTool());
-        selectButton.setOnAction(event -> setToolSelection());
+        colorGrabButton.setOnAction(event -> setImageTool());
+        charcoalBrushButton.setOnAction(event -> setCharcoalBrushTool());
+        sprayPaintBrushButton.setOnAction(event -> setSprayPaintBrushTool());
+
         // Add similar actions for other tools...
     }
 
@@ -1110,6 +1179,7 @@ public class HelloController {
             currentCanvas.setOnMousePressed(this::onMousePressed);
             currentCanvas.setOnMouseDragged(this::onMouseDragged);
             currentCanvas.setOnMouseReleased(this::onMouseReleased);
+
         }
     }
 
@@ -1124,6 +1194,7 @@ public class HelloController {
             currentCanvas.setOnMousePressed(this::onMousePressed);
             currentCanvas.setOnMouseDragged(this::onMouseDragged);
             currentCanvas.setOnMouseReleased(this::onMouseReleased);
+
         }
     }
 
@@ -1193,102 +1264,57 @@ public class HelloController {
             currentCanvas.setOnMouseClicked(null);  // Remove any previous click handlers
 
             // Set up color grabbing on mouse click
-            currentCanvas.setOnMouseClicked(event -> grabColor(event, currentCanvas));
+            //currentCanvas.setOnMouseClicked(event -> grabColor(event, currentCanvas));
         }
     }
-
-
-    private void grabColor(MouseEvent event, Canvas currentCanvas) {
-        // Ensure the snapshot dimensions match the canvas size
-        WritableImage snapshot = new WritableImage((int) currentCanvas.getWidth(), (int) currentCanvas.getHeight());
-        currentCanvas.snapshot(null, snapshot);
-
-        // Debugging: print snapshot size and click coordinates
-        System.out.println("Snapshot dimensions: " + snapshot.getWidth() + "x" + snapshot.getHeight());
-        System.out.println("Mouse click at: " + event.getX() + ", " + event.getY());
-
-        // Get the pixel reader from the snapshot
-        PixelReader pixelReader = snapshot.getPixelReader();
-        double x = event.getX();
-        double y = event.getY();
-
-        // Ensure the click is within canvas bounds
-        if (x >= 0 && x < snapshot.getWidth() && y >= 0 && y < snapshot.getHeight()) {
-            // Grab the color at the clicked position
-            Color grabbedColor = pixelReader.getColor((int) x, (int) y);
-            System.out.println("Grabbed color: " + grabbedColor.toString());
-
-            // Set the grabbed color to the ColorPicker
-            colorPicker.setValue(grabbedColor);
-
-            // Update the info text
-            infoText.setText("Color grabbed: " + grabbedColor.toString());
-
-            // Reset to the default tool after grabbing the color
-            resetToDefaultTool();
-        } else {
-            infoText.setText("Clicked outside canvas bounds.");
-            System.out.println("Click outside canvas bounds.");
-        }
-    }
-
 
     @FXML
-    private void onSelectButtonClick() {
-        currentTool = "Select";  // Update the tool to select
-        isSelecting = true;  // Enter selection mode
-
-        CanvasTab canvasTab = getSelectedCanvasTab();
-        if (canvasTab != null) {
-            Canvas currentCanvas = canvasTab.getCanvas();
-            GraphicsContext tempGc = canvasTab.getTempGraphicsContext();
-
-            // Clear previously set mouse listeners to avoid conflicts
-            currentCanvas.setOnMousePressed(null);
-            currentCanvas.setOnMouseDragged(null);
-            currentCanvas.setOnMouseReleased(null);
-
-            // Mouse press - start selection
-            currentCanvas.setOnMousePressed(event -> {
-                if (isSelecting && currentTool.equals("Select")) {
-                    selectionStartX = event.getX();
-                    selectionStartY = event.getY();
-                    tempGc.clearRect(0, 0, currentCanvas.getWidth(), currentCanvas.getHeight());
-                }
-            });
-
-            // Mouse drag - draw selection rectangle
-            currentCanvas.setOnMouseDragged(event -> {
-                if (isSelecting && currentTool.equals("Select")) {
-                    selectionEndX = event.getX();
-                    selectionEndY = event.getY();
-                    tempGc.clearRect(0, 0, currentCanvas.getWidth(), currentCanvas.getHeight());
-                    tempGc.setStroke(Color.RED);
-                    tempGc.strokeRect(Math.min(selectionStartX, selectionEndX), Math.min(selectionStartY, selectionEndY),
-                            Math.abs(selectionEndX - selectionStartX), Math.abs(selectionEndY - selectionStartY));
-                }
-            });
-
-            // Mouse release - finalize selection
-            currentCanvas.setOnMouseReleased(event -> {
-                if (isSelecting && currentTool.equals("Select")) {
-                    // Capture the selected chunk as a WritableImage
-                    double width = Math.abs(selectionEndX - selectionStartX);
-                    double height = Math.abs(selectionEndY - selectionStartY);
-                    selectedChunk = new WritableImage((int) width, (int) height);
-                    System.out.println("Selection area: startX = " + selectionStartX + ", startY = " + selectionStartY +
-                            ", width = " + width + ", height = " + height);
-
-                    // Take snapshot of the selected chunk
-                    currentCanvas.snapshot(null, selectedChunk);
-
-                    // Exit selection mode
-                    isSelecting = false;
-                    tempGc.clearRect(0, 0, currentCanvas.getWidth(), currentCanvas.getHeight());
-                }
-            });
+    private void toggleColorGrab() {
+        if (colorGrabButton.isSelected()) {
+            // Enable color picking mode
+            useEyedrop(colorPicker);
+        } else {
+            // Disable color picking mode by removing the event handler
+            CanvasTab canvasTab = getSelectedCanvasTab();
+            if (canvasTab != null) {
+                canvasTab.getCanvas().setOnMousePressed(null); // Clear the eyedrop event handler
+            }
         }
     }
+
+
+    public void useEyedrop(ColorPicker colorPicker) {
+        CanvasTab canvasTab = getSelectedCanvasTab();
+        if (canvasTab != null) {
+            Canvas mainCanvas = canvasTab.getCanvas();
+
+            // Set up a mouse pressed event on the main canvas for color picking
+            mainCanvas.setOnMousePressed(event -> {
+                try {
+                    double x = event.getX();
+                    double y = event.getY();
+
+                    // Capture a snapshot of the canvas and get the color at the clicked coordinates
+                    WritableImage snapshot = mainCanvas.snapshot(null, null);
+                    PixelReader pixelReader = snapshot.getPixelReader();
+
+                    // Ensure coordinates are within bounds before trying to access them
+                    if (x >= 0 && x < snapshot.getWidth() && y >= 0 && y < snapshot.getHeight()) {
+                        Color color = pixelReader.getColor((int) x, (int) y);
+                        colorPicker.setValue(color);
+                    } else {
+                        System.err.println("Coordinates out of bounds for the snapshot.");
+                    }
+                } catch (Exception e) {
+                    System.err.println("Error capturing color: " + e.getMessage());
+                }
+            });
+        } else {
+            System.err.println("No CanvasTab found for the selected tab.");
+        }
+    }
+
+
 
 
 
@@ -1446,6 +1472,16 @@ public class HelloController {
         currentTool = "Heart";
         logWriter.logEvent(getCurrentTabName(), "Heart tool selected");
     }
+    @FXML
+    private void setSpiralTool() {
+        currentTool = "Spiral";
+        logWriter.logEvent(getCurrentTabName(), "Spiral tool selected");
+    }
+    @FXML
+    private void setCubeTool() {
+        currentTool = "Cube";
+        logWriter.logEvent(getCurrentTabName(), "Cube tool selected");
+    }
 
     @FXML
     private void setTextTool() {
@@ -1464,19 +1500,58 @@ public class HelloController {
         currentTool = "Select";
         logWriter.logEvent(getCurrentTabName(), "Select tool selected");
     }
+    @FXML
+    private void setCharcoalBrushTool() {
+        currentTool = "Bubbles";
+        logWriter.logEvent(getCurrentTabName(), "Bubbles tool selected");
+    }
+    @FXML
+    private void setSprayPaintBrushTool() {
+        currentTool = "Spray";
+        logWriter.logEvent(getCurrentTabName(), "Spray tool selected");
+    }
+
+    private double prevX, prevY;
+
+
+
 
     @FXML
     private void onMousePressed(MouseEvent event) {
+        prevX = event.getX();
+        prevY = event.getY();
         CanvasTab canvasTab = getSelectedCanvasTab();
         if (canvasTab != null) {
             GraphicsContext gc = canvasTab.getGraphicsContext();
             GraphicsContext tempGc = canvasTab.getTempGraphicsContext();  // Temporary canvas GC
+
+            if (colorGrabButton.isSelected()) {
+                // Eyedropper mode: pick color from canvas
+                WritableImage snapshot = canvasTab.getCanvas().snapshot(null, null);
+                PixelReader pixelReader = snapshot.getPixelReader();
+
+                double x = event.getX();
+                double y = event.getY();
+
+                // Ensure coordinates are within bounds
+                if (x >= 0 && x < snapshot.getWidth() && y >= 0 && y < snapshot.getHeight()) {
+                    Color color = pixelReader.getColor((int) x, (int) y);
+                    colorPicker.setValue(color);  // Set picked color in ColorPicker
+                }
+                // Exit after picking the color to avoid further processing in draw mode
+                return;
+            }
 
             startX = event.getX();
             startY = event.getY();
 
             gc.setStroke(colorPicker.getValue());
             gc.setLineWidth(lineWidthSlider.getValue());
+            gc.setLineCap(StrokeLineCap.BUTT); //soft edges
+
+            if (fillShapes) {
+                gc.setFill(colorPicker.getValue()); // Set the selected fill color
+            }
 
             if (dashedLineCheckBox.isSelected()) {
                 gc.setLineDashes((2 * lineWidthSlider.getValue()) + 10);
@@ -1508,6 +1583,16 @@ public class HelloController {
             double endX = event.getX();
             double endY = event.getY();
 
+
+           if (charcoalBrushButton.isSelected()) {
+                drawCharcoalBrush(gc, endX, endY);
+            } else if (sprayPaintBrushButton.isSelected()) {
+                drawSprayPaintBrush(gc, endX, endY);
+            }
+
+            prevX = endX;
+            prevY = endY;
+
             if (pencilButton.isSelected() || eraserButton.isSelected()) {
                 // Set stroke and line width for gc
                 if (eraserButton.isSelected()) {
@@ -1524,40 +1609,70 @@ public class HelloController {
                 tempGc.clearRect(0, 0, canvasTab.getTempCanvas().getWidth(), canvasTab.getTempCanvas().getHeight());
 
                 tempGc.setStroke(colorPicker.getValue()); // Use the color picker value
+                tempGc.setFill(colorPicker.getValue());
                 tempGc.setLineWidth(lineWidthSlider.getValue());
+
+                double controlX = event.getX();
+                double controlY = event.getY();
 
                 // Draw the selected shape on the temporary canvas
                 if (lineButton.isSelected()) {
                     tempGc.strokeLine(startX, startY, endX, endY);
-                } else if (rectangleButton.isSelected()) {
+                }
+                else if (rectangleButton.isSelected()) {
                     double width = Math.abs(endX - startX);
                     double height = Math.abs(endY - startY);
-                    tempGc.strokeRect(Math.min(startX, endX), Math.min(startY, endY), width, height);
+                    if (fillShapes) {
+                        tempGc.fillRect(Math.min(startX, endX), Math.min(startY, endY), width, height);
+                    } else {
+                        tempGc.strokeRect(Math.min(startX, endX), Math.min(startY, endY), width, height);
+                    }
                 } else if (ellipseButton.isSelected()) {
                     double width = Math.abs(endX - startX);
                     double height = Math.abs(endY - startY);
-                    tempGc.strokeOval(Math.min(startX, endX), Math.min(startY, endY), width, height);
+                    if (fillShapes) {
+                        tempGc.fillOval(Math.min(startX, endX), Math.min(startY, endY), width, height);
+                    } else {
+                        tempGc.strokeOval(Math.min(startX, endX), Math.min(startY, endY), width, height);
+                    }
                 } else if (circleButton.isSelected()) {
                     double radius = Math.hypot(endX - startX, endY - startY);
-                    tempGc.strokeOval(startX - radius, startY - radius, radius * 2, radius * 2);
+                    if (fillShapes) {
+                        tempGc.fillOval(startX - radius, startY - radius, radius * 2, radius * 2);
+                    } else {
+                        tempGc.strokeOval(startX - radius, startY - radius, radius * 2, radius * 2);
+                    }
                 } else if (triangleButton.isSelected()) {
-                    tempGc.strokePolygon(
-                            new double[]{startX, endX, (startX + endX) / 2},
-                            new double[]{startY, endY, startY - Math.abs(endY - startY)}, 3);
+                    if (fillShapes) {
+                        tempGc.fillPolygon(
+                                new double[]{startX, endX, (startX + endX) / 2},
+                                new double[]{startY, endY, startY - Math.abs(endY - startY)}, 3);
+                    } else {
+                        tempGc.strokePolygon(
+                                new double[]{startX, endX, (startX + endX) / 2},
+                                new double[]{startY, endY, startY - Math.abs(endY - startY)}, 3);
+                    }
                 } else if (starButton.isSelected()) {
-                    drawStar(tempGc, startX, startY, endX, endY, starPoints); // Preview on temporary canvas
+                    drawStar(tempGc, startX, startY, endX, endY, starPoints, fillShapes); // Preview on temporary canvas
+                } else if (cubeButton.isSelected()) {
+                    double centerX = (startX + endX) / 2;
+                    double centerY = (startY + endY) / 2;
+                    double cubeSize = Math.min(Math.abs(endX - startX), Math.abs(endY - startY));
+
+                    // Draw preview of the cube on the temp canvas
+                    drawCube(tempGc, centerX, centerY, cubeSize);
                 } else if (heartButton.isSelected()) {
                     double centerX = (startX + endX) / 2;
                     double centerY = (startY + endY) / 2;
                     double size = Math.abs(endX - startX) / 16;
-                    drawHeart(tempGc, centerX, centerY, size);
+                    drawHeart(tempGc, centerX, centerY, size, fillShapes);
                 } else if (imageButton.isSelected()) {
                     double width = Math.abs(endX - startX);
                     double height = Math.abs(endY - startY);
                     tempGc.drawImage(customStickerImage, Math.min(startX, endX), Math.min(startY, endY), width, height);
                 } else if (nGonButton.isSelected()) {
                     int numberOfSides = nGonSides;
-                    drawNgon(tempGc, startX, startY, endX, endY, numberOfSides);
+                    drawNgon(tempGc, startX, startY, endX, endY, numberOfSides, fillShapes);
                 } else if (textButton.isSelected()) {
                     double deltaX = endX - startX;
                     double deltaY = endY - startY;
@@ -1565,11 +1680,17 @@ public class HelloController {
                     double fontSize = distance / 8;  // Calculate font size based on distance
                     Font font = createFontWithStyle(fontFamily, fontSize, italic, bold);
                     drawText(tempGc, startX, startY, endX, endY, stringToolText, font, colorPicker.getValue());
+                } else if (spiralButton.isSelected()) {
+
+                    double radius = Math.hypot(endX - startX, endY - startY);
+
+                    double turns = (endX - startX + endY - startY) / 8;
+
+
+                    // Draw the spiral preview on the temporary canvas
+                    drawSpiral(tempGc, startX, startY, radius, 5, 0.5, turns);
                 }
             }
-            // Save the canvas state for undo functionality
-            // You can uncomment the following line if needed
-            // saveCanvasState();
         }
     }
 
@@ -1582,6 +1703,8 @@ public class HelloController {
             GraphicsContext tempGc = canvasTab.getTempGraphicsContext();  // Temporary canvas GC
             double endX = event.getX();
             double endY = event.getY();
+            double controlX = event.getX();
+            double controlY = event.getY();
 
             // Clear the temporary canvas after releasing the mouse
             tempGc.clearRect(0, 0, canvasTab.getTempCanvas().getWidth(), canvasTab.getTempCanvas().getHeight());
@@ -1595,34 +1718,62 @@ public class HelloController {
             } else if (lineButton.isSelected()) {
                 gc.strokeLine(startX, startY, endX, endY);
             } else if (rectangleButton.isSelected()) {
+
                 double width = Math.abs(endX - startX);
                 double height = Math.abs(endY - startY);
-                gc.strokeRect(Math.min(startX, endX), Math.min(startY, endY), width, height);
+
+                if (fillShapes) {
+                    gc.fillRect(Math.min(startX, endX), Math.min(startY, endY), width, height);
+                }else {
+                    gc.strokeRect(Math.min(startX, endX), Math.min(startY, endY), width, height);
+                }
+
             } else if (ellipseButton.isSelected()) {
                 double width = Math.abs(endX - startX);
                 double height = Math.abs(endY - startY);
-                gc.strokeOval(Math.min(startX, endX), Math.min(startY, endY), width, height);
+                if (fillShapes) {
+                    gc.fillOval(Math.min(startX, endX), Math.min(startY, endY), width, height);
+                } else {
+                    gc.strokeOval(Math.min(startX, endX), Math.min(startY, endY), width, height);
+                }
             } else if (circleButton.isSelected()) {
                 double radius = Math.hypot(endX - startX, endY - startY);
-                gc.strokeOval(startX - radius, startY - radius, radius * 2, radius * 2);
+                if (fillShapes) {
+                    gc.fillOval(startX - radius, startY - radius, radius * 2, radius * 2);
+                } else {
+                    gc.strokeOval(startX - radius, startY - radius, radius * 2, radius * 2);
+                }
             } else if (triangleButton.isSelected()) {
-                gc.strokePolygon(
-                        new double[]{startX, endX, (startX + endX) / 2},
-                        new double[]{startY, endY, startY - Math.abs(endY - startY)}, 3);
-            } else if (starButton.isSelected()) {
-                drawStar(gc, startX, startY, endX, endY, starPoints);
+                if (fillShapes) {
+                    gc.fillPolygon(
+                            new double[]{startX, endX, (startX + endX) / 2},
+                            new double[]{startY, endY, startY - Math.abs(endY - startY)}, 3);
+                } else {
+                    gc.strokePolygon(
+                            new double[]{startX, endX, (startX + endX) / 2},
+                            new double[]{startY, endY, startY - Math.abs(endY - startY)}, 3);
+                }
+            }else if (starButton.isSelected()) {
+                drawStar(gc, startX, startY, endX, endY, starPoints, fillShapes);
+            } else if (cubeButton.isSelected()) {
+                double centerX = (startX + endX) / 2;
+                double centerY = (startY + endY) / 2;
+                double cubeSize = Math.min(Math.abs(endX - startX), Math.abs(endY - startY));
+
+                // Draw preview of the cube on the temp canvas
+                drawCube(gc, centerX, centerY, cubeSize);
             } else if (heartButton.isSelected()) {
                 double centerX = (startX + endX) / 2;
                 double centerY = (startY + endY) / 2;
                 double size = Math.abs(endX - startX) / 16;
-                drawHeart(gc, centerX, centerY, size);
+                drawHeart(gc, centerX, centerY, size, fillShapes);
             } else if (imageButton.isSelected()) {
                 double width = Math.abs(endX - startX);
                 double height = Math.abs(endY - startY);
                 gc.drawImage(customStickerImage, Math.min(startX, endX), Math.min(startY, endY), width, height);
             } else if (nGonButton.isSelected()) {
                 int numberOfSides = nGonSides;
-                drawNgon(gc, startX, startY, endX, endY, numberOfSides);
+                drawNgon(gc, startX, startY, endX, endY, numberOfSides, fillShapes);
             }else if (textButton.isSelected()) {
                 double deltaX = endX - startX;
                 double deltaY = endY - startY;
@@ -1630,6 +1781,14 @@ public class HelloController {
                 double fontSize = distance / 8;  // Calculate font size based on distance
                 Font font = createFontWithStyle(fontFamily, fontSize, italic, bold);
                 drawText(gc, startX, startY, endX, endY, stringToolText, font, colorPicker.getValue());
+            }else if (spiralButton.isSelected()) {
+
+                double radius = Math.hypot(endX - startX, endY - startY);
+
+                double turns =  (endX - startX + endY - startY) / 8;
+
+                // Draw the spiral preview on the temporary canvas
+                drawSpiral(gc, startX, startY, radius, 5, 0.5, turns);
             }
             // Save the canvas state for undo functionality
             //saveCanvasState(tabPane.getSelectionModel().getSelectedItem());
@@ -1638,7 +1797,39 @@ public class HelloController {
     }
 
 
-    public void drawStar(GraphicsContext gc, double x1, double y1, double x2, double y2, int points) {
+    private void drawCharcoalBrush(GraphicsContext gc, double x, double y) {
+        double brushSize = lineWidthSlider.getValue();
+        gc.setFill(colorPicker.getValue());
+
+        for (int i = 0; i < 10; i++) { // Draw multiple points to create rough texture
+            double offsetX = (Math.random() - 0.5) * brushSize;
+            double offsetY = (Math.random() - 0.5) * brushSize;
+            gc.setGlobalAlpha(0.2 + Math.random() * 0.3); // Vary opacity for texture
+            gc.fillOval(x + offsetX, y + offsetY, brushSize / 4, brushSize / 4);
+        }
+
+        gc.setGlobalAlpha(1.0); // Reset opacity
+    }
+
+    private void drawSprayPaintBrush(GraphicsContext gc, double x, double y) {
+        double brushSize = lineWidthSlider.getValue();
+        gc.setFill(colorPicker.getValue());
+
+        for (int i = 0; i < 30; i++) { // Increase number for denser spray
+            double offsetX = (Math.random() - 0.5) * brushSize * 2;
+            double offsetY = (Math.random() - 0.5) * brushSize * 2;
+            gc.setGlobalAlpha(0.1 + Math.random() * 0.4); // Vary opacity for spray effect
+            gc.fillOval(x + offsetX, y + offsetY, 2, 2); // Small dots for spray effect
+        }
+
+        gc.setGlobalAlpha(1.0); // Reset opacity
+    }
+
+
+
+
+
+    public void drawStar(GraphicsContext gc, double x1, double y1, double x2, double y2, int points, boolean fill) {
         if (points < 4) {
             throw new IllegalArgumentException("Number of points must be 4 or more to draw a valid star.");
         }
@@ -1659,9 +1850,14 @@ public class HelloController {
             yPoints[i] = y1 + radius * Math.sin(angle);
         }
 
-        // Draw the star
-        gc.strokePolygon(xPoints, yPoints, points * 2);
+        // Draw the star as either filled or outlined based on the fill parameter
+        if (fill) {
+            gc.fillPolygon(xPoints, yPoints, points * 2);
+        } else {
+            gc.strokePolygon(xPoints, yPoints, points * 2);
+        }
     }
+
 
 
     public void setStarPoints() {
@@ -1702,7 +1898,7 @@ public class HelloController {
     }
 
 
-    public void drawNgon(GraphicsContext gc, double x1, double y1, double x2, double y2, int n) {
+    public void drawNgon(GraphicsContext gc, double x1, double y1, double x2, double y2, int n, boolean fill) {
         double[] xPoints = new double[n];
         double[] yPoints = new double[n];
 
@@ -1719,7 +1915,12 @@ public class HelloController {
 
         // Draw the n-gon
         //gc.fillPolygon(xPoints, yPoints, n);
-        gc.strokePolygon(xPoints, yPoints, n);
+        if (fill) {
+            gc.fillPolygon(xPoints, yPoints, n);
+        } else {
+            gc.strokePolygon(xPoints, yPoints, n);
+        }
+
     }
 
     public void drawText(GraphicsContext gc, double startX, double startY, double endX, double endY, String text, Font font, Color color) {
@@ -1744,7 +1945,7 @@ public class HelloController {
 
 
 
-    private void drawHeart(GraphicsContext gc, double centerX, double centerY, double size) {
+    private void drawHeart(GraphicsContext gc, double centerX, double centerY, double size, boolean fill) {
         int points = 100; // Number of points to plot
         double[] xPoints = new double[points];
         double[] yPoints = new double[points];
@@ -1762,19 +1963,67 @@ public class HelloController {
             yPoints[i] = centerY - y * size; // Inverting y-axis because JavaFX y grows downwards
         }
 
+
+        if (fill) {
+            gc.fillPolygon(xPoints, yPoints, points);
+        } else {
+            gc.strokePolygon(xPoints, yPoints, points);
+        }
         // Draw the heart shape using a polygon
-        gc.strokePolygon(xPoints, yPoints, points);
-    }
-
-    private void drawCube(GraphicsContext gc, double centerX, double centerY){
-
-        /*
-        double width = Math.abs(endX - startX);
-                double height = Math.abs(endY - startY);
-                gc.strokeRect(Math.min(startX, endX), Math.min(startY, endY), width, height);
-         */
 
     }
+
+    // Updated drawCube method to accept a custom size
+    private void drawCube(GraphicsContext gc, double centerX, double centerY, double cubeSize) {
+        double offset = cubeSize / 2.5; // Offset for depth based on cube size
+
+        double x1 = centerX - cubeSize / 2;
+        double y1 = centerY - cubeSize / 2;
+        double x2 = centerX + cubeSize / 2;
+        double y2 = centerY + cubeSize / 2;
+
+        double x1Offset = x1 + offset;
+        double y1Offset = y1 - offset;
+        double x2Offset = x2 + offset;
+        double y2Offset = y2 - offset;
+
+        gc.strokeRect(x1, y1, cubeSize, cubeSize);
+        gc.strokeRect(x1Offset, y1Offset, cubeSize, cubeSize);
+
+        gc.strokeLine(x1, y1, x1Offset, y1Offset);
+        gc.strokeLine(x2, y1, x2Offset, y1Offset);
+        gc.strokeLine(x2, y2, x2Offset, y2Offset);
+        gc.strokeLine(x1, y2, x1Offset, y2Offset);
+    }
+
+    private void drawSpiral(GraphicsContext gc, double centerX, double centerY, double initialRadius, double angleIncrement, double scaleIncrement, double turns) {
+        gc.beginPath();
+
+        double angle = 0; // Starting angle in radians
+        double radius = initialRadius; // Initial radius
+
+        // Move to the starting point of the spiral
+        double x = centerX + radius * Math.cos(angle);
+        double y = centerY + radius * Math.sin(angle);
+        gc.moveTo(x, y);
+
+        // Draw the spiral
+        for (int i = 0; i < turns * 360 / angleIncrement; i++) {
+            // Increase the angle and radius for each point
+            angle += Math.toRadians(angleIncrement);
+            radius += scaleIncrement;
+
+            // Calculate new x and y positions
+            x = centerX + radius * Math.cos(angle);
+            y = centerY + radius * Math.sin(angle);
+
+            // Draw the line to the next point
+            gc.lineTo(x, y);
+        }
+
+        gc.stroke(); // Draw the spiral outline
+    }
+
 
 
     @FXML
@@ -2031,6 +2280,11 @@ public class HelloController {
         Image nGonIcon = new Image(Objects.requireNonNull(getClass().getResourceAsStream("/images/polygon_icon.png")));
         Image undoIcon = new Image(Objects.requireNonNull(getClass().getResourceAsStream("/images/undo_icon.png")));
         Image redoIcon = new Image(Objects.requireNonNull(getClass().getResourceAsStream("/images/redo_icon.png")));
+        Image cubeIcon = new Image(Objects.requireNonNull(getClass().getResourceAsStream("/images/cube_icon.png")));
+        Image spiralIcon = new Image(Objects.requireNonNull(getClass().getResourceAsStream("/images/spiral_icon.png")));
+        Image bubblesIcon = new Image(Objects.requireNonNull(getClass().getResourceAsStream("/images/bubles_icon.png")));
+        Image sprayIcon = new Image(Objects.requireNonNull(getClass().getResourceAsStream("/images/spraypaint_icon.png")));
+
 
         ImageView imageView1 = new ImageView(pencilIcon);
         imageView1.setFitHeight(25.0); // Set the image height
@@ -2074,6 +2328,18 @@ public class HelloController {
         ImageView imageView14 = new ImageView(redoIcon);
         imageView14.setFitHeight(25.0); // Set the image height
         imageView14.setFitWidth(25.0);
+        ImageView imageView15 = new ImageView(cubeIcon);
+        imageView15.setFitHeight(25.0); // Set the image height
+        imageView15.setFitWidth(25.0);
+        ImageView imageView16 = new ImageView(spiralIcon);
+        imageView16.setFitHeight(25.0); // Set the image height
+        imageView16.setFitWidth(25.0);
+        ImageView imageView17 = new ImageView(bubblesIcon);
+        imageView17.setFitHeight(25.0); // Set the image height
+        imageView17.setFitWidth(25.0);
+        ImageView imageView18 = new ImageView(sprayIcon);
+        imageView18.setFitHeight(25.0); // Set the image height
+        imageView18.setFitWidth(25.0);
 
         pencilButton.setGraphic(imageView1);
         lineButton.setGraphic(imageView2);
@@ -2089,6 +2355,10 @@ public class HelloController {
         nGonButton.setGraphic(imageView12);
         undoButton.setGraphic(imageView13);
         redoButton.setGraphic(imageView14);
+        cubeButton.setGraphic(imageView15);
+        spiralButton.setGraphic(imageView16);
+        charcoalBrushButton.setGraphic(imageView17);
+        sprayPaintBrushButton.setGraphic(imageView18);
     }
 
     // Getter for pen size

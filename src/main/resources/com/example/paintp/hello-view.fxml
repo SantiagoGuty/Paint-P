@@ -24,7 +24,6 @@
 
 
 
-
 <VBox xmlns:fx="http://javafx.com/fxml/1" xmlns="http://javafx.com/javafx/17" fx:controller="com.example.paintp.HelloController" spacing="10">
  <!-- Menu Bar -->
  <MenuBar>
@@ -113,6 +112,12 @@
            <MenuItem onAction="#resetStarPoints" text="Reset number of points"/>
        </Menu>
 
+       <Menu text="Fill">
+           <CheckMenuItem fx:id="fillCheckMenuItem" onAction="#toggleFill" text="Fill"/>
+           <MenuItem onAction="#setFillingColor" text="Set filling color"/>
+           <MenuItem onAction="#resetFillingColor" text="Default filling color"/>
+       </Menu>
+
 
        <Menu text="Notifications">
            <CheckMenuItem fx:id="notificationsToggle" text="Enable notifications" selected="true" onAction="#toggleNotifications"/>
@@ -148,11 +153,25 @@
            </tooltip>
        </ToggleButton>
 
+
+       <ToggleButton fx:id="charcoalBrushButton">
+           <tooltip>
+               <Tooltip text="Bubbles Brush Tool"/>
+           </tooltip>
+       </ToggleButton>
+
+       <ToggleButton fx:id="sprayPaintBrushButton">
+           <tooltip>
+               <Tooltip text="Spray paint Tool"/>
+           </tooltip>
+       </ToggleButton>
+
        <ToggleButton fx:id="eraserButton">
            <tooltip>
                <Tooltip text="Eraser Tool"/>
            </tooltip>
        </ToggleButton>
+
 
        <ToggleButton fx:id="lineButton">
            <tooltip>
@@ -214,36 +233,37 @@
            </tooltip>
        </ToggleButton>
 
-       <ToggleButton fx:id="selectButton" text="Select" onAction="#onSelectButtonClick">
+       <ToggleButton fx:id="spiralButton">
            <tooltip>
-               <Tooltip text="Select Tool"/>
+               <Tooltip text="Spiral Tool"/>
            </tooltip>
        </ToggleButton>
 
-       <ToggleButton fx:id="fillButton">
+       <ToggleButton fx:id="cubeButton">
            <tooltip>
-               <Tooltip text="Fil; Tool"/>
+               <Tooltip text="Cube Tool"/>
            </tooltip>
        </ToggleButton>
-
 
 
        <VBox alignment="CENTER" spacing="5">
             <Label text="Choose Color:"/>
             <ColorPicker fx:id="colorPicker"/>
-          </VBox>
-          <VBox alignment="CENTER" spacing="10">
-            <ToggleButton fx:id="colorGrabButton" text="Grab Color" onAction="#testNotification"/>
-          </VBox>
-          <VBox alignment="CENTER" spacing="10">
+       </VBox>
+
+       <VBox alignment="CENTER" spacing="10">
+           <ToggleButton fx:id="colorGrabButton" text="Grab Color" onAction="#toggleColorGrab"/>
+       </VBox>
+
+       <VBox alignment="CENTER" spacing="10">
             <Label text="Line Width:"/>
             <Slider fx:id="lineWidthSlider" min="1" max="50" value="1" showTickLabels="true" showTickMarks="true" majorTickUnit="10"/>
-          </VBox>
-          <VBox alignment="CENTER" spacing="10">
+       </VBox>
+       <VBox alignment="CENTER" spacing="10">
             <!-- Use CheckBox for dashed lines -->
             <Label text="Dashed Line:"/>
             <CheckBox fx:id="dashedLineCheckBox" />
-          </VBox>
+       </VBox>
    </HBox>
 
 
