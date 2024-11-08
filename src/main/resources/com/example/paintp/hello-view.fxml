@@ -131,6 +131,11 @@
 
    </Menu>
 
+     <Menu text="Server">
+
+         <MenuItem text="Open server in browser" onAction="#openServerInBrowser"/>
+     </Menu>
+
 
  </MenuBar>
 
@@ -247,12 +252,11 @@
 
 
        <VBox alignment="CENTER" spacing="5">
-            <Label text="Choose Color:"/>
             <ColorPicker fx:id="colorPicker"/>
        </VBox>
 
        <VBox alignment="CENTER" spacing="10">
-           <ToggleButton fx:id="colorGrabButton" text="Grab Color" onAction="#toggleColorGrab"/>
+           <ToggleButton fx:id="colorGrabButton" onAction="#toggleColorGrab"/>
        </VBox>
 
        <VBox alignment="CENTER" spacing="10">

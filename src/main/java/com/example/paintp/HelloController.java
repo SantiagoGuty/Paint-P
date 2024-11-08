@@ -44,6 +44,7 @@ import java.awt.image.BufferedImage;
 import java.awt.image.RenderedImage;
 import java.io.*;
 import java.net.InetSocketAddress;
+import java.net.URI;
 import java.util.*;
 import java.util.List;
 import com.sun.net.httpserver.HttpServer;
@@ -477,7 +478,6 @@ public class HelloController {
 
     @FXML
     public void onCaptureCanvasClick() {
-        // Get the currently selected tab
         Tab selectedTab = tabPane.getSelectionModel().getSelectedItem();
 
         if (selectedTab != null && selectedTab.getContent() instanceof ScrollPane) {
@@ -487,31 +487,34 @@ public class HelloController {
                 if (!canvasPane.getChildren().isEmpty() && canvasPane.getChildren().get(0) instanceof Canvas) {
                     Canvas currentCanvas = (Canvas) canvasPane.getChildren().get(0);
 
-                    // Capture the canvas as a WritableImage
                     WritableImage canvasSnapshot = new WritableImage((int) currentCanvas.getWidth(), (int) currentCanvas.getHeight());
                     currentCanvas.snapshot(null, canvasSnapshot);
 
-                    // Get the current tab index and create a unique context path
-                    int tabIndex = tabPane.getTabs().indexOf(selectedTab);
-                    String contextPath = "/canvas" + tabIndex;
+                    String contextPath = "/canvas " + (canvasSnapshots.size() + 1);
+                    canvasSnapshots.put(contextPath, canvasSnapshot);
 
-                    // Store the snapshot in the map
-                    canvasSnapshots.put(tabIndex, canvasSnapshot); // Store in map with the tabIndex as the key
+                    // Remove previous context if it exists
+                    try {
+                        httpServer.removeContext(contextPath);
+                    } catch (IllegalArgumentException ignored) { }
 
-                    // Create a new SingleImageHandler for the snapshot
+                    // Serve the individual snapshot
                     httpServer.createContext(contextPath, new SingleImageHandler(canvasSnapshot));
 
-                    // Serve the latest canvas snapshot at the root URL (http://localhost:8000/)
-                    httpServer.createContext("/", new RootHandler());  // Use RootHandler to list all snapshots
+                    // Re-create the root context to refresh the main page
+                    httpServer.removeContext("/");
+                    httpServer.createContext("/", new RootHandler());
 
-                    System.out.println("Canvas screenshot served at: http://localhost:8000" + contextPath);
-                    System.out.println("Canvas screenshot also available at: http://localhost:8000/");
+                    System.out.println("Canvas snapshot served at: http://localhost:8000" + contextPath);
                 }
             }
         } else {
             System.out.println("No canvas found to capture.");
         }
     }
+
+
+
 
 
 
@@ -622,63 +625,62 @@ public class HelloController {
 
 
     // Map to store snapshots for each canvas (key: tab index, value: WritableImage)
-    private Map<Integer, WritableImage> canvasSnapshots = new HashMap<>();
+    //private Map<Integer, WritableImage> canvasSnapshots = new HashMap<>();
+    private Map<String, WritableImage> canvasSnapshots = new HashMap<>();
 
     public class RootHandler implements HttpHandler {
         @Override
         public void handle(HttpExchange exchange) throws IOException {
-            // Build HTML content with styling
             StringBuilder response = new StringBuilder();
+
             response.append("<html>");
             response.append("<head>");
-            response.append("<title>Painting P - Available Canvases</title>");
+            response.append("<title>Painting-P - Available Resources</title>");
 
-            // Add CSS for styling
+            // CSS for enhanced layout and styling
             response.append("<style>");
-            response.append("body { font-family: Arial, sans-serif; background-color: #f4f4f4; margin: 0; padding: 0; }");
-            response.append("h1 { color: #2c3e50; text-align: center; padding: 20px; background-color: #3498db; margin: 0; }");
+            response.append("body { font-family: Arial, sans-serif; background-color: #f4f4f4; color: #333; margin: 0; padding: 0; }");
+            response.append("h1 { background-color: #3498db; color: #fff; padding: 20px; text-align: center; margin: 0; }");
             response.append("h3 { color: #2980b9; text-align: center; margin: 20px 0; }");
-            response.append("ul { list-style-type: none; padding: 0; display: flex; justify-content: center; flex-wrap: wrap; }");
+            response.append("ul { list-style-type: none; padding: 0; display: flex; flex-wrap: wrap; justify-content: center; }");
             response.append("li { margin: 10px; }");
             response.append("a { text-decoration: none; color: white; background-color: #2980b9; padding: 10px 20px; border-radius: 5px; font-size: 18px; }");
             response.append("a:hover { background-color: #1abc9c; }");
             response.append("p { text-align: center; color: #7f8c8d; }");
-            response.append("img { display: block; margin: 20px auto; width: 200px; height: auto; }"); // Add styling for image
+            response.append(".logo-image { display: block; margin: 20px auto; width: 100px; height: auto; border-radius: 5px; }"); // Adjust logo size here
+           // response.append("img { display: block; margin: 20px auto; max-width: 100%; height: auto; border: 1px solid #ddd; border-radius: 5px; }");
             response.append("</style>");
 
-            response.append("</head>");
-            response.append("<body>");
+            response.append("</head><body>");
+            response.append("<h1>Painting-P</h1>");
+            response.append("<img src='/images/paint-P-logo.png' alt='Paint-P Logo' class='logo-image'>");
 
-            // Header and Canvas List
-            response.append("<h1>Painting-p!</h1>");
-            response.append("<h3>Available Canvases</h3>");
-
-            // Check if there are any snapshots available in canvasSnapshots map
-            boolean hasSnapshots = !canvasSnapshots.isEmpty(); // Check if the map is empty
-
-            if (!hasSnapshots) {
-                // No snapshots available, show a message
-                response.append("<p>No canvases available at the moment.</p>");
+            response.append("<h3>Available Canvas Snapshots</h3>");
+            if (canvasSnapshots.isEmpty()) {
+                response.append("<p>No canvas snapshots available at the moment.</p>");
             } else {
-                // Snapshots available, show the list of canvases
                 response.append("<ul>");
-                for (int i = 0; i < tabPane.getTabs().size(); i++) {
-                    if (canvasSnapshots.containsKey(i) && canvasSnapshots.get(i) != null) {
-                        String contextPath = "/canvas" + i;
-                        response.append("<li><a href='").append(contextPath).append("'>Canvas screenshot ").append(i + 1).append("</a></li>");
-                    }
+                for (String contextPath : canvasSnapshots.keySet()) {
+                    response.append("<li><a href='").append(contextPath).append("'>").append(contextPath).append("</a></li>");
                 }
                 response.append("</ul>");
-                response.append("<p>Click on a canvas link to view the canvas screenshot.</p>");
             }
 
-            // Add logo image after the last <p>
-            response.append("<img src='/images/paint-P-Logo.png' alt='Paint-P Logo'>");
+            response.append("<h3>Available Uploaded Images</h3>");
+            if (selectedImages.isEmpty()) {
+                response.append("<p>No images uploaded at the moment.</p>");
+            } else {
+                response.append("<ul>");
+                for (int i = 0; i < selectedImages.size(); i++) {
+                    String contextPath = "/image" + (i + 1);
+                    response.append("<li><a href='").append(contextPath).append("'>Image ").append(i + 1).append("</a></li>");
+                }
+                response.append("</ul>");
+            }
 
-            response.append("</body>");
-            response.append("</html>");
 
-            // Send the response
+            response.append("</body></html>");
+
             byte[] responseBytes = response.toString().getBytes("UTF-8");
             exchange.getResponseHeaders().set("Content-Type", "text/html");
             exchange.sendResponseHeaders(200, responseBytes.length);
@@ -689,33 +691,39 @@ public class HelloController {
     }
 
 
-
+    @FXML
+    private void openServerInBrowser() {
+        try {
+            Desktop.getDesktop().browse(new URI("http://localhost:8000"));
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
 
     @FXML
     public void onSelectImageClick() {
         FileChooser fileChooser = new FileChooser();
-
-        // Filter for image files (e.g., PNG, JPG)
         fileChooser.getExtensionFilters().addAll(
                 new FileChooser.ExtensionFilter("Image Files", "*.png", "*.jpg", "*.jpeg", "*.gif")
         );
 
-        // Open the file chooser dialog
         File selectedFile = fileChooser.showOpenDialog(primaryStage);
 
         if (selectedFile != null) {
-            // Convert the selected file into a JavaFX Image
             Image image = new Image(selectedFile.toURI().toString());
-
-            // Add the selected image to the list of selectedImages
             selectedImages.add(image);
 
-            // Create a unique context path for each image
             String contextPath = "/image" + selectedImages.size();
 
-            // Now create a new SingleImageHandler, passing the correct Image object
+            try {
+                httpServer.removeContext(contextPath);  // Clean up if the context path exists
+            } catch (IllegalArgumentException ignored) { }
+
             httpServer.createContext(contextPath, new SingleImageHandler(image));
 
+            // Refresh the root handler to include this new image link
+            httpServer.removeContext("/");
+            httpServer.createContext("/", new RootHandler());
 
             System.out.println("Selected image: " + selectedFile.getName());
             System.out.println("Image served at: http://localhost:8000" + contextPath);
@@ -2284,6 +2292,7 @@ public class HelloController {
         Image spiralIcon = new Image(Objects.requireNonNull(getClass().getResourceAsStream("/images/spiral_icon.png")));
         Image bubblesIcon = new Image(Objects.requireNonNull(getClass().getResourceAsStream("/images/bubles_icon.png")));
         Image sprayIcon = new Image(Objects.requireNonNull(getClass().getResourceAsStream("/images/spraypaint_icon.png")));
+        Image colorGrabIcon = new Image(Objects.requireNonNull(getClass().getResourceAsStream("/images/color_picker_icon.png")));
 
 
         ImageView imageView1 = new ImageView(pencilIcon);
@@ -2340,6 +2349,9 @@ public class HelloController {
         ImageView imageView18 = new ImageView(sprayIcon);
         imageView18.setFitHeight(25.0); // Set the image height
         imageView18.setFitWidth(25.0);
+        ImageView imageView19 = new ImageView(colorGrabIcon);
+        imageView19.setFitHeight(25.0); // Set the image height
+        imageView19.setFitWidth(25.0);
 
         pencilButton.setGraphic(imageView1);
         lineButton.setGraphic(imageView2);
@@ -2359,6 +2371,7 @@ public class HelloController {
         spiralButton.setGraphic(imageView16);
         charcoalBrushButton.setGraphic(imageView17);
         sprayPaintBrushButton.setGraphic(imageView18);
+        colorGrabButton.setGraphic(imageView19);
     }
 
     // Getter for pen size
