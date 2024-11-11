@@ -6,6 +6,8 @@ import javafx.scene.image.WritableImage;
  * Stores a snapshot of the canvas, used for undo/redo functionality.
  */
 public class CanvasState {
+
+
     private final WritableImage snapshot;  // Snapshot of the canvas
 
     /**

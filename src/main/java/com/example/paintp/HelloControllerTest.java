@@ -1,6 +1,6 @@
 package com.example.paintp;
-/*
 
+/*
 import javafx.scene.control.Label;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -39,6 +39,7 @@ public class HelloControllerTest {
         assertEquals(60, controller.autosaveInterval);
     }
 }
+
 
 
  */

@@ -41,7 +41,6 @@ import javafx.util.Duration;
 import javafx.scene.image.Image;
 import javax.imageio.ImageIO;
 import java.awt.*;
-//import java.awt.TextField;
 import javafx.scene.control.TextField;
 import java.awt.image.BufferedImage;
 import java.awt.image.RenderedImage;
@@ -174,11 +173,9 @@ public class HelloController {
     private HttpServer httpServer;
     private Stage primaryStage;
     private TrayIcon trayIcon;
-
+    private double prevX, prevY;
     private double endX, endY;     // End point
     private int clickCount = 0;
-
-
     private boolean isSelecting = false;
     private WritableImage selectedChunk;
     private double selectionStartX, selectionStartY, selectionEndX, selectionEndY;
@@ -214,7 +211,7 @@ public class HelloController {
         }
 
         colorPicker.setValue(Color.BLACK);  // Default color
-        fillColor = colorPicker.getValue();
+        fillColor = colorPicker.getValue(); // Default color from the Color picker
         lineWidthSlider.setValue(1.0);      // Default line width
 
 
@@ -817,9 +814,11 @@ public class HelloController {
 
     /**
      * Starts the HTTP server for the application.
-     * Serves the canvas snapshots and other content on localhost.
+     * <p>
+     * Serves canvas snapshots and uploaded images on localhost, making them accessible
+     * through specific HTTP endpoints. Checks if there are available canvases to serve.
+     * </p>
      */
-
     public void startHttpServer() {
         if (httpServer != null) {
             if (tabPane.getTabs().isEmpty()) {
@@ -850,6 +849,14 @@ public class HelloController {
     //private Map<Integer, WritableImage> canvasSnapshots = new HashMap<>();
     private Map<String, WritableImage> canvasSnapshots = new HashMap<>();
 
+    /**
+     * Handles HTTP requests for the root context, displaying available resources.
+     * <p>
+     * This class generates an HTML page listing available canvas snapshots and
+     * uploaded images, with links to view each item. It includes inline CSS
+     * for styling the HTML output.
+     * </p>
+     */
     public class RootHandler implements HttpHandler {
         @Override
         public void handle(HttpExchange exchange) throws IOException {
@@ -913,6 +920,13 @@ public class HelloController {
     }
 
 
+    /**
+     * Opens the HTTP server's root URL in the default browser.
+     * <p>
+     * Attempts to open the localhost URL where the server is running, allowing
+     * users to view available resources served by the application.
+     * </p>
+     */
     @FXML
     private void openServerInBrowser() {
         try {
@@ -922,6 +936,14 @@ public class HelloController {
         }
     }
 
+    /**
+     * Handles the selection of an image file by the user.
+     * <p>
+     * Opens a file chooser dialog to select an image file. If an image is selected,
+     * it is added to the list of selected images, a new HTTP context path is created
+     * for serving the image, and the root handler is refreshed to include the new image link.
+     * </p>
+     */
     @FXML
     public void onSelectImageClick() {
         FileChooser fileChooser = new FileChooser();
@@ -955,7 +977,13 @@ public class HelloController {
     }
 
 
-
+    /**
+     * Handles HTTP requests for displaying a list of selected images.
+     * <p>
+     * This class generates an HTML page listing available images, providing links to view
+     * each image in a new browser tab.
+     * </p>
+     */
     public class ImageHandler implements HttpHandler {
         private List<Image> selectedImages;
 
@@ -986,6 +1014,16 @@ public class HelloController {
     }
 
 
+    /**
+     * Generates HTML for displaying a list of images with a tab interface.
+     * <p>
+     * This method creates HTML content that lists images with a tabbed layout, allowing users
+     * to view each image by selecting the corresponding tab.
+     * </p>
+     *
+     * @param images the list of images to include in the HTML
+     * @return a String containing the generated HTML
+     */
     private String generateHtmlForImages(List<Image> images) {
         StringBuilder html = new StringBuilder("<html><head>");
         html.append("<style>");
@@ -1032,7 +1070,13 @@ public class HelloController {
     }
 
 
-
+    /**
+     * Toggles the notification settings based on the user’s selection.
+     * <p>
+     * Updates the notificationsEnabled flag and displays a message indicating whether
+     * notifications have been enabled or disabled.
+     * </p>
+     */
     @FXML
     public void toggleNotifications() {
         notificationsEnabled = notificationsToggle.isSelected();  // Update based on CheckMenuItem state
@@ -1043,6 +1087,15 @@ public class HelloController {
         }
     }
 
+
+    /**
+     * Toggles the autosave functionality in the application.
+     * <p>
+     * Enables or disables the autosave feature based on the user's selection. If enabled,
+     * resets the countdown to the autosave interval and starts the autosave timer. If
+     * disabled, stops the autosave timer and displays a notification about the change.
+     * </p>
+     */
     @FXML
     private void toggleAutosave() {
         autosaveEnabled = autosaveMenuItem.isSelected();
@@ -1069,12 +1122,13 @@ public class HelloController {
     }
 
 
-
-
     /**
-     *
-     * Set up Save timer with the autosaveInterval previously variable
-     *
+     * Sets up the autosave timer with the previously specified interval.
+     * <p>
+     * Initializes a timeline that triggers the autosave action every specified interval
+     * when autosave is enabled. The countdown resets after each autosave, and updates
+     * the UI with the countdown value.
+     * </p>
      */
     private void setupAutosaveTimer() {
         countdownValue = autosaveInterval;
@@ -1097,7 +1151,12 @@ public class HelloController {
 
 
     /**
-     * Automatic save functionality
+     * Automatically saves the current canvas to a specified location.
+     * <p>
+     * This method captures the canvas in the currently selected tab, saves it as a PNG file
+     * to the user's Downloads directory, and logs the autosave event. If autosave fails,
+     * an error message is displayed.
+     * </p>
      */
     private void onAutoSave() {
         System.out.println("Autosaving...");
@@ -1138,7 +1197,15 @@ public class HelloController {
     }
 
 
-
+    /**
+     * Sets up the components and event handlers for a newly created tab.
+     * <p>
+     * Retrieves the canvas from the tab, creates a CanvasTab instance for storing canvas
+     * metadata, and registers event handlers for mouse interactions.
+     * </p>
+     *
+     * @param tab the Tab object to initialize
+     */
     private void setupExistingTab(Tab tab) {
         // Retrieve components from FXML
         ScrollPane scrollPane = (ScrollPane) tab.getContent();
@@ -1155,6 +1222,14 @@ public class HelloController {
         canvas.addEventHandler(MouseEvent.MOUSE_RELEASED, this::onMouseReleased);
     }
 
+
+    /**
+     * Sets up keyboard shortcuts for common actions within the application.
+     * <p>
+     * Binds key combinations to specific actions such as Save, Exit, and Clear Canvas
+     * once the scene is available.
+     * </p>
+     */
     private void setupShortcuts() {
         Platform.runLater(() -> {
             Scene scene = tabPane.getScene();  // Get the Scene object
@@ -1177,7 +1252,13 @@ public class HelloController {
     }
 
 
-    //SA
+    /**
+     * Saves the current state of the canvas to the undo stack.
+     * <p>
+     * Captures a snapshot of the current canvas and pushes it to the undo stack.
+     * Clears the redo stack to maintain a consistent undo/redo history.
+     * </p>
+     */
     private void saveCanvasState() {
         CanvasTab canvasTab = getSelectedCanvasTab();
         if (canvasTab != null) {
@@ -1196,14 +1277,25 @@ public class HelloController {
     }
 
 
-
+    /**
+     * Retrieves the CanvasTab associated with the currently selected tab.
+     *
+     * @return the CanvasTab object corresponding to the selected tab, or null if no tab is selected
+     */
     private CanvasTab getSelectedCanvasTab() {
         Tab selectedTab = tabPane.getSelectionModel().getSelectedItem();
         return tabCanvasMap.get(selectedTab);
     }
 
 
-    // Undo action
+    /**
+     * Performs an undo action on the current canvas.
+     * <p>
+     * Restores the previous state of the canvas from the undo stack, and pushes the current
+     * state to the redo stack to allow for a redo operation. If the undo stack is empty,
+     * no action is performed.
+     * </p>
+     */
     @FXML
     public void onUndoClick() {
         CanvasTab canvasTab = getSelectedCanvasTab();
@@ -1226,7 +1318,14 @@ public class HelloController {
     }
 
 
-
+    /**
+     * Performs a redo action on the current canvas.
+     * <p>
+     * Restores the next state of the canvas from the redo stack, and pushes the current
+     * state to the undo stack to allow for further undo operations. If the redo stack
+     * is empty, no action is performed.
+     * </p>
+     */
     @FXML
     public void onRedoClick() {
         CanvasTab canvasTab = getSelectedCanvasTab();
@@ -1248,13 +1347,30 @@ public class HelloController {
         }
     }
 
+
+    /**
+     * Clears the undo and redo stacks.
+     * <p>
+     * This method is typically called when initializing a new canvas or resetting the
+     * canvas history.
+     * </p>
+     */
     private void clearUndoRedoStacks() {
         undoStack.clear();
         redoStack.clear();
     }
 
 
-    // Helper method to get the canvas from the selected tab
+    /**
+     * Retrieves the canvas from the specified tab.
+     * <p>
+     * This helper method checks if the tab content is a ScrollPane containing a StackPane
+     * with a Canvas. If so, it returns the Canvas; otherwise, returns null.
+     * </p>
+     *
+     * @param tab the Tab from which to retrieve the Canvas
+     * @return the Canvas object if found, or null if no canvas is present
+     */
     private Canvas getCanvasFromTab(Tab tab) {
         if (tab.getContent() instanceof ScrollPane) {
             ScrollPane scrollPane = (ScrollPane) tab.getContent();
@@ -1264,6 +1380,18 @@ public class HelloController {
         return null;
     }
 
+
+    /**
+     * Adds a new tab with a specified title, width, and height.
+     * <p>
+     * Creates a new CanvasTab, sets up a ScrollPane for it, and registers the canvas
+     * with event handlers for drawing. The new tab is then added to the TabPane and selected.
+     * </p>
+     *
+     * @param title the title of the new tab
+     * @param width the width of the canvas in the new tab
+     * @param height the height of the canvas in the new tab
+     */
     private void addNewTab(String title, double width, double height) {
         // Create a new Tab instance with the provided title
         Tab newTab = new Tab(title);
@@ -1299,7 +1427,13 @@ public class HelloController {
     }
 
 
-
+    /**
+     * Sets up a new tab with default canvas dimensions and settings.
+     * <p>
+     * Creates a CanvasTab with a default title and dimensions, wraps it in a ScrollPane,
+     * and registers the canvas for drawing. The tab is then added to the TabPane and selected.
+     * </p>
+     */
     private void setupNewTab() {
         // Create a new CanvasTab with default settings
         CanvasTab canvasTab = new CanvasTab("Canvas " + (tabPane.getTabs().size() + 1), 800, 600);
@@ -1329,7 +1463,15 @@ public class HelloController {
     }
 
 
-
+    /**
+     * Configures event handlers for drawing on the specified CanvasTab.
+     * <p>
+     * Sets up mouse event handlers on the temporary canvas for live drawing, and commits
+     * the drawing to the main canvas on mouse release.
+     * </p>
+     *
+     * @param canvasTab the CanvasTab to set up for drawing
+     */
     private void setupCanvasDrawing(CanvasTab canvasTab) {
         Canvas tempCanvas = canvasTab.getTempCanvas(); // Temporary canvas for live drawing
         Canvas mainCanvas = canvasTab.getCanvas(); // Main canvas for final drawing
@@ -1355,7 +1497,13 @@ public class HelloController {
     }
 
 
-
+    /**
+     * Initializes and groups tool buttons in a ToggleGroup.
+     * <p>
+     * Assigns each tool button to a ToggleGroup and sets their actions to activate specific
+     * drawing tools when selected.
+     * </p>
+     */
     private void setupToolButtons() {
 
         ToggleGroup toolsToggleGroup = new ToggleGroup();
@@ -1396,9 +1544,16 @@ public class HelloController {
         charcoalBrushButton.setOnAction(event -> setCharcoalBrushTool());
         sprayPaintBrushButton.setOnAction(event -> setSprayPaintBrushTool());
 
-        // Add similar actions for other tools...
+
     }
 
+    /**
+     * Configures event listeners for selecting areas on the canvas.
+     * <p>
+     * Sets mouse event listeners on the currently selected canvas to enable area selection
+     * functionality.
+     * </p>
+     */
     private void setToolSelection() {
         // Set the listeners for selecting areas
         CanvasTab canvasTab = getSelectedCanvasTab();
@@ -1413,6 +1568,16 @@ public class HelloController {
         }
     }
 
+
+    /**
+     * Sets the current tool for drawing and configures its listeners.
+     * <p>
+     * Updates the current drawing tool and assigns mouse event listeners to the canvas
+     * to handle drawing actions specific to the selected tool.
+     * </p>
+     *
+     * @param tool the name of the drawing tool to activate
+     */
     private void setToolDrawing(String tool) {
         // Set the current tool and its listeners
         currentTool = tool;
@@ -1429,8 +1594,13 @@ public class HelloController {
     }
 
 
-
-
+    /**
+     * Updates the information label with the canvas size and pen size.
+     * <p>
+     * Retrieves the size of the currently selected canvas and the current pen size, and
+     * displays this information in the info text label.
+     * </p>
+     */
     private void updateLabel() { // TS
         Tab selectedTab = tabPane.getSelectionModel().getSelectedItem();
         if (selectedTab != null && selectedTab.getContent() instanceof ScrollPane) {
@@ -1456,6 +1626,13 @@ public class HelloController {
         }
     }
 
+
+    /**
+     * Updates the line width for drawing on the selected canvas.
+     * <p>
+     * Sets the current line width on the graphics context of the canvas in the selected tab.
+     * </p>
+     */
     @FXML
     public void setLineWidth() {
         // Update the current line width for drawing on the selected canvas
@@ -1469,7 +1646,14 @@ public class HelloController {
     }
 
 
-    // Method to set up drawing on a given canvas
+    /**
+     * Activates color grabbing functionality when the color grab button is selected.
+     * <p>
+     * Enables or disables the color grabbing mode based on the button's selected state.
+     * When enabled, allows picking a color from the canvas; when disabled, reverts to the
+     * default tool.
+     * </p>
+     */
     @FXML
     private void onColorGrabClick() {
         // Toggle the color grab button state
@@ -1482,6 +1666,14 @@ public class HelloController {
         }
     }
 
+
+    /**
+     * Enables the color grab mode, allowing the user to pick a color from the canvas.
+     * <p>
+     * Sets up an informational message and configures the canvas for color picking
+     * by adding a mouse click event for color grabbing.
+     * </p>
+     */
     private void enableColorGrabMode() {
         infoText.setText("Click on the canvas to grab a color.");
 
@@ -1498,6 +1690,14 @@ public class HelloController {
         }
     }
 
+
+    /**
+     * Toggles the color grabbing functionality.
+     * <p>
+     * Activates or deactivates the color grabbing mode based on the button's selected state.
+     * When activated, the color picker is enabled; otherwise, color grabbing is disabled.
+     * </p>
+     */
     @FXML
     private void toggleColorGrab() {
         if (colorGrabButton.isSelected()) {
@@ -1513,6 +1713,15 @@ public class HelloController {
     }
 
 
+    /**
+     * Activates color picking functionality on the canvas.
+     * <p>
+     * When the user clicks on the canvas, captures the color at the clicked coordinates
+     * and updates the ColorPicker with the selected color.
+     * </p>
+     *
+     * @param colorPicker the ColorPicker control to update with the selected color
+     */
     public void useEyedrop(ColorPicker colorPicker) {
         CanvasTab canvasTab = getSelectedCanvasTab();
         if (canvasTab != null) {
@@ -1545,9 +1754,15 @@ public class HelloController {
     }
 
 
-
-
-
+    /**
+     * Rotates the selected chunk on the canvas by a specified angle.
+     * <p>
+     * Applies a rotation transformation to the selected chunk and draws the
+     * rotated image on a temporary canvas.
+     * </p>
+     *
+     * @param angle the rotation angle in degrees
+     */
     @FXML
     private void onRotateChunk(double angle) {
         if (selectedChunk != null) {
@@ -1577,6 +1792,16 @@ public class HelloController {
     }
 
 
+    /**
+     * Moves the selected chunk on the canvas by the specified delta values.
+     * <p>
+     * Translates the selected chunk by the given x and y offsets and redraws
+     * it on the temporary canvas.
+     * </p>
+     *
+     * @param deltaX the change in the x-coordinate
+     * @param deltaY the change in the y-coordinate
+     */
     @FXML
     private void onMoveChunk(double deltaX, double deltaY) {
         if (selectedChunk != null) {
@@ -1594,6 +1819,13 @@ public class HelloController {
     }
 
 
+    /**
+     * Commits changes made to the selected chunk, applying it permanently to the main canvas.
+     * <p>
+     * Clears the temporary canvas and draws the selected chunk onto the main canvas, finalizing
+     * any transformations or movements applied to it.
+     * </p>
+     */
     @FXML
     private void onCommitChunkChanges() {
         if (selectedChunk != null) {
@@ -1614,8 +1846,13 @@ public class HelloController {
     }
 
 
-
-
+    /**
+     * Resets the active tool to the default tool, typically the pencil tool.
+     * <p>
+     * Deselects the color grab button, resets the informational text, and removes
+     * any click listeners from the canvas to disable color grabbing.
+     * </p>
+     */
     private void resetToDefaultTool() {
         // Reset tool to the default tool, e.g., Pencil
         currentTool = "Pencil";
@@ -1631,9 +1868,12 @@ public class HelloController {
     }
 
 
-    // Variable to track the current tool
-    //private String currentTool = "Pencil"; default
-
+    /**
+     * Sets the eraser tool as the active drawing tool.
+     * <p>
+     * Updates the active tool to the eraser and logs the selection event.
+     * </p>
+     */
     @FXML
     private void setPencilTool() {
         currentTool = "Pencil";
@@ -1649,103 +1889,224 @@ public class HelloController {
         }
     }
 
+
+    /**
+     * Sets the eraser tool as the active drawing tool.
+     * <p>
+     * Updates the active tool to the eraser and logs the selection event.
+     * </p>
+     */
     @FXML
     private void setEraserTool() {
         currentTool = "Eraser";
         logWriter.logEvent(getCurrentTabName(), "Eraser tool selected");
     }
 
+
+    /**
+     * Sets the line tool as the active drawing tool.
+     * <p>
+     * Updates the active tool to the line tool and logs the selection event.
+     * </p>
+     */
     @FXML
     private void setLineTool() {
         currentTool = "Line";
         logWriter.logEvent(getCurrentTabName(), "Pencil tool selected");
     }
 
+
+    /**
+     * Sets the rectangle tool as the active drawing tool.
+     * <p>
+     * Updates the active tool to the rectangle tool and logs the selection event.
+     * </p>
+     */
     @FXML
     private void setRectangleTool() {
         currentTool = "Rectangle";
         logWriter.logEvent(getCurrentTabName(), "Rectangle tool selected");
     }
 
+
+    /**
+     * Sets the ellipse tool as the active drawing tool.
+     * <p>
+     * Updates the active tool to the ellipse tool and logs the selection event.
+     * </p>
+     */
     @FXML
     private void setEllipseTool() {
         currentTool = "Ellipse";
         logWriter.logEvent(getCurrentTabName(), "Ellipse tool selected");
     }
 
+
+    /**
+     * Sets the circle tool as the active drawing tool.
+     * <p>
+     * Updates the active tool to the circle tool and logs the selection event.
+     * </p>
+     */
     @FXML
     private void setCircleTool() {
         currentTool = "Circle";
         logWriter.logEvent(getCurrentTabName(), "Circle tool selected");
     }
 
+
+    /**
+     * Sets the triangle tool as the active drawing tool.
+     * <p>
+     * Updates the active tool to the triangle tool and logs the selection event.
+     * </p>
+     */
     @FXML
     private void setTriangleTool() {
         currentTool = "Triangle";
         logWriter.logEvent(getCurrentTabName(), "Triangle tool selected");
     }
 
+
+    /**
+     * Sets the image tool as the active drawing tool.
+     * <p>
+     * Updates the active tool to the image tool for applying stickers and logs the selection event.
+     * </p>
+     */
     @FXML
     private void setImageTool() {
         currentTool = "Image";
         logWriter.logEvent(getCurrentTabName(), "Sticker tool selected");
     }
 
+
+    /**
+     * Sets the star tool as the active drawing tool.
+     * <p>
+     * Updates the active tool to the star tool and logs the selection event.
+     * </p>
+     */
     @FXML
     private void setStarTool() {
         currentTool = "Star";
         logWriter.logEvent(getCurrentTabName(), "Star tool selected");
     }
 
+
+    /**
+     * Sets the heart tool as the active drawing tool.
+     * <p>
+     * Updates the active tool to the heart tool and logs the selection event.
+     * </p>
+     */
     @FXML
     private void setHeartTool() {
         currentTool = "Heart";
         logWriter.logEvent(getCurrentTabName(), "Heart tool selected");
     }
+
+
+    /**
+     * Sets the spiral tool as the active drawing tool.
+     * <p>
+     * Updates the active tool to the spiral tool and logs the selection event.
+     * </p>
+     */
     @FXML
     private void setSpiralTool() {
         currentTool = "Spiral";
         logWriter.logEvent(getCurrentTabName(), "Spiral tool selected");
     }
+
+
+    /**
+     * Sets the cube tool as the active drawing tool.
+     * <p>
+     * Updates the active tool to the cube tool and logs the selection event.
+     * </p>
+     */
     @FXML
     private void setCubeTool() {
         currentTool = "Cube";
         logWriter.logEvent(getCurrentTabName(), "Cube tool selected");
     }
 
+
+    /**
+     * Sets the text tool as the active drawing tool.
+     * <p>
+     * Updates the active tool to the text tool and logs the selection event.
+     * </p>
+     */
     @FXML
     private void setTextTool() {
         currentTool = "Text";
         logWriter.logEvent(getCurrentTabName(), "Text tool selected");
     }
 
+
+    /**
+     * Sets the n-gon (polygon) tool as the active drawing tool.
+     * <p>
+     * Updates the active tool to the n-gon tool and logs the selection event.
+     * </p>
+     */
     @FXML
     private void setNgonTool() {
         currentTool = "nGon";
         logWriter.logEvent(getCurrentTabName(), "Polygon tool selected");
     }
 
+
+    /**
+     * Sets the selection tool for selecting areas on the canvas.
+     * <p>
+     * Updates the active tool to the selection tool and logs the selection event.
+     * </p>
+     */
     @FXML
     private void setSelectTool() {
         currentTool = "Select";
         logWriter.logEvent(getCurrentTabName(), "Select tool selected");
     }
+
+
+    /**
+     * Sets the charcoal brush tool as the active drawing tool.
+     * <p>
+     * Updates the active tool to the charcoal brush tool (bubbles effect) and logs the selection event.
+     * </p>
+     */
     @FXML
     private void setCharcoalBrushTool() {
         currentTool = "Bubbles";
         logWriter.logEvent(getCurrentTabName(), "Bubbles tool selected");
     }
+
+
+    /**
+     * Sets the spray paint brush tool as the active drawing tool.
+     * <p>
+     * Updates the active tool to the spray paint tool and logs the selection event.
+     * </p>
+     */
     @FXML
     private void setSprayPaintBrushTool() {
         currentTool = "Spray";
         logWriter.logEvent(getCurrentTabName(), "Spray tool selected");
     }
 
-    private double prevX, prevY;
 
-
-
-
+    /**
+     * Handles mouse press events on the canvas.
+     * <p>
+     * Initializes the starting coordinates for drawing, sets color and line properties,
+     * and enables eyedropper functionality if the color grab mode is active.
+     * </p>
+     *
+     * @param event the MouseEvent containing the mouse click coordinates
+     */
     @FXML
     private void onMousePressed(MouseEvent event) {
         prevX = event.getX();
@@ -1803,7 +2164,15 @@ public class HelloController {
     }
 
 
-
+    /**
+     * Handles mouse drag events on the canvas.
+     * <p>
+     * Provides real-time drawing feedback by updating the temporary canvas with
+     * the selected shape or effect (e.g., line, rectangle, spray paint).
+     * </p>
+     *
+     * @param event the MouseEvent containing the drag coordinates
+     */
     @FXML
     private void onMouseDragged(MouseEvent event) {
         CanvasTab canvasTab = getSelectedCanvasTab();
@@ -1925,6 +2294,15 @@ public class HelloController {
     }
 
 
+    /**
+     * Handles mouse release events on the canvas.
+     * <p>
+     * Commits the final shape or drawing to the main canvas, clears the temporary canvas,
+     * and saves the current canvas state for undo functionality.
+     * </p>
+     *
+     * @param event the MouseEvent containing the release coordinates
+     */
     @FXML
     private void onMouseReleased(MouseEvent event) {
         CanvasTab canvasTab = getSelectedCanvasTab();
@@ -2027,6 +2405,16 @@ public class HelloController {
     }
 
 
+    /**
+     * Draws a charcoal brush effect at the specified coordinates.
+     * <p>
+     * Simulates a charcoal effect by randomly scattering small, semi-transparent dots.
+     * </p>
+     *
+     * @param gc the GraphicsContext to draw on
+     * @param x the x-coordinate of the brush stroke
+     * @param y the y-coordinate of the brush stroke
+     */
     private void drawCharcoalBrush(GraphicsContext gc, double x, double y) {
         double brushSize = getLineWidth() + 10;
         gc.setFill(colorPicker.getValue());
@@ -2041,6 +2429,17 @@ public class HelloController {
         gc.setGlobalAlpha(1.0); // Reset opacity
     }
 
+
+    /**
+     * Draws a spray paint brush effect at the specified coordinates.
+     * <p>
+     * Simulates spray paint by scattering small dots with varied opacity around the center point.
+     * </p>
+     *
+     * @param gc the GraphicsContext to draw on
+     * @param x the x-coordinate of the brush stroke
+     * @param y the y-coordinate of the brush stroke
+     */
     private void drawSprayPaintBrush(GraphicsContext gc, double x, double y) {
         double brushSize = getLineWidth() + 10;
         gc.setFill(colorPicker.getValue());
@@ -2056,9 +2455,21 @@ public class HelloController {
     }
 
 
-
-
-
+    /**
+     * Draws a star with the specified parameters on the canvas.
+     * <p>
+     * Calculates the vertices based on the number of points and draws the star
+     * as either filled or outlined.
+     * </p>
+     *
+     * @param gc the GraphicsContext to draw on
+     * @param x1 the x-coordinate of the center point
+     * @param y1 the y-coordinate of the center point
+     * @param x2 the x-coordinate of the outer radius point
+     * @param y2 the y-coordinate of the outer radius point
+     * @param points the number of points in the star
+     * @param fill if true, fills the star; otherwise, outlines it
+     */
     public void drawStar(GraphicsContext gc, double x1, double y1, double x2, double y2, int points, boolean fill) {
         if (points < 4) {
             throw new IllegalArgumentException("Number of points must be 4 or more to draw a valid star.");
@@ -2089,7 +2500,13 @@ public class HelloController {
     }
 
 
-
+    /**
+     * Opens a dialog to set the number of points for the star tool.
+     * <p>
+     * Displays a dialog allowing the user to specify the number of points, with a minimum
+     * of 4 points required for a valid star shape.
+     * </p>
+     */
     public void setStarPoints() {
         TextInputDialog dialog = new TextInputDialog(String.valueOf(starPoints));
         dialog.setTitle("Set Star Points");
@@ -2118,16 +2535,45 @@ public class HelloController {
         });
     }
 
+
+    /**
+     * Resets the number of star points to the default value.
+     * <p>
+     * Sets the default number of points to 5 for the star tool.
+     * </p>
+     */
     @FXML
     private void resetStarPoints() {
         setDefaultStarPoints();
     }
 
+
+    /**
+     * Sets the number of star points to the default value.
+     * <p>
+     * Sets the default number of points to 5 for the star tool.
+     * </p>
+     */
     public void setDefaultStarPoints() {
         starPoints = 5; // Default to 5 points
     }
 
 
+    /**
+     * Draws an n-sided polygon (n-gon) with the specified parameters.
+     * <p>
+     * Calculates vertices based on the number of sides and radius, and draws
+     * the n-gon as either filled or outlined.
+     * </p>
+     *
+     * @param gc the GraphicsContext to draw on
+     * @param x1 the x-coordinate of the center point
+     * @param y1 the y-coordinate of the center point
+     * @param x2 the x-coordinate of the radius point
+     * @param y2 the y-coordinate of the radius point
+     * @param n the number of sides for the n-gon
+     * @param fill if true, fills the n-gon; otherwise, outlines it
+     */
     public void drawNgon(GraphicsContext gc, double x1, double y1, double x2, double y2, int n, boolean fill) {
         double[] xPoints = new double[n];
         double[] yPoints = new double[n];
@@ -2153,6 +2599,23 @@ public class HelloController {
 
     }
 
+
+    /**
+     * Draws text on the canvas with specified start and end coordinates.
+     * <p>
+     * Sets font size based on the distance between start and end points and applies
+     * both fill and stroke for text styling.
+     * </p>
+     *
+     * @param gc the GraphicsContext to draw on
+     * @param startX the x-coordinate of the starting point
+     * @param startY the y-coordinate of the starting point
+     * @param endX the x-coordinate of the end point (used to calculate font size)
+     * @param endY the y-coordinate of the end point (used to calculate font size)
+     * @param text the text to be drawn
+     * @param font the font style for the text
+     * @param color the color to be used for the text
+     */
     public void drawText(GraphicsContext gc, double startX, double startY, double endX, double endY, String text, Font font, Color color) {
         gc.setLineWidth(1); // More than 1 is unreadable for text
 
@@ -2174,7 +2637,19 @@ public class HelloController {
     }
 
 
-
+    /**
+     * Draws a heart shape on the canvas centered at the specified coordinates.
+     * <p>
+     * Uses parametric equations to plot points in the shape of a heart, scaling
+     * and positioning it based on the specified size.
+     * </p>
+     *
+     * @param gc the GraphicsContext to draw on
+     * @param centerX the x-coordinate of the heart's center
+     * @param centerY the y-coordinate of the heart's center
+     * @param size the scaling factor for the heart size
+     * @param fill if true, fills the heart; otherwise, outlines it
+     */
     private void drawHeart(GraphicsContext gc, double centerX, double centerY, double size, boolean fill) {
         int points = 100; // Number of points to plot
         double[] xPoints = new double[points];
@@ -2203,7 +2678,19 @@ public class HelloController {
 
     }
 
-    // Updated drawCube method to accept a custom size
+
+    /**
+     * Draws a 3D-like cube shape on the canvas centered at the specified coordinates.
+     * <p>
+     * Renders the cube by drawing two squares and connecting their corners to create
+     * a depth effect.
+     * </p>
+     *
+     * @param gc the GraphicsContext to draw on
+     * @param centerX the x-coordinate of the cube's center
+     * @param centerY the y-coordinate of the cube's center
+     * @param cubeSize the size of the cube
+     */
     private void drawCube(GraphicsContext gc, double centerX, double centerY, double cubeSize) {
         double offset = cubeSize / 2.5; // Offset for depth based on cube size
 
@@ -2226,6 +2713,22 @@ public class HelloController {
         gc.strokeLine(x1, y2, x1Offset, y2Offset);
     }
 
+
+    /**
+     * Draws a spiral shape on the canvas, expanding outward from the center point.
+     * <p>
+     * Iteratively increases the angle and radius to create a spiral with the specified
+     * number of turns and scaling increments.
+     * </p>
+     *
+     * @param gc the GraphicsContext to draw on
+     * @param centerX the x-coordinate of the spiral's center
+     * @param centerY the y-coordinate of the spiral's center
+     * @param initialRadius the starting radius of the spiral
+     * @param angleIncrement the angle increment for each step, in degrees
+     * @param scaleIncrement the radius increment for each step
+     * @param turns the number of spiral turns
+     */
     private void drawSpiral(GraphicsContext gc, double centerX, double centerY, double initialRadius, double angleIncrement, double scaleIncrement, double turns) {
         gc.beginPath();
 
@@ -2255,7 +2758,12 @@ public class HelloController {
     }
 
 
-
+    /**
+     * Opens a file chooser to select a custom sticker image for drawing on the canvas.
+     * <p>
+     * Allows the user to upload an image file to be used as a sticker tool.
+     * </p>
+     */
     @FXML
     public void setCustomSticker() {
 
@@ -2274,16 +2782,37 @@ public class HelloController {
     }
 
 
+    /**
+     * Sets the default sticker image for the sticker tool.
+     * <p>
+     * Resets the sticker tool to use the application's default image.
+     * </p>
+     */
     @FXML
     public void setDefaultSticker(){
         customStickerImage = new Image("/images/paint-P-Logo.png");
     }
 
+
+    /**
+     * Resets the text tool to use the default text.
+     * <p>
+     * Sets the text displayed by the text tool to a predefined default string.
+     * </p>
+     */
     @FXML
     public void setDefaultText(){
         stringToolText = defaultText;
     }
 
+
+    /**
+     * Opens a dialog for setting the number of sides for the polygon tool.
+     * <p>
+     * Prompts the user to enter the desired number of sides for polygons created
+     * with the n-gon tool, with a minimum of 3 sides required.
+     * </p>
+     */
     public void setPolygonSides() {
         TextInputDialog dialog = new TextInputDialog(String.valueOf(nGonSides));
         dialog.setTitle("Set Polygon Sides");
@@ -2312,14 +2841,41 @@ public class HelloController {
         });
     }
 
+
+    /**
+     * Resets the polygon tool to use the default number of sides.
+     * <p>
+     * Sets the number of sides for polygons drawn with the n-gon tool to a predefined
+     * default value.
+     * </p>
+     */
     public void setDefaultPolygonSides(){
         nGonSides = 5;
     }
 
+
+    /**
+     * Retrieves the current number of sides for the n-gon (polygon) tool.
+     *
+     * @return the number of sides for the polygon
+     */
     public int getNGonSides() {
         return nGonSides;
     }
 
+
+    /**
+     * Creates a custom font with specified style properties.
+     * <p>
+     * Configures a font with the specified family, size, and style attributes (bold and/or italic).
+     * </p>
+     *
+     * @param fontFamily the name of the font family
+     * @param fontSize the size of the font
+     * @param italic if true, applies italic style; otherwise, uses regular style
+     * @param bold if true, applies bold style; otherwise, uses normal weight
+     * @return the configured Font object
+     */
     @FXML
     private Font createFontWithStyle(String fontFamily, double fontSize, boolean italic, boolean bold) {
         FontWeight fontWeight = bold ? FontWeight.BOLD : FontWeight.NORMAL;
@@ -2328,6 +2884,14 @@ public class HelloController {
         return Font.font(fontFamily, fontWeight, fontPosture, fontSize);
     }
 
+
+    /**
+     * Opens a dialog to set a custom text string for the text tool.
+     * <p>
+     * Prompts the user to input custom text, which will then be used when drawing text
+     * on the canvas with the text tool.
+     * </p>
+     */
     @FXML
     public void setCustomText() {
         // Create the TextInputDialog
@@ -2348,30 +2912,76 @@ public class HelloController {
         result.ifPresent(this::setCustomTextTool);
     }
 
+
+    /**
+     * Sets a custom text string for the text tool.
+     * <p>
+     * Updates the text that will be drawn on the canvas when using the text tool.
+     * </p>
+     *
+     * @param inputText the custom text to set for the text tool
+     */
     @FXML
     public void setCustomTextTool(String inputText) {
         stringToolText = inputText;
     }
+
+
+    /**
+     * Sets the font family for the text tool to Arial.
+     * <p>
+     * Updates the font family to Arial for text drawn on the canvas.
+     * </p>
+     */
+    @FXML
     public void setArialFont() {
         fontFamily = "Arial";
     }
 
+
+    /**
+     * Sets the font family for the text tool to Verdana.
+     * <p>
+     * Updates the font family to Verdana for text drawn on the canvas.
+     * </p>
+     */
     @FXML
     public void setVerdanaFont() {
         fontFamily = "Verdana";
         //updateFont();
     }
 
+
+    /**
+     * Sets the font family for the text tool to Tahoma.
+     * <p>
+     * Updates the font family to Tahoma for text drawn on the canvas.
+     * </p>
+     */
     @FXML
     public void setTahomaFont() {
         fontFamily = "Tahoma";
     }
 
+
+    /**
+     * Sets the font family for the text tool to Times New Roman.
+     * <p>
+     * Updates the font family to Times New Roman for text drawn on the canvas.
+     * </p>
+     */
     @FXML
     public void setTimesFont() {
         fontFamily = "Times New Roman";
     }
 
+
+    /**
+     * Toggles the bold style for the text tool.
+     * <p>
+     * Enables or disables the bold style for text drawn on the canvas.
+     * </p>
+     */
     @FXML
     public void toggleBold() {
         if (bold)
@@ -2381,6 +2991,13 @@ public class HelloController {
         }
     }
 
+
+    /**
+     * Toggles the italic style for the text tool.
+     * <p>
+     * Enables or disables the italic style for text drawn on the canvas.
+     * </p>
+     */
     @FXML
     public void toggleItalic() {
         if (italic)
@@ -2390,12 +3007,30 @@ public class HelloController {
         }
     }
 
+
+    /**
+     * Updates the font used by the text tool with the specified family, weight, and posture.
+     * <p>
+     * Configures the font settings for drawing text on the canvas, including font family,
+     * size, weight, and posture (italic or regular).
+     * </p>
+     */
     private void updateFont() {
         double fontSize = 24;  // Adjust the size as needed, or make dynamic
         Font customFont = Font.font(fontFamily, fontWeight, fontPosture, fontSize);
         gc.setFont(customFont);
     }
 
+
+    /**
+     * Updates the informational label with canvas details and mouse coordinates.
+     * <p>
+     * Displays the current canvas size, pen size, mouse coordinates, and autosave countdown if enabled.
+     * </p>
+     *
+     * @param mouseX the x-coordinate of the mouse
+     * @param mouseY the y-coordinate of the mouse
+     */
     private void updateLabel(double mouseX, double mouseY) {
         // Get the selected tab
         Tab selectedTab = tabPane.getSelectionModel().getSelectedItem();
@@ -2432,7 +3067,15 @@ public class HelloController {
     }
 
 
-
+    /**
+     * Handles canvas click events for filling an area with color.
+     * <p>
+     * When the fill button is selected, performs a flood fill at the clicked coordinates
+     * using the color from the color picker.
+     * </p>
+     *
+     * @param event the MouseEvent containing the click coordinates
+     */
     @FXML
     private void onCanvasClickForFill(MouseEvent event) {
         if (fillButton.isSelected()) {
@@ -2447,6 +3090,19 @@ public class HelloController {
         }
     }
 
+
+    /**
+     * Performs a flood fill operation on the specified canvas area.
+     * <p>
+     * Replaces the target color at the specified coordinates with the fill color,
+     * and continues filling neighboring pixels that match the target color.
+     * </p>
+     *
+     * @param canvasTab the CanvasTab containing the canvas to fill
+     * @param x the x-coordinate of the starting point
+     * @param y the y-coordinate of the starting point
+     * @param fillColor the color to use for filling the area
+     */
     private void floodFill(CanvasTab canvasTab, double x, double y, Color fillColor) {
         // Get image from the canvas
         WritableImage writableImage = new WritableImage((int) canvasTab.getCanvas().getWidth(), (int) canvasTab.getCanvas().getHeight());
@@ -2487,13 +3143,18 @@ public class HelloController {
         canvasTab.getGraphicsContext().drawImage(writableImage, 0, 0);
     }
 
-    /*
 
-        FUN FACT
-
-        Most icons in the buttons were created with this app!
-        Painting P!!!!
-
+    /**
+     * Sets icons for various tool buttons using predefined images.
+     * <p>
+     * Loads images from the resources folder and assigns them as icons to corresponding buttons
+     * in the toolbar.
+     *
+     * FUN FACT
+     *
+     *         Most icons in the buttons were created with this app!
+     *         Painting P!!!!
+     * </p>
      */
     private void setButtonIcons() {
         Image pencilIcon = new Image(Objects.requireNonNull(getClass().getResourceAsStream("/images/pencil_icon.png")));
@@ -2622,24 +3283,46 @@ public class HelloController {
         //redoButton.setStyle("-fx-background-color: transparent; -fx-padding: 5;");
     }
 
-    // Getter for pen size
+
+    /**
+     * Retrieves the current pen size.
+     *
+     * @return the current pen size
+     */
     public double getPenSize() {
         return penSize.get();
     }
 
-    // Setter for pen size
+
+    /**
+     * Sets the pen size to a specified value.
+     *
+     * @param size the new pen size
+     */
     public void setPenSize(double size) {
         penSize.set(size);
     }
 
-    // Getter for the pen size property (useful for binding)
+
+    /**
+     * Provides access to the pen size property.
+     * <p>
+     * Useful for binding the pen size property to other UI components.
+     * </p>
+     *
+     * @return the DoubleProperty representing the pen size
+     */
     public DoubleProperty penSizeProperty() {
         return penSize;
     }
 
 
-
-
+    /**
+     * Prompts the user to confirm exit when there are unsaved changes.
+     * <p>
+     * Displays a confirmation dialog offering options to save, not save, or cancel exit.
+     * </p>
+     */
     @FXML
     private void safetyExit() {
         // Create an alert of type confirmation
@@ -2678,6 +3361,16 @@ public class HelloController {
         }
     }
 
+
+    /**
+     * Prompts the user before making structural changes to the canvas.
+     * <p>
+     * Warns the user that editing the canvas structure may result in data loss, providing
+     * options to proceed or cancel.
+     * </p>
+     *
+     * @return true if the user chooses to continue editing, false if canceled
+     */
     private boolean safetyCanvasEdit() {
         // Create an alert of type confirmation
         Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
@@ -2711,8 +3404,12 @@ public class HelloController {
     }
 
 
-
-
+    /**
+     * Updates the current drawing color on the selected canvas based on the color picker.
+     * <p>
+     * Sets the stroke color for the selected canvas to the value chosen in the color picker.
+     * </p>
+     */
     @FXML
     public void onColorChange() {
         // Update the current color for drawing on the selected canvas
@@ -2724,34 +3421,15 @@ public class HelloController {
             }
         }
     }
-/*
-    @FXML
-    protected void setWideCanvas() {
-        boolean safe = safetyCanvasEdit();
-        if (safe) {
-            Tab selectedTab = tabPane.getSelectionModel().getSelectedItem();
-            if (selectedTab != null && selectedTab.getContent() instanceof ScrollPane) {
-                ScrollPane scrollPane = (ScrollPane) selectedTab.getContent();
-                if (scrollPane.getContent() instanceof StackPane) {
-                    StackPane canvasPane = (StackPane) scrollPane.getContent();
-                    if (!canvasPane.getChildren().isEmpty() && canvasPane.getChildren().get(0) instanceof Canvas) {
-                        Canvas currentCanvas = (Canvas) canvasPane.getChildren().get(0);
-                        currentCanvas.setWidth(1450);
-                        currentCanvas.setHeight(575);
-                    } else {
-                        System.err.println("No canvas found in the StackPane.");
-                    }
-                } else {
-                    System.err.println("The content inside the ScrollPane is not a StackPane.");
-                }
-            } else {
-                System.err.println("The content of the tab is not a ScrollPane.");
-            }
-        }
-    }
 
 
- */
+    /**
+     * Sets the canvas size to a wide format.
+     * <p>
+     * Adjusts the canvas dimensions to 1450 x 575 pixels, clearing and filling
+     * the background to ensure the new size is visible.
+     * </p>
+     */
     @FXML
     protected void setWideCanvas() {
         boolean safe = safetyCanvasEdit();
@@ -2790,7 +3468,15 @@ public class HelloController {
     }
 
 
-
+    /**
+     * Prompts the user to set a custom canvas size through input dialogs.
+     * <p>
+     * Allows the user to input width and height values, and resizes the canvas accordingly.
+     * Ensures valid input and updates UI elements to reflect the new canvas size.
+     * </p>
+     *
+     * @param event the ActionEvent triggering the size change
+     */
     @FXML
     protected void setCustomSizeCanvas(ActionEvent event) {
         boolean safe = safetyCanvasEdit();
@@ -2876,6 +3562,14 @@ public class HelloController {
         }
     }
 
+
+    /**
+     * Resizes the canvas to match the current window dimensions.
+     * <p>
+     * Adjusts the canvas width and height to fit within the main window,
+     * providing some padding around the edges.
+     * </p>
+     */
     @FXML
     protected void setWindowSizeCanvas() {
         boolean safe = safetyCanvasEdit();
@@ -2907,44 +3601,12 @@ public class HelloController {
     }
 
 
-
-    /*
-    @FXML
-    protected void setTallCanvas() {
-        boolean safe = safetyCanvasEdit();
-        if (safe) {
-            Tab selectedTab = tabPane.getSelectionModel().getSelectedItem();
-            if (selectedTab != null) {
-                Node content = selectedTab.getContent();
-                StackPane canvasPane;
-                if (content instanceof ScrollPane) {
-                    ScrollPane scrollPane = (ScrollPane) content;
-                    canvasPane = (StackPane) scrollPane.getContent();
-                } else if (content instanceof StackPane) {
-                    canvasPane = (StackPane) content;
-                } else {
-                    System.err.println("The content is neither a ScrollPane nor a StackPane.");
-                    return;
-                }
-
-                if (!canvasPane.getChildren().isEmpty() && canvasPane.getChildren().get(0) instanceof Canvas) {
-                    Canvas currentCanvas = (Canvas) canvasPane.getChildren().get(0);
-                    currentCanvas.setWidth(600);
-                    currentCanvas.setHeight(650);
-
-                    // Re-fill the canvas background to ensure the new size is visible
-                    GraphicsContext gc = currentCanvas.getGraphicsContext2D();
-                    gc.setFill(Color.WHITE);
-                    gc.fillRect(0, 0, currentCanvas.getWidth(), currentCanvas.getHeight());
-
-                    updateLabel();  // Update any UI elements or labels reflecting the new size
-                } else {
-                    System.err.println("No canvas found in the StackPane.");
-                }
-            }
-        }
-    }
-
+    /**
+     * Sets the canvas to a tall format.
+     * <p>
+     * Adjusts the canvas dimensions to 600 x 650 pixels, clearing and filling
+     * the background to ensure the new size is visible.
+     * </p>
      */
     @FXML
     protected void setTallCanvas() {
@@ -2984,6 +3646,13 @@ public class HelloController {
     }
 
 
+    /**
+     * Sets up listeners to monitor changes to canvas properties.
+     * <p>
+     * Adds listeners to update UI elements whenever a tab selection changes
+     * or the canvas width/height is modified.
+     * </p>
+     */
     private void setupListeners() {
         // Add listener for tab selection
         tabPane.getSelectionModel().selectedItemProperty().addListener((observable, oldTab, newTab) -> {
@@ -3003,7 +3672,12 @@ public class HelloController {
     }
 
 
-
+    /**
+     * Clears the canvas by filling it with the background color.
+     * <p>
+     * Resets the entire canvas area to white, effectively clearing all drawn content.
+     * </p>
+     */
     @FXML
     protected void onCanvaClearCanva() {
         boolean safe = safetyCanvasEdit();
@@ -3021,16 +3695,39 @@ public class HelloController {
         }
     }
 
+
+    /**
+     * Opens an image file and resizes it to match the canvas size.
+     *
+     * @param event the ActionEvent triggering this method.
+     */
     @FXML
     protected void onOpenImageClickCanvasSize(ActionEvent event) {
         onOpenImageClick(false);
     }
 
+
+    /**
+     * Opens an image file in its original size, adjusting the canvas size to match the image dimensions.
+     *
+     * @param event the ActionEvent triggering this method.
+     */
     @FXML
     protected void onOpenImageClickOriginalSize(ActionEvent event) {
         onOpenImageClick(true);
     }
 
+
+    /**
+     * Opens an image file and draws it on the canvas, resizing to fit canvas size or keeping the original size.
+     * <p>
+     * Prompts the user to choose an image file to open, and draws it on the currently selected canvas.
+     * If originalSize is true, the canvas size will adjust to the image's dimensions;
+     * otherwise, the image will be resized to fit the current canvas dimensions.
+     * </p>
+     *
+     * @param originalSize if true, resizes the canvas to match the image size; if false, resizes the image to fit the canvas.
+     */
     @FXML
     protected void onOpenImageClick(boolean originalSize) {  //TS
         Tab selectedTab = tabPane.getSelectionModel().getSelectedItem();
@@ -3071,6 +3768,14 @@ public class HelloController {
         }
     }
 
+
+    /**
+     * Saves the current canvas content to a file.
+     * <p>
+     * Checks if a file for the selected canvas tab already exists; if not, saves it to the Downloads folder with
+     * the tab name as the file name. If autosave is enabled, resets the countdown timer after saving.
+     * </p>
+     */
     @FXML
     protected void onSafeClick() {
         // Get the currently selected tab
@@ -3122,8 +3827,15 @@ public class HelloController {
     }
 
 
-
-
+    /**
+     * Saves the current canvas to a specified file.
+     * <p>
+     * Takes a snapshot of the canvas content and writes it to the specified file in PNG format.
+     * </p>
+     *
+     * @param canvas the Canvas to save.
+     * @param file   the file to save the Canvas content to.
+     */
     private void saveCanvasToFile(Canvas canvas, File file) {
         try {
             WritableImage writableImage = new WritableImage((int) canvas.getWidth(), (int) canvas.getHeight());
@@ -3136,9 +3848,13 @@ public class HelloController {
     }
 
 
-
-
-
+    /**
+     * Prompts the user to select a file format and save location for the current canvas.
+     * <p>
+     * Provides options for saving in PNG, JPEG, GIF, or BMP formats and alerts the user of potential data loss
+     * when saving in a lossy format. Resets the autosave countdown after saving.
+     * </p>
+     */
     @FXML
     protected void onSaveAsClick() {
         Tab selectedTab = tabPane.getSelectionModel().getSelectedItem();
@@ -3227,7 +3943,12 @@ public class HelloController {
     }
 
 
-
+    /**
+     * Confirms if the user wants to overwrite an existing file.
+     *
+     * @param file the file that already exists.
+     * @return true if the user confirms overwrite; false otherwise.
+     */
     private boolean confirmOverwrite(File file) {
         // Create an alert of type CONFIRMATION
         Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
@@ -3250,6 +3971,11 @@ public class HelloController {
     }
 
 
+    /**
+     * Displays a warning about potential data loss when saving in certain formats.
+     *
+     * @param message the warning message to display.
+     */
     private void showDataLossWarning(String message) {
         Alert alert = new Alert(Alert.AlertType.WARNING);
         alert.setTitle("Data Loss Warning");
@@ -3264,6 +3990,14 @@ public class HelloController {
         alert.showAndWait();
     }
 
+
+    /**
+     * Opens a dialog to change the autosave interval.
+     * <p>
+     * Prompts the user to enter a new autosave time interval in seconds, validates the input, and updates
+     * the autosave interval. The countdown is reset to the new interval, and the change is logged.
+     * </p>
+     */
     @FXML
     private void onChangeAutosaveTimeClick() {
         // Create a TextInputDialog for setting the autosave time
@@ -3308,6 +4042,13 @@ public class HelloController {
         }
     }
 
+
+    /**
+     * Displays an error dialog with a specified title and message.
+     *
+     * @param title   the title of the error dialog.
+     * @param message the message displayed in the error dialog.
+     */
     private void showErrorDialog(String title, String message) {
         // Create an error alert
         Alert alert = new Alert(Alert.AlertType.ERROR);
@@ -3328,10 +4069,16 @@ public class HelloController {
     }
 
 
-
-
-
     //DO NOT TOUCH BMP IS WORKING
+    /**
+     * Saves a BufferedImage as a BMP file.
+     * <p>
+     * Converts the image to 24-bit BMP format if necessary and writes it to the specified file.
+     * </p>
+     *
+     * @param bufferedImage the image to save.
+     * @param selectedFile  the destination file.
+     */
     private void saveAsBMP(BufferedImage bufferedImage, File selectedFile) {
         // Ensure the file has a .bmp extension
         if (!selectedFile.getName().toLowerCase().endsWith(".bmp")) {
@@ -3350,6 +4097,14 @@ public class HelloController {
         }
     }
 
+
+
+    /**
+     * Converts a BufferedImage to 24-bit BMP format if it is not already in that format.
+     *
+     * @param image the original image.
+     * @return the image in 24-bit BMP format.
+     */
     private static BufferedImage convertToBmp(BufferedImage image) {
         if (image.getType() == BufferedImage.TYPE_3BYTE_BGR) {
             return image; // Already in BMP format
@@ -3365,6 +4120,17 @@ public class HelloController {
         return bmpImage;
     }
 
+
+    /**
+     * Saves a BufferedImage as a JPEG file, removing any transparency.
+     * <p>
+     * Converts the image to RGB format, filling any transparent areas with white, and writes it to the specified file.
+     * </p>
+     *
+     * @param bufferedImage the image to save.
+     * @param file          the destination file.
+     * @throws IOException if an error occurs during saving.
+     */
     private void saveAsJPEG(BufferedImage bufferedImage, File file) throws IOException {
         // Convert the image to RGB, which removes the alpha channel (transparency)
         BufferedImage rgbImage = new BufferedImage(bufferedImage.getWidth(), bufferedImage.getHeight(), BufferedImage.TYPE_INT_RGB);
@@ -3378,6 +4144,14 @@ public class HelloController {
         ImageIO.write(rgbImage, "jpg", file);
     }
 
+
+    /**
+     * Saves a BufferedImage as a GIF file.
+     *
+     * @param bufferedImage the image to save.
+     * @param file          the destination file.
+     * @throws IOException if GIF format is not supported or another error occurs.
+     */
     private void saveAsGIF(BufferedImage bufferedImage, File file) throws IOException {
         try {
             // Save as GIF using ImageIO with TwelveMonkeys
@@ -3388,6 +4162,12 @@ public class HelloController {
     }
 
 
+    /**
+     * Displays a general alert with a specified title and message.
+     *
+     * @param title   the title of the alert.
+     * @param message the message displayed in the alert.
+     */
     private void showAlert(String title, String message) {
         Alert alert = new Alert(Alert.AlertType.ERROR);
         alert.setTitle(title);
@@ -3396,8 +4176,10 @@ public class HelloController {
         alert.showAndWait();
     }
 
-    //private int currentPixelSize = 10; // Initialize with a default value
 
+    /**
+     * Displays the "About" window, loading and showing the release notes from a file.
+     */
     @FXML
     protected void onAboutMenuClick() {
 
@@ -3434,11 +4216,21 @@ public class HelloController {
         logWriter.logEvent(getCurrentTabName(), "About menu clicked");
     }
 
+
+    /**
+     * Updates the pixel size label with the current pixel size.
+     */
     @FXML
     private void updatePixelSizeLabel() {
         pixelSizeLabel.setText("Pixel size: " + currentPixelSize);
     }
 
+
+    /**
+     * Handles the selection of a shape button, updating the current shape for drawing.
+     *
+     * @param event the ActionEvent triggered by clicking a shape button.
+     */
     @FXML
     protected void onShapeButtonClick(ActionEvent event) {
         ToggleButton source = (ToggleButton) event.getSource();
@@ -3446,6 +4238,13 @@ public class HelloController {
     }
 
 
+    /**
+     * Creates a new canvas in a new tab with a user-specified name.
+     * <p>
+     * Prompts the user to enter a name for the new canvas, then adds a new tab with the specified
+     * name and a default canvas size.
+     * </p>
+     */
     @FXML
     private void onNewMenuClick() {
         // Create a TextInputDialog to ask for the new file name
@@ -3474,6 +4273,9 @@ public class HelloController {
     }
 
 
+    /**
+     * Exits the application, logging the exit event and shutting down the logging thread.
+     */
     @FXML
     protected void onExitMenuClick() {
         logWriter.logEvent(getCurrentTabName(), "Application exit");

@@ -22,10 +22,10 @@ import java.util.Objects;
  * @version 1.4.0
  *
  */
-
 public class HelloApplication extends Application {
 
     private HttpServer httpServer;
+
 
     /**
      * Starts the Paint-P application and sets up the stage and scene.
@@ -64,17 +64,18 @@ public class HelloApplication extends Application {
         stage.show();
     }
 
+
     /**
      * Creates and starts the HTTP server to show canvas screenshots and images on the local port 8000.
      *
      * @throws IOException If an I/O error kills the app
      */
-
     private void startHttpServer() throws IOException {
         // Create the HttpServer listening on port 8000 with a maximum of 0 backlog
         httpServer = HttpServer.create(new InetSocketAddress(8000), 0);
         System.out.println("Server started at http://localhost:8000");
     }
+
 
     /**
      * Stops the HTTP server when the JavaFX application exits.
@@ -91,6 +92,7 @@ public class HelloApplication extends Application {
         }
         super.stop();
     }
+
 
     /**
      * Main method to launch the JavaFX application.
