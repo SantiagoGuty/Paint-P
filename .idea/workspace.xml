@@ -9,18 +9,10 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="d2182c53-f702-4aa5-b38f-eb010e10bf54" name="Changes" comment="UI improvements / JavaDocs order established.">
+    <list default="true" id="d2182c53-f702-4aa5-b38f-eb010e10bf54" name="Changes" comment="JavaDocs documentation implementation globally">
+      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/example/paintp/CanvasState.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/example/paintp/CanvasState.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/example/paintp/CanvasTab.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/example/paintp/CanvasTab.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/example/paintp/HelloApplication.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/example/paintp/HelloApplication.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/example/paintp/HelloController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/example/paintp/HelloController.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/example/paintp/HelloControllerTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/example/paintp/HelloControllerTest.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/example/paintp/LogWriter.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/example/paintp/LogWriter.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/example/paintp/PaintPApplication.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/example/paintp/SingleImageHandler.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/example/paintp/SingleImageHandler.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/example/paintp/StaticFileHandler.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/example/paintp/StaticFileHandler.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/example/paintp/paint_p_application.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/example/paintp/paint_p_application.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/paint-p_ReleaseNotes.txt" beforeDir="false" afterPath="$PROJECT_DIR$/paint-p_ReleaseNotes.txt" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -284,7 +276,15 @@
       <option name="project" value="LOCAL" />
       <updated>1731308969921</updated>
     </task>
-    <option name="localTasksCounter" value="20" />
+    <task id="LOCAL-00020" summary="JavaDocs documentation implementation globally">
+      <option name="closed" value="true" />
+      <created>1731356019087</created>
+      <option name="number" value="00020" />
+      <option name="presentableId" value="LOCAL-00020" />
+      <option name="project" value="LOCAL" />
+      <updated>1731356019087</updated>
+    </task>
+    <option name="localTasksCounter" value="21" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -353,7 +353,8 @@
     <MESSAGE value="Images server bugs solved and color grabber fixed." />
     <MESSAGE value="UI interface styling improvements." />
     <MESSAGE value="UI improvements / JavaDocs order established." />
-    <option name="LAST_COMMIT_MESSAGE" value="UI improvements / JavaDocs order established." />
+    <MESSAGE value="JavaDocs documentation implementation globally" />
+    <option name="LAST_COMMIT_MESSAGE" value="JavaDocs documentation implementation globally" />
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
     <SUITE FILE_PATH="coverage/Paint_P$HelloApplication.ic" NAME="HelloApplication Coverage Results" MODIFIED="1727451183509" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="idea" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="true">
