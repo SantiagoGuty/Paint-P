@@ -149,16 +149,53 @@
     -fx-border-width: 2px;
 }
 
-/* Style for TabPane */
-.tab-pane .tab-header-background {
-    -fx-background-color: transparent; /* Ensures the tab header background is not colored */
-}
+
 
 /* Style for selected tab */
 .tab-pane .tab:selected {
     -fx-background-color: #acbceb; /* Slight blue background for the selected tab */
 }
+/* Style for the TabPane to remove blue focus border on selected tabs */
+.tab-pane .tab-header-area .tab {
+    -fx-background-insets: 0; /* Remove any insets or borders */
+}
 
+.tab-pane .tab-header-area .tab:selected {
+    -fx-background-color: #acbceb; /* Background color for the selected tab */
+    -fx-border-color: transparent; /* Remove any border color */
+    -fx-border-width: 0; /* Set border width to 0 to avoid borders */
+}
+
+/* Style for the tab content area when a tab is selected
 .tab-pane .tab-content-area {
-    -fx-background-color: #acbceb; /* Background for the selected tab content */
+    -fx-background-color: #acbceb; /* Background color for the selected tab's content */
+}
+*/
+
+/* Additional styling for the tab-header-background if needed */
+.tab-pane .tab-header-background {
+    -fx-background-color: transparent; /* Ensures the tab header background itself is not colored */
+}
+/* Hover effect for MenuBar items */
+
+
+/* Optional: Style for the selected menu item */
+.menu-bar .menu:selected {
+    -fx-background-color: #acbceb; /* Selected background color */
+}
+
+/* Hover effect for MenuBar items */
+.menu-bar .menu:hover {
+    -fx-background-color: #acbceb; /* Hover background color */
+}
+
+/* Style for the selected (clicked or opened) menu item */
+.menu-bar .menu:showing,
+.menu-bar .menu:armed {
+    -fx-background-color: #acbceb; /* Background color when menu is selected or opened */
+}
+
+/* Optional: Menu items within each menu */
+.menu-item:hover {
+    -fx-background-color: #acbceb; /* Hover color for menu items */
 }

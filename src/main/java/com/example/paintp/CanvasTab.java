@@ -5,6 +5,12 @@ import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
 
+
+
+/**
+ * Manages a canvas and its graphical context, including a temporary canvas
+ * for live drawing, within a stack pane.
+ */
 public class CanvasTab {
     private Canvas canvas;
     private GraphicsContext gc;
@@ -13,7 +19,8 @@ public class CanvasTab {
     private Canvas tempCanvas; //Canvas for live draw
     private GraphicsContext tempGc; // Graphics context for live draw
 
-    // Constructor to create a new CanvasTab with specified width and height
+
+
     public CanvasTab(String title, double width, double height) {
         this.title = title;  // Don't forget to set the title
 

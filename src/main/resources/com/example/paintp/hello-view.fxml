@@ -8,301 +8,301 @@
 <?import javafx.scene.layout.*?>
 
 <VBox spacing="10" stylesheets="@../../../styling/style.css" xmlns="http://javafx.com/javafx/11.0.14-internal" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.example.paintp.HelloController">
- <!-- Menu Bar -->
+    <!-- Menu Bar -->
 
     <HBox alignment="CENTER_LEFT" spacing="0">
         <Button fx:id="undoButton" />
         <Button fx:id="redoButton" />
 
-    <MenuBar style="-fx-padding: 0 10 0 10;">
+        <MenuBar style="-fx-padding: 0 10 0 10;">
 
 
-   <Menu text="File">
-     <MenuItem onAction="#onNewMenuClick" text="New" />
-     <Menu text="Open Image">
-       <MenuItem onAction="#onOpenImageClickCanvasSize" text="Canvas Size" />
-       <MenuItem onAction="#onOpenImageClickOriginalSize" text="Original Size" />
-     </Menu>
-     <MenuItem onAction="#onSafeClick" text="Safe" />
-     <MenuItem onAction="#onSaveAsClick" text="Save As" />
-     <MenuItem onAction="#safetyExit" text="Exit" />
-   </Menu>
+            <Menu text="File">
+                <MenuItem onAction="#onNewMenuClick" text="New" />
+                <Menu text="Open Image">
+                    <MenuItem onAction="#onOpenImageClickCanvasSize" text="Canvas Size" />
+                    <MenuItem onAction="#onOpenImageClickOriginalSize" text="Original Size" />
+                </Menu>
+                <MenuItem onAction="#onSafeClick" text="Safe" />
+                <MenuItem onAction="#onSaveAsClick" text="Save As" />
+                <MenuItem onAction="#safetyExit" text="Exit" />
+            </Menu>
 
 
-   <Menu text="Edit">
-     <MenuItem onAction="#onUndoClick" text="Undo" />
-     <MenuItem onAction="#onRedoClick" text="Redo" />
-   </Menu>
+            <Menu text="Edit">
+                <MenuItem onAction="#onUndoClick" text="Undo" />
+                <MenuItem onAction="#onRedoClick" text="Redo" />
+            </Menu>
 
 
-   <Menu text="Help">
-     <MenuItem onAction="#onAboutMenuClick" text="About" />
-   </Menu>
+            <Menu text="Help">
+                <MenuItem onAction="#onAboutMenuClick" text="About" />
+            </Menu>
 
 
-   <Menu text="Canvas">
-       <MenuItem onAction="#onCanvaClearCanva" text="Clear Canvas" />
+            <Menu text="Canvas">
+                <MenuItem onAction="#onCanvaClearCanva" text="Clear Canvas" />
 
-       <Menu text="Size options">
-           <MenuItem onAction="#setWideCanvas" text="Wide Canvas" />
-           <MenuItem onAction="#setTallCanvas" text="Tall Canvas" />
-           <MenuItem onAction="#setCustomSizeCanvas" text="Custom Canvas Size" />
-           <MenuItem onAction="#setWindowSizeCanvas" text="Window Size Canvas" />
-       </Menu>
+                <Menu text="Size options">
+                    <MenuItem onAction="#setWideCanvas" text="Wide Canvas" />
+                    <MenuItem onAction="#setTallCanvas" text="Tall Canvas" />
+                    <MenuItem onAction="#setCustomSizeCanvas" text="Custom Canvas Size" />
+                    <MenuItem onAction="#setWindowSizeCanvas" text="Window Size Canvas" />
+                </Menu>
 
-       <Menu text="Rotate">
-           <MenuItem onAction="#onRotate90" text="Rotate 90 degrees" />
-           <MenuItem onAction="#onRotate180" text="Rotate 180 degrees" />
-           <MenuItem onAction="#onRotate270" text="Rotate 270 degrees" />
-       </Menu>
+                <Menu text="Rotate">
+                    <MenuItem onAction="#onRotate90" text="Rotate 90 degrees" />
+                    <MenuItem onAction="#onRotate180" text="Rotate 180 degrees" />
+                    <MenuItem onAction="#onRotate270" text="Rotate 270 degrees" />
+                </Menu>
 
-       <Menu text="Mirror">
-           <MenuItem onAction="#onFlipVerticalClick" text="Mirror vertically" />
-           <MenuItem onAction="#onFlipHorizontalClick" text="Mirror Horizontally" />
-       </Menu>
-
-
-   </Menu>
-
-   <Menu text="Autosave">
-               <CheckMenuItem fx:id="autosaveMenuItem" onAction="#toggleAutosave" selected="true" text="Enable Autosave" />
-               <MenuItem onAction="#onChangeAutosaveTimeClick" text="Change Autosave Time" />
-   </Menu>
+                <Menu text="Mirror">
+                    <MenuItem onAction="#onFlipVerticalClick" text="Mirror vertically" />
+                    <MenuItem onAction="#onFlipHorizontalClick" text="Mirror Horizontally" />
+                </Menu>
 
 
-   <Menu text="Advanced settings">
-       <Menu text="Sticker settings">
-         <MenuItem onAction="#setCustomSticker" text="Set custom sticker" />
-         <MenuItem onAction="#setDefaultSticker" text="Reset to default sticker" />
-       </Menu>
-       <Menu text="Text settings">
-         <MenuItem onAction="#setCustomText" text="Set text for text tool" />
-         <MenuItem onAction="#setDefaultText" text="Reset to default text" />
-          <Menu text="Font">
-                     <MenuItem onAction="#setArialFont" text="Arial" />
-                     <MenuItem onAction="#setVerdanaFont" text="Verdana" />
-                     <MenuItem onAction="#setTahomaFont" text="Tahoma" />
-                     <MenuItem onAction="#setTimesFont" text="Times New Roman" />
-          </Menu>
-           <Menu text="Style">
-               <CheckMenuItem onAction="#toggleBold" text="Bold" />
-               <CheckMenuItem onAction="#toggleItalic" text="Italic" />
-           </Menu>
-       </Menu>
+            </Menu>
+
+            <Menu text="Autosave">
+                <CheckMenuItem fx:id="autosaveMenuItem" onAction="#toggleAutosave" selected="true" text="Enable Autosave" />
+                <MenuItem onAction="#onChangeAutosaveTimeClick" text="Change Autosave Time" />
+            </Menu>
+
+
+            <Menu text="Advanced settings">
+                <Menu text="Sticker settings">
+                    <MenuItem onAction="#setCustomSticker" text="Set custom sticker" />
+                    <MenuItem onAction="#setDefaultSticker" text="Reset to default sticker" />
+                </Menu>
+                <Menu text="Text settings">
+                    <MenuItem onAction="#setCustomText" text="Set text for text tool" />
+                    <MenuItem onAction="#setDefaultText" text="Reset to default text" />
+                    <Menu text="Font">
+                        <MenuItem onAction="#setArialFont" text="Arial" />
+                        <MenuItem onAction="#setVerdanaFont" text="Verdana" />
+                        <MenuItem onAction="#setTahomaFont" text="Tahoma" />
+                        <MenuItem onAction="#setTimesFont" text="Times New Roman" />
+                    </Menu>
+                    <Menu text="Style">
+                        <CheckMenuItem onAction="#toggleBold" text="Bold" />
+                        <CheckMenuItem onAction="#toggleItalic" text="Italic" />
+                    </Menu>
+                </Menu>
 
 
 
-       <Menu text="Polygon">
-           <MenuItem onAction="#setPolygonSides" text="Set number of sides" />
-           <MenuItem onAction="#setDefaultPolygonSides" text="Reset number of sides" />
-       </Menu>
+                <Menu text="Polygon">
+                    <MenuItem onAction="#setPolygonSides" text="Set number of sides" />
+                    <MenuItem onAction="#setDefaultPolygonSides" text="Reset number of sides" />
+                </Menu>
 
-       <Menu text="Star">
-           <MenuItem onAction="#setStarPoints" text="Set Number of star points" />
-           <MenuItem onAction="#resetStarPoints" text="Reset number of points" />
-       </Menu>
+                <Menu text="Star">
+                    <MenuItem onAction="#setStarPoints" text="Set Number of star points" />
+                    <MenuItem onAction="#resetStarPoints" text="Reset number of points" />
+                </Menu>
 
-       <Menu text="Fill">
+                <Menu text="Fill">
 
-           <MenuItem onAction="#setFillingColor" text="Set filling color" />
-           <MenuItem onAction="#resetFillingColor" text="Default filling color" />
-       </Menu>
-
-
-       <Menu text="Notifications">
-           <CheckMenuItem fx:id="notificationsToggle" onAction="#toggleNotifications" selected="true" text="Enable notifications" />
-       </Menu>
-
-   </Menu>
-
-     <Menu text="Server">
-         <MenuItem onAction="#openServerInBrowser" text="Open server in browser" />
-         <MenuItem onAction="#onSelectImageClick" text="Select Image" />
-         <MenuItem onAction="#onCaptureCanvasClick" text="Capture Canvas" />
-     </Menu>
+                    <MenuItem onAction="#setFillingColor" text="Set filling color" />
+                    <MenuItem onAction="#resetFillingColor" text="Default filling color" />
+                </Menu>
 
 
- </MenuBar>
+                <Menu text="Notifications">
+                    <CheckMenuItem fx:id="notificationsToggle" onAction="#toggleNotifications" selected="true" text="Enable notifications" />
+                </Menu>
+
+            </Menu>
+
+            <Menu text="Server">
+                <MenuItem onAction="#openServerInBrowser" text="Open server in browser" />
+                <MenuItem onAction="#onSelectImageClick" text="Select Image" />
+                <MenuItem onAction="#onCaptureCanvasClick" text="Capture Canvas" />
+            </Menu>
+
+
+        </MenuBar>
     </HBox>
 
 
- <!-- Toolbar and Controls -->
- <VBox alignment="CENTER" style="-fx-background-color: #FFFF;">
+    <!-- Toolbar and Controls -->
+    <VBox alignment="CENTER" style="-fx-background-color: #FFFF;">
 
-   <!-- Horizontal Menu for Buttons -->
-   <HBox fx:id="toolbarHBox" alignment="CENTER" nodeOrientation="LEFT_TO_RIGHT" spacing="40.0">
+        <!-- Horizontal Menu for Buttons -->
+        <HBox fx:id="toolbarHBox" alignment="CENTER" nodeOrientation="LEFT_TO_RIGHT" spacing="40.0">
 
-       <HBox alignment="CENTER" spacing="0">
-           <!-- Group 1 -->
-           <VBox alignment="CENTER" spacing="0">
-               <HBox alignment="CENTER" spacing="0">
-                   <ToggleButton fx:id="pencilButton">
-                       <tooltip>
-                           <Tooltip text="Pencil Tool" />
-                       </tooltip>
-                   </ToggleButton>
-                   <ToggleButton fx:id="charcoalBrushButton">
-                       <tooltip>
-                           <Tooltip text="Bubbles Brush Tool" />
-                       </tooltip>
-                   </ToggleButton>
-               </HBox>
-               <HBox alignment="CENTER" spacing="0">
-                   <ToggleButton fx:id="sprayPaintBrushButton">
-                       <tooltip>
-                           <Tooltip text="Spray paint Tool" />
-                       </tooltip>
-                   </ToggleButton>
-                   <ToggleButton fx:id="eraserButton">
-                       <tooltip>
-                           <Tooltip text="Eraser Tool" />
-                       </tooltip>
-                   </ToggleButton>
-               </HBox>
-           </VBox>
+            <HBox alignment="CENTER" spacing="5">
+                <!-- Group 1 -->
+                <VBox alignment="CENTER" spacing="0">
+                    <HBox alignment="CENTER" spacing="0">
+                        <ToggleButton fx:id="pencilButton">
+                            <tooltip>
+                                <Tooltip text="Pencil Tool" />
+                            </tooltip>
+                        </ToggleButton>
+                        <ToggleButton fx:id="charcoalBrushButton">
+                            <tooltip>
+                                <Tooltip text="Bubbles Brush Tool" />
+                            </tooltip>
+                        </ToggleButton>
+                    </HBox>
+                    <HBox alignment="CENTER" spacing="0">
+                        <ToggleButton fx:id="sprayPaintBrushButton">
+                            <tooltip>
+                                <Tooltip text="Spray paint Tool" />
+                            </tooltip>
+                        </ToggleButton>
+                        <ToggleButton fx:id="eraserButton">
+                            <tooltip>
+                                <Tooltip text="Eraser Tool" />
+                            </tooltip>
+                        </ToggleButton>
+                    </HBox>
+                </VBox>
 
-           <!-- Group 2 -->
-           <VBox alignment="CENTER" spacing="0">
-               <HBox alignment="CENTER" spacing="0">
-                   <ToggleButton fx:id="lineButton">
-                       <tooltip>
-                           <Tooltip text="Line Tool" />
-                       </tooltip>
-                   </ToggleButton>
-                   <ToggleButton fx:id="rectangleButton">
-                       <tooltip>
-                           <Tooltip text="Rectangle Tool" />
-                       </tooltip>
-                   </ToggleButton>
-               </HBox>
-               <HBox alignment="CENTER" spacing="0">
-                   <ToggleButton fx:id="ellipseButton">
-                       <tooltip>
-                           <Tooltip text="Ellipse Tool" />
-                       </tooltip>
-                   </ToggleButton>
-                   <ToggleButton fx:id="circleButton">
-                       <tooltip>
-                           <Tooltip text="Circle Tool" />
-                       </tooltip>
-                   </ToggleButton>
-               </HBox>
-           </VBox>
+                <!-- Group 2 -->
+                <VBox alignment="CENTER" spacing="0">
+                    <HBox alignment="CENTER" spacing="0">
+                        <ToggleButton fx:id="lineButton">
+                            <tooltip>
+                                <Tooltip text="Line Tool" />
+                            </tooltip>
+                        </ToggleButton>
+                        <ToggleButton fx:id="rectangleButton">
+                            <tooltip>
+                                <Tooltip text="Rectangle Tool" />
+                            </tooltip>
+                        </ToggleButton>
+                    </HBox>
+                    <HBox alignment="CENTER" spacing="0">
+                        <ToggleButton fx:id="ellipseButton">
+                            <tooltip>
+                                <Tooltip text="Ellipse Tool" />
+                            </tooltip>
+                        </ToggleButton>
+                        <ToggleButton fx:id="circleButton">
+                            <tooltip>
+                                <Tooltip text="Circle Tool" />
+                            </tooltip>
+                        </ToggleButton>
+                    </HBox>
+                </VBox>
 
-           <!-- Group 3 -->
-           <VBox alignment="CENTER" spacing="0">
-               <HBox alignment="CENTER" spacing="0">
-                   <ToggleButton fx:id="triangleButton">
-                       <tooltip>
-                           <Tooltip text="Triangle Tool" />
-                       </tooltip>
-                   </ToggleButton>
-                   <ToggleButton fx:id="imageButton">
-                       <tooltip>
-                           <Tooltip text="Image Tool" />
-                       </tooltip>
-                   </ToggleButton>
-               </HBox>
-               <HBox alignment="CENTER" spacing="0">
-                   <ToggleButton fx:id="starButton">
-                       <tooltip>
-                           <Tooltip text="Star Tool" />
-                       </tooltip>
-                   </ToggleButton>
-                   <ToggleButton fx:id="heartButton">
-                       <tooltip>
-                           <Tooltip text="Heart Tool" />
-                       </tooltip>
-                   </ToggleButton>
-               </HBox>
-           </VBox>
+                <!-- Group 3 -->
+                <VBox alignment="CENTER" spacing="0">
+                    <HBox alignment="CENTER" spacing="0">
+                        <ToggleButton fx:id="triangleButton">
+                            <tooltip>
+                                <Tooltip text="Triangle Tool" />
+                            </tooltip>
+                        </ToggleButton>
+                        <ToggleButton fx:id="imageButton">
+                            <tooltip>
+                                <Tooltip text="Image Tool" />
+                            </tooltip>
+                        </ToggleButton>
+                    </HBox>
+                    <HBox alignment="CENTER" spacing="0">
+                        <ToggleButton fx:id="starButton">
+                            <tooltip>
+                                <Tooltip text="Star Tool" />
+                            </tooltip>
+                        </ToggleButton>
+                        <ToggleButton fx:id="heartButton">
+                            <tooltip>
+                                <Tooltip text="Heart Tool" />
+                            </tooltip>
+                        </ToggleButton>
+                    </HBox>
+                </VBox>
 
-           <!-- Group 4 -->
-           <VBox alignment="CENTER" spacing="0">
-               <HBox alignment="CENTER" spacing="0">
-                   <ToggleButton fx:id="nGonButton">
-                       <tooltip>
-                           <Tooltip text="Polygon Tool" />
-                       </tooltip>
-                   </ToggleButton>
-                   <ToggleButton fx:id="textButton">
-                       <tooltip>
-                           <Tooltip text="Text Tool" />
-                       </tooltip>
-                   </ToggleButton>
-               </HBox>
-               <HBox alignment="CENTER" spacing="0">
-                   <ToggleButton fx:id="spiralButton">
-                       <tooltip>
-                           <Tooltip text="Spiral Tool" />
-                       </tooltip>
-                   </ToggleButton>
-                   <ToggleButton fx:id="cubeButton">
-                       <tooltip>
-                           <Tooltip text="Cube Tool" />
-                       </tooltip>
-                   </ToggleButton>
-               </HBox>
-           </VBox>
-       </HBox>
-
-
-       <VBox alignment="CENTER" spacing="5">
-            <ColorPicker fx:id="colorPicker" />
-            <effect>
-               <Blend />
-            </effect>
-       </VBox>
-
-       <VBox alignment="CENTER" spacing="10">
-           <ToggleButton fx:id="colorGrabButton" onAction="#toggleColorGrab" />
-       </VBox>
-
-       <VBox alignment="CENTER" spacing="10">
-            <Slider fx:id="lineWidthSlider" majorTickUnit="10" max="50" min="1" showTickLabels="true" showTickMarks="true" value="1" />
-            <TextField fx:id="lineWidthInput" promptText="1.00" />
-       </VBox>
-       <VBox alignment="CENTER" spacing="10">
-
-           <ToggleButton fx:id="dashedToggleButton" />
+                <!-- Group 4 -->
+                <VBox alignment="CENTER" spacing="0">
+                    <HBox alignment="CENTER" spacing="0">
+                        <ToggleButton fx:id="nGonButton">
+                            <tooltip>
+                                <Tooltip text="Polygon Tool" />
+                            </tooltip>
+                        </ToggleButton>
+                        <ToggleButton fx:id="textButton">
+                            <tooltip>
+                                <Tooltip text="Text Tool" />
+                            </tooltip>
+                        </ToggleButton>
+                    </HBox>
+                    <HBox alignment="CENTER" spacing="0">
+                        <ToggleButton fx:id="spiralButton">
+                            <tooltip>
+                                <Tooltip text="Spiral Tool" />
+                            </tooltip>
+                        </ToggleButton>
+                        <ToggleButton fx:id="cubeButton">
+                            <tooltip>
+                                <Tooltip text="Cube Tool" />
+                            </tooltip>
+                        </ToggleButton>
+                    </HBox>
+                </VBox>
+            </HBox>
 
 
-       </VBox>
-       <VBox alignment="CENTER" spacing="10">
+            <VBox alignment="CENTER" spacing="5">
+                <ColorPicker fx:id="colorPicker" />
+                <effect>
+                    <Blend />
+                </effect>
+            </VBox>
 
-           <ToggleButton fx:id="fillToggleButton" onAction="#toggleFill"/>
+            <VBox alignment="CENTER" spacing="10">
+                <ToggleButton fx:id="colorGrabButton" onAction="#toggleColorGrab" />
+            </VBox>
 
+            <VBox alignment="CENTER" spacing="10">
+                <Slider fx:id="lineWidthSlider" majorTickUnit="10" max="50" min="1" showTickLabels="true" showTickMarks="true" value="1" />
+                <TextField fx:id="lineWidthInput" promptText="1.00" />
+            </VBox>
+            <VBox alignment="CENTER" spacing="10">
 
-       </VBox>
-         <opaqueInsets>
-            <Insets />
-         </opaqueInsets>
-   </HBox>
-
-
-
- </VBox>
-
-
- <TabPane fx:id="tabPane">
-       <Tab text="Canvas 1">
-           <ScrollPane fitToHeight="true" fitToWidth="true">
-               <StackPane fx:id="canvasPane" prefHeight="600" prefWidth="800" style="-fx-background-color: lightgray; -fx-border-color: grey; -fx-border-width: 1px;">
-                   <Canvas fx:id="canvas" height="600" width="800">
-                  <cursor>
-                     <Cursor fx:constant="CROSSHAIR" />
-                  </cursor></Canvas>
-               <cursor>
-                  <Cursor fx:constant="CROSSHAIR" />
-               </cursor>
-               </StackPane>
-           </ScrollPane>
-       </Tab>
-       <!-- Additional tabs can be added in the controller -->
-   </TabPane>
+                <ToggleButton fx:id="dashedToggleButton" />
 
 
- <Label fx:id="infoText" alignment="CENTER" text="Welcome to Paint-P!" />
+            </VBox>
+            <VBox alignment="CENTER" spacing="10">
+
+                <ToggleButton fx:id="fillToggleButton" onAction="#toggleFill"/>
+
+
+            </VBox>
+            <opaqueInsets>
+                <Insets />
+            </opaqueInsets>
+        </HBox>
+
+
+
+    </VBox>
+
+
+    <TabPane fx:id="tabPane">
+        <Tab text="Canvas 1">
+            <ScrollPane fitToHeight="true" fitToWidth="true">
+                <StackPane fx:id="canvasPane" prefHeight="600" prefWidth="800" style="-fx-background-color: lightgray; -fx-border-color: grey; -fx-border-width: 1px;">
+                    <Canvas fx:id="canvas" height="600" width="800">
+                        <cursor>
+                            <Cursor fx:constant="CROSSHAIR" />
+                        </cursor></Canvas>
+                    <cursor>
+                        <Cursor fx:constant="CROSSHAIR" />
+                    </cursor>
+                </StackPane>
+            </ScrollPane>
+        </Tab>
+        <!-- Additional tabs can be added in the controller -->
+    </TabPane>
+
+
+    <Label fx:id="infoText" alignment="CENTER" text="Welcome to Paint-P!" />
 
 
 </VBox>

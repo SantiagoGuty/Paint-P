@@ -238,8 +238,15 @@ public class HelloController {
 
     }
 
-    private DoubleProperty lineWidth = new SimpleDoubleProperty(1.0); // Actual line width property
 
+    /**
+     * Sets up synchronization between the line width slider and text field.
+     * <p>
+     * Listens for changes in the slider value to update the text field and validates
+     * the input from the text field to keep the value within a specified range
+     * (minimum of 1 and maximum of 50) before updating the slider.
+     * </p>
+     */
     @FXML
     private void setupLineWidthSync() {
         // Set a listener to update the TextField whenever the Slider changes
@@ -267,14 +274,28 @@ public class HelloController {
         });
     }
 
-    // Assuming getLineWidth() is defined as follows
+    /**
+     * Retrieves the current line width value from the line width slider.
+     *
+     * @return the current line width as a double
+     */
     public double getLineWidth() {
         return lineWidthSlider.getValue();
     }
 
 
 
-
+    /**
+     * Rotates the currently selected canvas by the specified angle (in degrees).
+     * <p>
+     * This method adjusts the canvas dimensions for 90 or 270-degree rotations, captures a
+     * snapshot of the canvas's current state, clears the canvas, and applies the rotation
+     * transformation before redrawing the image on the canvas. The transformation state
+     * is saved and restored to prevent unintended effects.
+     * </p>
+     *
+     * @param angle the angle of rotation in degrees (typically 90, 180, or 270)
+     */
     private void rotateCanvas(int angle) {
         CanvasTab canvasTab = getSelectedCanvasTab();
         if (canvasTab != null) {
@@ -315,28 +336,64 @@ public class HelloController {
         }
     }
 
+    /**
+     * Rotates the currently selected canvas by 90 degrees.
+     * <p>
+     * Calls the rotateCanvas method to apply a 90-degree rotation
+     * transformation to the canvas.
+     * </p>
+     */
     @FXML
     protected void onRotate90() {
         rotateCanvas(90);
     }
 
+    /**
+     * Rotates the currently selected canvas by 180 degrees.
+     * <p>
+     * Calls the rotateCanvas method to apply a 180-degree rotation
+     * transformation to the canvas.
+     * </p>
+     */
     @FXML
     protected void onRotate180() {
         rotateCanvas(180);
     }
 
+
+    /**
+     * Rotates the currently selected canvas by 270 degrees.
+     * <p>
+     * Calls the rotateCanvas method to apply a 270-degree rotation
+     * transformation to the canvas.
+     * </p>
+     */
     @FXML
     protected void onRotate270() {
         rotateCanvas(270);
     }
 
-
+    /**
+     * Toggles the fill functionality for drawing shapes.
+     * <p>
+     * Updates the fill mode for shapes based on the selected state of the
+     * fill toggle button, allowing shapes to be drawn either filled or outlined.
+     * </p>
+     */
     @FXML
     private void toggleFill() {
         fillShapes = fillToggleButton.isSelected();
     }
 
 
+    /**
+     * Opens a dialog to select a fill color for shapes.
+     * <p>
+     * Displays a color picker dialog that lets the user choose a color for
+     * filling shapes. If a color is selected, it updates the fill color used
+     * for drawing filled shapes.
+     * </p>
+     */
     @FXML
     private void setFillingColor() {
         // Create a new ColorPicker with the current fill color as the default
@@ -366,11 +423,29 @@ public class HelloController {
         result.ifPresent(selectedColor -> fillColor = selectedColor); // Update fillColor if a color was chosen
     }
 
+    /**
+     * Resets the filling color to the default color.
+     * <p>
+     * Sets the fill color to black, reverting any custom color
+     * selected by the user for filling shapes.
+     * </p>
+     */
     @FXML
     private void resetFillingColor() {
         fillColor = Color.BLACK; // Set to default color
     }
 
+
+    /**
+     * Retrieves the currently selected canvas in the active tab.
+     * <p>
+     * This method checks the selected tab, verifies that it contains a ScrollPane, then
+     * further checks if that ScrollPane contains a StackPane with a Canvas as its child.
+     * If such a Canvas is found, it is returned; otherwise, an error message is logged.
+     * </p>
+     *
+     * @return the selected Canvas if found, or null if no canvas is present in the selected tab
+     */
     private Canvas getSelectedCanvas() {
         Tab selectedTab = tabPane.getSelectionModel().getSelectedItem();
         if (selectedTab != null && selectedTab.getContent() instanceof ScrollPane) {
@@ -387,6 +462,16 @@ public class HelloController {
     }
 
 
+    /**
+     * Updates the specified canvas with a new image.
+     * <p>
+     * Clears the existing contents of the canvas and redraws the provided image to fit
+     * the canvas size.
+     * </p>
+     *
+     * @param canvas the Canvas to be updated with the new image
+     * @param newImage the WritableImage to draw onto the canvas
+     */
     private void updateCanvasWithImage(Canvas canvas, WritableImage newImage) {
         GraphicsContext gc = canvas.getGraphicsContext2D();
         gc.clearRect(0, 0, canvas.getWidth(), canvas.getHeight());
@@ -394,6 +479,17 @@ public class HelloController {
     }
 
 
+    /**
+     * Flips the contents of the canvas either horizontally or vertically.
+     * <p>
+     * This method captures the current content of the canvas, applies a transformation
+     * to flip the image either horizontally or vertically, and returns a new flipped image.
+     * </p>
+     *
+     * @param canvas the Canvas whose content is to be flipped
+     * @param horizontal if true, flips horizontally; if false, flips vertically
+     * @return a WritableImage containing the flipped content of the canvas
+     */
     private WritableImage flipCanvas(Canvas canvas, boolean horizontal) {
         WritableImage snapshot = new WritableImage((int) canvas.getWidth(), (int) canvas.getHeight());
         canvas.snapshot(null, snapshot);
@@ -418,6 +514,13 @@ public class HelloController {
         return flippedImage;
     }
 
+    /**
+     * Handles the action of flipping the currently selected canvas horizontally.
+     * <p>
+     * This method flips the selected canvas horizontally and updates the canvas with
+     * the new flipped image.
+     * </p>
+     */
     @FXML
     private void onFlipHorizontalClick() {
         Canvas currentCanvas = getSelectedCanvas();
@@ -427,6 +530,13 @@ public class HelloController {
         }
     }
 
+    /**
+     * Handles the action of flipping the currently selected canvas vertically.
+     * <p>
+     * This method flips the selected canvas vertically and updates the canvas with
+     * the new flipped image.
+     * </p>
+     */
     @FXML
     private void onFlipVerticalClick() {
         Canvas currentCanvas = getSelectedCanvas();
@@ -437,12 +547,27 @@ public class HelloController {
     }
 
 
-
+    /**
+     * Retrieves the name of the currently selected tab in the tab pane.
+     * <p>
+     * If a tab is selected, this method returns the text (name) of the tab.
+     * If no tab is selected, it returns "unknown tab".
+     * </p>
+     *
+     * @return the name of the current tab or "unknown tab" if no tab is selected
+     */
     private String getCurrentTabName() {
         Tab selectedTab = tabPane.getSelectionModel().getSelectedItem();
         return selectedTab != null ? selectedTab.getText() : "unknown tab";
     }
 
+    /**
+     * Displays a test notification in the system tray.
+     * <p>
+     * If the system supports the system tray, this method displays a test message using
+     * the tray icon. It logs a message to the console when the notification is displayed.
+     * </p>
+     */
     @FXML
     private void testNotification() {
         if (SystemTray.isSupported()) {
@@ -452,7 +577,13 @@ public class HelloController {
     }
 
 
-    // Method to set-up the system tray for notifications
+    /**
+     * Sets up the system tray for displaying notifications.
+     * <p>
+     * This method checks if the system supports the system tray. If supported, it adds
+     * a tray icon to the system tray and prepares it for displaying notifications.
+     * </p>
+     */
     private void setupSystemTray() {
         if (SystemTray.isSupported()) {
             SystemTray tray = SystemTray.getSystemTray();
@@ -476,15 +607,28 @@ public class HelloController {
     }
 
 
-    // Method to display notifications
+    /**
+     * Displays a notification message in the system tray.
+     * <p>
+     * If notifications are enabled and the system supports the system tray, this method
+     * displays the specified message using the tray icon.
+     * </p>
+     *
+     * @param message the message to be displayed in the notification
+     */
     private void showNotification(String message) {
         if (notificationsEnabled && SystemTray.isSupported()) {
             trayIcon.displayMessage("Notification", message, TrayIcon.MessageType.INFO);
         }
     }
 
-
-
+    /**
+     * Initializes tooltips for various tool buttons in the application.
+     * <p>
+     * This method assigns descriptive tooltips to each tool button (e.g., Pencil, Eraser, Line)
+     * in the toolbar, providing users with a brief description of each tool.
+     * </p>
+     */
     private void initializeTooltips() {
         setToggleTooltip(pencilButton, "Pencil Tool");
         setToggleTooltip(eraserButton, "Eraser Tool");
@@ -508,11 +652,30 @@ public class HelloController {
     }
 
     // Helper method to set tooltip with no delay
+    /**
+     * Sets a tooltip with a specified text for a ToggleButton.
+     * <p>
+     * This helper method creates a tooltip for the given ToggleButton with the specified text.
+     * </p>
+     *
+     * @param button the ToggleButton to which the tooltip is set
+     * @param tooltipText the text to display in the tooltip
+     */
     private void setToggleTooltip(ToggleButton button, String tooltipText) {
         Tooltip tooltip = new Tooltip(tooltipText);
        // tooltip.setShowDelay(Duration.ZERO);  // Set delay to zero
         button.setTooltip(tooltip);
     }
+
+    /**
+     * Sets a tooltip with a specified text for a Button.
+     * <p>
+     * This helper method creates a tooltip for the given Button with the specified text.
+     * </p>
+     *
+     * @param button the Button to which the tooltip is set
+     * @param tooltipText the text to display in the tooltip
+     */
     private void setButtonTooltip( Button button, String tooltipText) {
         Tooltip tooltip = new Tooltip(tooltipText);
         // tooltip.setShowDelay(Duration.ZERO);  // Set delay to zero
@@ -522,8 +685,11 @@ public class HelloController {
 
     /**
      * Captures the currently selected canvas as a snapshot, stores it, and makes it accessible via HTTP.
+     * <p>
+     * This method creates a snapshot of the selected canvas, assigns it a unique context path,
+     * and sets up HTTP endpoints for accessing the captured canvas image.
+     * </p>
      */
-
     @FXML
     public void onCaptureCanvasClick() {
         Tab selectedTab = tabPane.getSelectionModel().getSelectedItem();
@@ -569,12 +735,15 @@ public class HelloController {
     private Map<String, WritableImage> canvasImages = new HashMap<>();
 
     /**
-     * Updates the stored canvas image for a selected  tab.
+     * Updates the stored canvas image for a selected tab.
+     * <p>
+     * Associates the given WritableImage with the specified tab by storing it in a map,
+     * which enables easy retrieval and access of the canvas images.
+     * </p>
      *
-     * @param image The WritableImage to be updated.
-     * @param tab The Tab associated with the canvas image.
+     * @param image the WritableImage to be updated
+     * @param tab the Tab associated with the canvas image
      */
-
     private void updateCanvasImageForContext(WritableImage image, Tab tab) {
         String contextPath = "/canvas" + tabPane.getTabs().indexOf(tab);
         canvasImages.put(contextPath, image);  // Store the latest image for this context
@@ -584,12 +753,14 @@ public class HelloController {
 
     /**
      * Captures the current canvas as a WritableImage, for making it accessible via HTTP.
+     * <p>
+     * Takes a snapshot of the provided canvas and returns it as a WritableImage.
+     * Returns null if the canvas dimensions are invalid.
+     * </p>
      *
-     * @param canvas The Canvas to be captured.
-     * @return A WritableImage containing the canvas snapshot, or null if the canvas is invalid.
-     *
+     * @param canvas the Canvas to be captured
+     * @return a WritableImage containing the canvas snapshot, or null if the canvas is invalid
      */
-
     public WritableImage captureCanvas(Canvas canvas) {
         if (canvas.getWidth() > 0 && canvas.getHeight() > 0) {
             System.out.println("Capturing canvas: " + canvas.getWidth() + "x" + canvas.getHeight());
@@ -604,12 +775,15 @@ public class HelloController {
 
 
     /**
-     * Updates the selected image list when images are selected or deselected.
+     * Updates the selected images list when images are selected or deselected.
+     * <p>
+     * Adds the specified image to the selected images list if it is selected, or
+     * removes it if it is deselected.
+     * </p>
      *
-     * @param image The Image object that was selected/deselected.
-     * @param isSelected A boolean indicating if the image was selected.
+     * @param image the Image object that was selected or deselected
+     * @param isSelected a boolean indicating if the image was selected (true) or deselected (false)
      */
-
     public void onImageSelectionChanged(Image image, boolean isSelected) {
         if (isSelected) {
             selectedImages.add(image);
