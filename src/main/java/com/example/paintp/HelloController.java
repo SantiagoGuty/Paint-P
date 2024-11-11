@@ -11,6 +11,7 @@ import javafx.embed.swing.SwingFXUtils;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
 import javafx.scene.control.Dialog;
+import javafx.scene.control.Menu;
 import javafx.scene.image.*;
 import javafx.scene.paint.*;
 import javafx.scene.paint.Color;
@@ -40,6 +41,8 @@ import javafx.util.Duration;
 import javafx.scene.image.Image;
 import javax.imageio.ImageIO;
 import java.awt.*;
+//import java.awt.TextField;
+import javafx.scene.control.TextField;
 import java.awt.image.BufferedImage;
 import java.awt.image.RenderedImage;
 import java.io.*;
@@ -54,6 +57,8 @@ import java.awt.SystemTray;
 import java.awt.TrayIcon;
 import java.awt.Toolkit;
 import javafx.application.Platform;
+import javafx.scene.control.Slider;
+
 
 
 
@@ -107,13 +112,17 @@ public class HelloController {
     @FXML
     private Canvas testCanvas;
     @FXML
-    private CheckMenuItem fillCheckMenuItem;
+    private CheckBox fillCheckMenuItem;
     @FXML
     private ToggleButton pencilButton, eraserButton, lineButton,
             rectangleButton, ellipseButton, circleButton, triangleButton,
             starButton, heartButton, imageButton, textButton, nGonButton,
             cubeButton, fillButton, spiralButton, standardBrushButton,
-            calligraphyBrushButton, charcoalBrushButton, sprayPaintBrushButton;;
+            calligraphyBrushButton, charcoalBrushButton, sprayPaintBrushButton,
+            dashedToggleButton, fillToggleButton;
+
+    @FXML
+    private TextField lineWidthInput;
 
     private boolean fillShapes = false; // To track if filling is enabled
     private Color fillColor = Color.BLACK; // Default fill color
@@ -212,6 +221,7 @@ public class HelloController {
         setupToolButtons();
         setButtonIcons();
         setupListeners();
+        setupLineWidthSync();
 
         // Clear any existing tabs to ensure a clean start
         tabPane.getTabs().clear();
@@ -227,6 +237,43 @@ public class HelloController {
         setupAutosaveTimer();
 
     }
+
+    private DoubleProperty lineWidth = new SimpleDoubleProperty(1.0); // Actual line width property
+
+    @FXML
+    private void setupLineWidthSync() {
+        // Set a listener to update the TextField whenever the Slider changes
+        lineWidthSlider.valueProperty().addListener((observable, oldValue, newValue) -> {
+            lineWidthInput.setText(String.format("%.2f", newValue.doubleValue()));
+        });
+
+        // Add a focus listener on the TextField to update the Slider when TextField loses focus
+        lineWidthInput.focusedProperty().addListener((observable, oldValue, newValue) -> {
+            if (!newValue) { // When TextField loses focus
+                try {
+                    double inputValue = Double.parseDouble(lineWidthInput.getText());
+                    if (inputValue > 50) {
+                        inputValue = 50; // Limit to maximum of 50
+                    } else if (inputValue < 1) {
+                        inputValue = 1; // Ensure minimum of 1
+                    }
+                    lineWidthSlider.setValue(inputValue); // Update the Slider
+                    lineWidthInput.setText(String.format("%.2f", inputValue)); // Format TextField
+                } catch (NumberFormatException e) {
+                    // Reset to getLineWidth()'s current value if input is invalid
+                    lineWidthInput.setText(String.format("%.2f", getLineWidth()));
+                }
+            }
+        });
+    }
+
+    // Assuming getLineWidth() is defined as follows
+    public double getLineWidth() {
+        return lineWidthSlider.getValue();
+    }
+
+
+
 
     private void rotateCanvas(int angle) {
         CanvasTab canvasTab = getSelectedCanvasTab();
@@ -285,9 +332,10 @@ public class HelloController {
 
 
     @FXML
-    private void toggleFill(ActionEvent event) {
-        fillShapes = fillCheckMenuItem.isSelected();
+    private void toggleFill() {
+        fillShapes = fillToggleButton.isSelected();
     }
+
 
     @FXML
     private void setFillingColor() {
@@ -453,8 +501,8 @@ public class HelloController {
         setToggleTooltip(nGonButton, "Polygon Tool");
         setToggleTooltip(textButton, "Text Tool");
         setToggleTooltip(colorGrabButton, "Grab color Tool");
-        setButtonTooltip(undoButton, "Undo button");
-        setButtonTooltip(redoButton, "Redo button");
+        // setButtonTooltip(undoButton, "Undo button");
+        //setButtonTooltip(redoButton, "Redo button");
         setToggleTooltip(charcoalBrushButton, "Bubbles button");
         setToggleTooltip(sprayPaintBrushButton, "Spray paint button");
     }
@@ -1220,7 +1268,7 @@ public class HelloController {
 
                     double width = currentCanvas.getWidth();
                     double height = currentCanvas.getHeight();
-                    double currentPenSize = lineWidthSlider.getValue(); // Get the current pen size from the slider
+                    double currentPenSize = getLineWidth(); // Get the current pen size from the slider
 
                     infoText.setText(String.format("Canvas size: %.0f x %.0f | Pen Size: %.0f px", width, height, currentPenSize));
                 } else {
@@ -1241,7 +1289,7 @@ public class HelloController {
         if (selectedTab != null) {
             CanvasTab canvasTab = canvasTabs.get(selectedTab);
             if (canvasTab != null) {
-                canvasTab.getGraphicsContext().setLineWidth(lineWidthSlider.getValue());
+                canvasTab.getGraphicsContext().setLineWidth(getLineWidth());
             }
         }
     }
@@ -1554,16 +1602,16 @@ public class HelloController {
             startY = event.getY();
 
             gc.setStroke(colorPicker.getValue());
-            gc.setLineWidth(lineWidthSlider.getValue());
+            gc.setLineWidth(getLineWidth());
             gc.setLineCap(StrokeLineCap.BUTT); //soft edges
 
             if (fillShapes) {
                 gc.setFill(colorPicker.getValue()); // Set the selected fill color
             }
 
-            if (dashedLineCheckBox.isSelected()) {
-                gc.setLineDashes((2 * lineWidthSlider.getValue()) + 10);
-                tempGc.setLineDashes((2 * lineWidthSlider.getValue()) + 10);
+            if (dashedToggleButton.isSelected()) {
+                gc.setLineDashes((2 * getLineWidth() + 10));
+                tempGc.setLineDashes((2 * getLineWidth() + 10));
             } else {
                 gc.setLineDashes(0);
                 tempGc.setLineDashes(0);
@@ -1593,9 +1641,9 @@ public class HelloController {
 
 
            if (charcoalBrushButton.isSelected()) {
-                drawCharcoalBrush(gc, endX, endY);
+               drawCharcoalBrush(gc, endX, endY);
             } else if (sprayPaintBrushButton.isSelected()) {
-                drawSprayPaintBrush(gc, endX, endY);
+               drawSprayPaintBrush(gc, endX, endY);
             }
 
             prevX = endX;
@@ -1608,7 +1656,7 @@ public class HelloController {
                 } else {
                     gc.setStroke(colorPicker.getValue());
                 }
-                gc.setLineWidth(lineWidthSlider.getValue());
+                gc.setLineWidth(getLineWidth());
 
                 gc.lineTo(endX, endY);
                 gc.stroke();
@@ -1618,7 +1666,7 @@ public class HelloController {
 
                 tempGc.setStroke(colorPicker.getValue()); // Use the color picker value
                 tempGc.setFill(colorPicker.getValue());
-                tempGc.setLineWidth(lineWidthSlider.getValue());
+                tempGc.setLineWidth(getLineWidth());
 
                 double controlX = event.getX();
                 double controlY = event.getY();
@@ -1719,7 +1767,7 @@ public class HelloController {
 
             // Now commit the final shape to the main canvas
             gc.setStroke(colorPicker.getValue());
-            gc.setLineWidth(lineWidthSlider.getValue());
+            gc.setLineWidth(getLineWidth());
 
             if (pencilButton.isSelected() || eraserButton.isSelected()) {
                 // Nothing to do here; drawing is handled during drag
@@ -1806,7 +1854,7 @@ public class HelloController {
 
 
     private void drawCharcoalBrush(GraphicsContext gc, double x, double y) {
-        double brushSize = lineWidthSlider.getValue();
+        double brushSize = getLineWidth() + 10;
         gc.setFill(colorPicker.getValue());
 
         for (int i = 0; i < 10; i++) { // Draw multiple points to create rough texture
@@ -1820,7 +1868,7 @@ public class HelloController {
     }
 
     private void drawSprayPaintBrush(GraphicsContext gc, double x, double y) {
-        double brushSize = lineWidthSlider.getValue();
+        double brushSize = getLineWidth() + 10;
         gc.setFill(colorPicker.getValue());
 
         for (int i = 0; i < 30; i++) { // Increase number for denser spray
@@ -2187,7 +2235,7 @@ public class HelloController {
                 // Get the width, height, and pen size for the current canvas
                 double width = currentCanvas.getWidth();
                 double height = currentCanvas.getHeight();
-                double currentPenSize = lineWidthSlider.getValue(); // Assuming the pen size is controlled by the slider
+                double currentPenSize = getLineWidth(); // Assuming the pen size is controlled by the slider
 
                 // Prepare the canvas information
                 String canvasInfo = String.format("Canvas size: %.0f x %.0f | Pen Size: %.0f px | Coordinates X: %.0f, Y: %.0f",
@@ -2286,72 +2334,77 @@ public class HelloController {
         Image heartIcon = new Image(Objects.requireNonNull(getClass().getResourceAsStream("/images/heart_icon.png")));
         Image textIcon = new Image(Objects.requireNonNull(getClass().getResourceAsStream("/images/text_icon.png")));
         Image nGonIcon = new Image(Objects.requireNonNull(getClass().getResourceAsStream("/images/polygon_icon.png")));
-        Image undoIcon = new Image(Objects.requireNonNull(getClass().getResourceAsStream("/images/undo_icon.png")));
-        Image redoIcon = new Image(Objects.requireNonNull(getClass().getResourceAsStream("/images/redo_icon.png")));
+        //Image undoIcon = new Image(Objects.requireNonNull(getClass().getResourceAsStream("/images/undo_icon.png")));
+        //Image redoIcon = new Image(Objects.requireNonNull(getClass().getResourceAsStream("/images/redo_icon.png")));
         Image cubeIcon = new Image(Objects.requireNonNull(getClass().getResourceAsStream("/images/cube_icon.png")));
         Image spiralIcon = new Image(Objects.requireNonNull(getClass().getResourceAsStream("/images/spiral_icon.png")));
         Image bubblesIcon = new Image(Objects.requireNonNull(getClass().getResourceAsStream("/images/bubles_icon.png")));
         Image sprayIcon = new Image(Objects.requireNonNull(getClass().getResourceAsStream("/images/spraypaint_icon.png")));
         Image colorGrabIcon = new Image(Objects.requireNonNull(getClass().getResourceAsStream("/images/color_picker_icon.png")));
+        Image dashedIcon = new Image(Objects.requireNonNull(getClass().getResourceAsStream("/images/dashed_icon.png")));
+        Image fillIcon = new Image(Objects.requireNonNull(getClass().getResourceAsStream("/images/fill_icon.png")));
 
 
+        int size = 30;
+        int sizew = 30;
         ImageView imageView1 = new ImageView(pencilIcon);
-        imageView1.setFitHeight(25.0); // Set the image height
-        imageView1.setFitWidth(25.0);  // Set the image width
+        imageView1.setFitHeight(size); // Set the image height
+        imageView1.setFitWidth(sizew);  // Set the image width
         ImageView imageView2 = new ImageView(lineIcon);
-        imageView2.setFitHeight(25.0); // Set the image height
-        imageView2.setFitWidth(25.0);  // Set the image width
+        imageView2.setFitHeight(size); // Set the image height
+        imageView2.setFitWidth(sizew);  // Set the image width
         ImageView imageView3 = new ImageView(rectangleIcon);
-        imageView3.setFitHeight(25.0); // Set the image height
-        imageView3.setFitWidth(25.0);  // Set the image width
+        imageView3.setFitHeight(size); // Set the image height
+        imageView3.setFitWidth(sizew);  // Set the image width
         ImageView imageView4 = new ImageView(ellipseIcon);
-        imageView4.setFitHeight(25.0); // Set the image height
-        imageView4.setFitWidth(25.0);  // Set the image width
+        imageView4.setFitHeight(size); // Set the image height
+        imageView4.setFitWidth(sizew);  // Set the image width
         ImageView imageView5 = new ImageView(circleIcon);
-        imageView5.setFitHeight(25.0); // Set the image height
-        imageView5.setFitWidth(25.0);  // Set the image width
+        imageView5.setFitHeight(size); // Set the image height
+        imageView5.setFitWidth(sizew);  // Set the image width
         ImageView imageView6 = new ImageView(triangleIcon);
-        imageView6.setFitHeight(25.0); // Set the image height
-        imageView6.setFitWidth(25.0);  // Set the image width
+        imageView6.setFitHeight(size); // Set the image height
+        imageView6.setFitWidth(sizew);  // Set the image width
         ImageView imageView7 = new ImageView(eraserIcon);
-        imageView7.setFitHeight(25.0); // Set the image height
-        imageView7.setFitWidth(25.0);
+        imageView7.setFitHeight(size); // Set the image height
+        imageView7.setFitWidth(sizew);
         ImageView imageView8 = new ImageView(starIcon);
-        imageView8.setFitHeight(25.0); // Set the image height
-        imageView8.setFitWidth(25.0);
+        imageView8.setFitHeight(size); // Set the image height
+        imageView8.setFitWidth(sizew);
         ImageView imageView9 = new ImageView(stickerIcon);
-        imageView9.setFitHeight(25.0); // Set the image height
-        imageView9.setFitWidth(25.0);
+        imageView9.setFitHeight(size); // Set the image height
+        imageView9.setFitWidth(sizew);
         ImageView imageView10 = new ImageView(heartIcon);
-        imageView10.setFitHeight(25.0); // Set the image height
-        imageView10.setFitWidth(25.0);
+        imageView10.setFitHeight(size); // Set the image height
+        imageView10.setFitWidth(sizew);
         ImageView imageView11 = new ImageView(textIcon);
-        imageView11.setFitHeight(25.0); // Set the image height
-        imageView11.setFitWidth(25.0);
+        imageView11.setFitHeight(size); // Set the image height
+        imageView11.setFitWidth(sizew);
         ImageView imageView12 = new ImageView(nGonIcon);
-        imageView12.setFitHeight(25.0); // Set the image height
-        imageView12.setFitWidth(25.0);
-        ImageView imageView13 = new ImageView(undoIcon);
-        imageView13.setFitHeight(25.0); // Set the image height
-        imageView13.setFitWidth(25.0);
-        ImageView imageView14 = new ImageView(redoIcon);
-        imageView14.setFitHeight(25.0); // Set the image height
-        imageView14.setFitWidth(25.0);
+        imageView12.setFitHeight(size); // Set the image height
+        imageView12.setFitWidth(sizew);
+
         ImageView imageView15 = new ImageView(cubeIcon);
-        imageView15.setFitHeight(25.0); // Set the image height
-        imageView15.setFitWidth(25.0);
+        imageView15.setFitHeight(size); // Set the image height
+        imageView15.setFitWidth(sizew);
         ImageView imageView16 = new ImageView(spiralIcon);
-        imageView16.setFitHeight(25.0); // Set the image height
-        imageView16.setFitWidth(25.0);
+        imageView16.setFitHeight(size); // Set the image height
+        imageView16.setFitWidth(sizew);
         ImageView imageView17 = new ImageView(bubblesIcon);
-        imageView17.setFitHeight(25.0); // Set the image height
-        imageView17.setFitWidth(25.0);
+        imageView17.setFitHeight(size); // Set the image height
+        imageView17.setFitWidth(sizew);
         ImageView imageView18 = new ImageView(sprayIcon);
-        imageView18.setFitHeight(25.0); // Set the image height
-        imageView18.setFitWidth(25.0);
+        imageView18.setFitHeight(size); // Set the image height
+        imageView18.setFitWidth(sizew);
         ImageView imageView19 = new ImageView(colorGrabIcon);
-        imageView19.setFitHeight(25.0); // Set the image height
-        imageView19.setFitWidth(25.0);
+        imageView19.setFitHeight(size); // Set the image height
+        imageView19.setFitWidth(sizew);
+        ImageView imageView20 = new ImageView(dashedIcon);
+        imageView20.setFitHeight(size); // Set the image height
+        imageView20.setFitWidth(sizew);
+        ImageView imageView22 = new ImageView(fillIcon);
+        imageView22.setFitHeight(size); // Set the image height
+        imageView22.setFitWidth(sizew);
 
         pencilButton.setGraphic(imageView1);
         lineButton.setGraphic(imageView2);
@@ -2365,13 +2418,34 @@ public class HelloController {
         heartButton.setGraphic(imageView10);
         textButton.setGraphic(imageView11);
         nGonButton.setGraphic(imageView12);
-        undoButton.setGraphic(imageView13);
-        redoButton.setGraphic(imageView14);
+        //undoButton.setGraphic(imageView13);
+       // redoButton.setGraphic(imageView14);
         cubeButton.setGraphic(imageView15);
         spiralButton.setGraphic(imageView16);
         charcoalBrushButton.setGraphic(imageView17);
         sprayPaintBrushButton.setGraphic(imageView18);
         colorGrabButton.setGraphic(imageView19);
+        dashedToggleButton.setGraphic(imageView20);
+        fillToggleButton.setGraphic(imageView22);
+
+        Image undoIcon = new Image(getClass().getResourceAsStream("/images/undo_icon.png"));
+        ImageView imageViewUndo = new ImageView(undoIcon);
+        imageViewUndo.setFitHeight(15.0); // Set the image height
+        imageViewUndo.setFitWidth(15.0);
+        undoButton.setGraphic(imageViewUndo);
+        undoButton.setOnAction(event -> onUndoClick());
+
+        // Set up Redo button
+        Image redoIcon = new Image(getClass().getResourceAsStream("/images/redo_icon.png"));
+        ImageView imageViewRedo = new ImageView(redoIcon);
+        imageViewRedo.setFitHeight(15.0); // Set the image height
+        imageViewRedo.setFitWidth(15.0);
+        redoButton.setGraphic(imageViewRedo);
+        redoButton.setOnAction(event -> onRedoClick());
+
+        // Optional: Adjust button styles to match the menu bar
+        //undoButton.setStyle("-fx-background-color: transparent; -fx-padding: 5;");
+        //redoButton.setStyle("-fx-background-color: transparent; -fx-padding: 5;");
     }
 
     // Getter for pen size

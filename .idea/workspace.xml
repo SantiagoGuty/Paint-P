@@ -4,11 +4,16 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="d2182c53-f702-4aa5-b38f-eb010e10bf54" name="Changes" comment="New drawing features, some drawing bugs fixed">
-      <change afterPath="$PROJECT_DIR$/src/main/resources/images/color_picker_icon.png" afterDir="false" />
+    <list default="true" id="d2182c53-f702-4aa5-b38f-eb010e10bf54" name="Changes" comment="Images server bugs solved and color grabber fixed.">
+      <change afterPath="$PROJECT_DIR$/src/main/resources/images/dashed_icon.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/resources/images/fill_icon.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/resources/styling/style.css" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/example/paintp/HelloApplication.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/example/paintp/HelloApplication.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/com/example/paintp/HelloController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/example/paintp/HelloController.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/resources/com/example/paintp/hello-view.fxml" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/com/example/paintp/hello-view.fxml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/resources/images/redo_icon.png" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/images/redo_icon.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/resources/images/undo_icon.png" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/images/undo_icon.png" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -248,7 +253,15 @@
       <option name="project" value="LOCAL" />
       <updated>1731003312239</updated>
     </task>
-    <option name="localTasksCounter" value="17" />
+    <task id="LOCAL-00017" summary="Images server bugs solved and color grabber fixed.">
+      <option name="closed" value="true" />
+      <created>1731103971661</created>
+      <option name="number" value="00017" />
+      <option name="presentableId" value="LOCAL-00017" />
+      <option name="project" value="LOCAL" />
+      <updated>1731103971661</updated>
+    </task>
+    <option name="localTasksCounter" value="18" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -314,7 +327,8 @@
     <MESSAGE value="Sprint 6" />
     <MESSAGE value="Graphics context fix" />
     <MESSAGE value="New drawing features, some drawing bugs fixed" />
-    <option name="LAST_COMMIT_MESSAGE" value="New drawing features, some drawing bugs fixed" />
+    <MESSAGE value="Images server bugs solved and color grabber fixed." />
+    <option name="LAST_COMMIT_MESSAGE" value="Images server bugs solved and color grabber fixed." />
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
     <SUITE FILE_PATH="coverage/Paint_P$HelloApplication.ic" NAME="HelloApplication Coverage Results" MODIFIED="1727451183509" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="idea" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="true">

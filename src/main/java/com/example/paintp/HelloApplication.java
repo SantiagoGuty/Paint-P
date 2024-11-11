@@ -39,6 +39,9 @@ public class HelloApplication extends Application {
         // Set up the FXMLLoader and load the FXML file
         FXMLLoader fxmlLoader = new FXMLLoader(HelloApplication.class.getResource("hello-view.fxml"));
         Scene scene = new Scene(fxmlLoader.load(), 1500, 750);
+        //scene.getStylesheets().add(getClass().getResource("styling/style.css").toExternalForm());
+        scene.getStylesheets().add(Objects.requireNonNull(getClass().getResource("/styling/style.css")).toExternalForm());
+
 
         // Create the HttpServer before passing it to the controller
         startHttpServer();

@@ -1,0 +1,164 @@
+/* General Background */
+.root {
+    -fx-background-color: #ffffff; /* Columbia Blue */
+}
+
+/* Menu Bar Styling */
+.menu-bar {
+   -fx-background-color: #ffffff; /* Cool Gray */
+    -fx-padding: 0; /* Remove padding around MenuBar */
+}
+
+/* Toolbar and Button Styles */
+.hbox .button {
+    -fx-background-color: #FFFFFF; /* White background for blending */
+    -fx-border-color: transparent; /* Ensure no visible border */
+    -fx-background-insets: 0; /* Remove background insets */
+    -fx-padding: 5; /* Minimal padding */
+    -fx-effect: null; /* Remove any shadow effects */
+    -fx-focus-traversable: false; /* Remove focus outline */
+    -fx-border-style: none; /* Remove any implicit border style */
+}
+/* Remove any borders and gaps between buttons */
+.toggle-button {
+    -fx-background-color: #FFFFFF; /* White background */
+    -fx-border-color: transparent; /* No border */
+    -fx-padding: 0; /* Remove internal padding */
+    -fx-background-insets: 0; /* Remove insets */
+    -fx-border-insets: 0; /* Remove border insets */
+    -fx-background-radius: 0; /* No rounded corners */
+    -fx-border-radius: 0; /* No rounded corners */
+}
+/* Hover Effect */
+.toggle-button:hover {
+    -fx-background-color: #acbceb; /* Light gray background on hover */
+}
+
+/* Active (Clicked) Effect */
+.toggle-button:pressed {
+    -fx-background-color: #acbceb; /* Cool gray background when clicked */
+    -fx-text-fill: #FFFFFF; /* White text when clicked */
+}
+
+/* Selected Effect */
+.toggle-button:selected {
+    -fx-background-color: #acbceb; /* Savoy blue background when selected */
+    -fx-text-fill: #FFFFFF; /* White text for contrast */
+}
+/* Target the specific HBox with the fx:id "toolbarHBox" */
+#toolbarHBox {
+    -fx-border-color: transparent; /* Ensures no visible border */
+    -fx-background-color: #FFFFFF; /* Set background to white if desired */
+    -fx-padding: 0; /* Remove any padding that could appear as spacing */
+    -fx-background-insets: 0;
+    -fx-border-insets: 0;
+    -fx-background-radius: 0;
+    -fx-border-radius: 0;
+}
+
+
+.hbox {
+    -fx-spacing: 0; /* Remove spacing between buttons */
+    -fx-padding: 0; /* Remove any padding around the HBox */
+    -fx-background-color: #FFFFFF; /* White background for HBox */
+}
+
+/* Hover Effect for Toolbar Buttons */
+.hbox .button:hover, .hbox .toggle-button:hover {
+    -fx-background-color: #acbceb; /* Light gray for hover effect */
+}
+
+/* Tab Pane Styling */
+.tab-pane .tab {
+    -fx-background-color: #ffffff; /* Cool Gray */
+    -fx-border-color: transparent transparent rgb(255, 255, 255) transparent;
+}
+
+.tab-pane .tab:selected {
+    -fx-background-color: #ffffff; /* Savoy Blue for selected tab */
+    -fx-text-fill: #FFFFFF; /* White text for selected tab */
+}
+
+.tab-pane .tab-label {
+    -fx-font-weight: bold;
+}
+
+/* Canvas Pane Styling */
+#canvasPane {
+    -fx-background-color: #FFFFFF; /* White for a clean canvas */
+    -fx-border-color: #838FB1; /* Cool Gray border */
+    -fx-border-width: 1px;
+}
+
+/* Label Styling */
+.label {
+    -fx-font-size: 14px;
+    -fx-text-fill: #2a3b6d; /* Savoy Blue */
+}
+/* Style for the Undo and Redo buttons */
+#undoButton, #redoButton {
+    -fx-background-color: white; /* Default background color */
+    -fx-padding: 5;
+    -fx-border-color: transparent; /* Remove border if any */
+    -fx-background-radius: 5; /* Rounded corners */
+}
+
+/* Hover effect to give a subtle feedback */
+#undoButton:hover, #redoButton:hover {
+    -fx-background-color: #acbceb; /* Lighter shade on hover */
+}
+
+/* Click (pressed) effect */
+#undoButton:pressed, #redoButton:pressed {
+    -fx-background-color: #acbceb; /* Color when clicked */
+}
+.color-picker {
+    -fx-background-color: white;
+    -fx-background-radius: 5; /* Optional rounded corners */
+}
+#colorPicker:hover {
+    -fx-background-color: #acbceb;
+}
+
+/* Style for TextField */
+.text-field {
+    -fx-background-color: white;
+    -fx-border-color: lightgray;
+    -fx-border-width: 1px;
+    -fx-padding: 4px;
+}
+
+/* Focused style for TextField */
+.text-field:focused {
+    -fx-border-color: #2a3b6d;
+    -fx-border-width: 2px;
+}
+
+/* Style for Slider */
+.slider .track {
+    -fx-background-color: lightgray;
+}
+
+.slider .thumb {
+    -fx-background-color: #2a3b6d; /* Thumb color */
+}
+
+.slider:focused .thumb {
+    -fx-background-color: #2a3b6d;
+    -fx-border-color: #2a3b6d;
+    -fx-border-width: 2px;
+}
+
+/* Style for TabPane */
+.tab-pane .tab-header-background {
+    -fx-background-color: transparent; /* Ensures the tab header background is not colored */
+}
+
+/* Style for selected tab */
+.tab-pane .tab:selected {
+    -fx-background-color: #acbceb; /* Slight blue background for the selected tab */
+}
+
+.tab-pane .tab-content-area {
+    -fx-background-color: #acbceb; /* Background for the selected tab content */
+}
