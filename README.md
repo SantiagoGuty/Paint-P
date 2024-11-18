@@ -15,4 +15,4 @@ Demo video:
 * https://youtu.be/5Bz2W9a7eN4
 
 
-![image](https://github.com/user-attachments/assets/6d919914-3679-4dfa-ade8-177cef74c581)
+![image](https://github.com/user-attachments/assets/eeb359e9-59b7-4c1f-b46f-89634decbbde)
