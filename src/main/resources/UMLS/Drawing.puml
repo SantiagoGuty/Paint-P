@@ -1,0 +1,20 @@
+@startuml
+start
+:User selects tool;
+:User adjusts settings (color, size, dashes, filling);
+:User interacts with the canvas (click or drag);
+
+if (Tool is Pencil or Eraser?) then (yes)
+  :Draw on canvas continuously;
+else (Shape)
+  :Draw preview on temporary canvas;
+  :Finalize drawing on canvas upon mouse release;
+endif
+
+:User decides to save, undo, or redo;
+if (Save selected?) then (yes)
+  :Save current canvas state;
+endif
+
+stop
+@enduml

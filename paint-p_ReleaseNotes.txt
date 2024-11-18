@@ -1,8 +1,13 @@
-
-
 Release Notes Paint-P
 By Santiago Gutiérrez Morales
 https://github.com/SantiagoGuty/Paint-P
+
+-Version 2.4.0 (November 17, 2024)
+    New features
+    -Custom shape: arrow!
+    -Custom shape: Rhombus!
+    -resizing/canvas alteration bugs fixed
+    -Color palette implemented on the icons
 
 -Version 2.0.0 (November 1, 2024)
     New features

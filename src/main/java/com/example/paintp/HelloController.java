@@ -118,7 +118,7 @@ public class HelloController {
             starButton, heartButton, imageButton, textButton, nGonButton,
             cubeButton, fillButton, spiralButton, standardBrushButton,
             calligraphyBrushButton, charcoalBrushButton, sprayPaintBrushButton,
-            dashedToggleButton, fillToggleButton;
+            dashedToggleButton, fillToggleButton, pyramidButton, arrowButton;
 
     @FXML
     private TextField lineWidthInput;
@@ -232,6 +232,7 @@ public class HelloController {
         setupSystemTray(); // set up notifications
 
         setupAutosaveTimer();
+        saveCanvasState();
 
     }
 
@@ -642,8 +643,8 @@ public class HelloController {
         setToggleTooltip(nGonButton, "Polygon Tool");
         setToggleTooltip(textButton, "Text Tool");
         setToggleTooltip(colorGrabButton, "Grab color Tool");
-        // setButtonTooltip(undoButton, "Undo button");
-        //setButtonTooltip(redoButton, "Redo button");
+        setToggleTooltip(pyramidButton, "Pyramid Tool");
+        setToggleTooltip(arrowButton, "Arrow Tool");
         setToggleTooltip(charcoalBrushButton, "Bubbles button");
         setToggleTooltip(sprayPaintBrushButton, "Spray paint button");
     }
@@ -1524,6 +1525,8 @@ public class HelloController {
         colorGrabButton.setToggleGroup(toolsToggleGroup);
         charcoalBrushButton.setToggleGroup(toolsToggleGroup);
         sprayPaintBrushButton.setToggleGroup(toolsToggleGroup);
+        pyramidButton.setToggleGroup(toolsToggleGroup);
+        arrowButton.setToggleGroup(toolsToggleGroup);
 
         // Set the onAction for the tool buttons (example for pencil)
         pencilButton.setOnAction(event -> setToolDrawing("Pencil"));
@@ -1540,6 +1543,8 @@ public class HelloController {
         cubeButton.setOnAction(event -> setCubeTool());
         textButton.setOnAction(event -> setTextTool());
         nGonButton.setOnAction(event -> setNgonTool());
+        pyramidButton.setOnAction(event -> setPyramidTool());
+        arrowButton.setOnAction(event -> setArrowTool());
         colorGrabButton.setOnAction(event -> setImageTool());
         charcoalBrushButton.setOnAction(event -> setCharcoalBrushTool());
         sprayPaintBrushButton.setOnAction(event -> setSprayPaintBrushTool());
@@ -2008,6 +2013,31 @@ public class HelloController {
 
 
     /**
+     * Sets the pyramid tool as the active drawing tool.
+     * <p>
+     * Updates the active tool to the pyramid tool and logs the selection event.
+     * </p>
+     */
+    @FXML
+    private void setPyramidTool() {
+        currentTool = "pyramid";
+        logWriter.logEvent(getCurrentTabName(), "Pyramid tool selected");
+    }
+
+
+    /**
+     * Sets the arrow tool as the active drawing tool.
+     * <p>
+     * Updates the active tool to the arrow tool and logs the selection event.
+     * </p>
+     */
+    @FXML
+    private void setArrowTool() {
+        currentTool = "Arrow";
+        logWriter.logEvent(getCurrentTabName(), "Arrow tool selected");
+    }
+
+    /**
      * Sets the spiral tool as the active drawing tool.
      * <p>
      * Updates the active tool to the spiral tool and logs the selection event.
@@ -2242,16 +2272,9 @@ public class HelloController {
                         tempGc.strokeOval(startX - radius, startY - radius, radius * 2, radius * 2);
                     }
                 } else if (triangleButton.isSelected()) {
-                    if (fillShapes) {
-                        tempGc.fillPolygon(
-                                new double[]{startX, endX, (startX + endX) / 2},
-                                new double[]{startY, endY, startY - Math.abs(endY - startY)}, 3);
-                    } else {
-                        tempGc.strokePolygon(
-                                new double[]{startX, endX, (startX + endX) / 2},
-                                new double[]{startY, endY, startY - Math.abs(endY - startY)}, 3);
-                    }
-                } else if (starButton.isSelected()) {
+                    tempGc.clearRect(0, 0, canvasTab.getTempCanvas().getWidth(), canvasTab.getTempCanvas().getHeight());
+                    drawTriangle(tempGc, startX, startY, event.getX(), event.getY(), fillShapes);
+                }else if (starButton.isSelected()) {
                     drawStar(tempGc, startX, startY, endX, endY, starPoints, fillShapes); // Preview on temporary canvas
                 } else if (cubeButton.isSelected()) {
                     double centerX = (startX + endX) / 2;
@@ -2288,6 +2311,12 @@ public class HelloController {
 
                     // Draw the spiral preview on the temporary canvas
                     drawSpiral(tempGc, startX, startY, radius, 5, 0.5, turns);
+                }else if (arrowButton.isSelected()) {
+                    tempGc.clearRect(0, 0, canvasTab.getTempCanvas().getWidth(), canvasTab.getTempCanvas().getHeight());
+                    drawArrow(tempGc, startX, startY, event.getX(), event.getY(), false);
+                } else if (pyramidButton.isSelected()) {
+                    tempGc.clearRect(0, 0, canvasTab.getTempCanvas().getWidth(), canvasTab.getTempCanvas().getHeight());
+                    drawPyramid(tempGc, startX, startY, event.getX(), event.getY(), fillShapes);
                 }
             }
         }
@@ -2352,16 +2381,8 @@ public class HelloController {
                     gc.strokeOval(startX - radius, startY - radius, radius * 2, radius * 2);
                 }
             } else if (triangleButton.isSelected()) {
-                if (fillShapes) {
-                    gc.fillPolygon(
-                            new double[]{startX, endX, (startX + endX) / 2},
-                            new double[]{startY, endY, startY - Math.abs(endY - startY)}, 3);
-                } else {
-                    gc.strokePolygon(
-                            new double[]{startX, endX, (startX + endX) / 2},
-                            new double[]{startY, endY, startY - Math.abs(endY - startY)}, 3);
-                }
-            }else if (starButton.isSelected()) {
+                drawTriangle(gc, startX, startY, event.getX(), event.getY(), fillShapes);
+            } else if (starButton.isSelected()) {
                 drawStar(gc, startX, startY, endX, endY, starPoints, fillShapes);
             } else if (cubeButton.isSelected()) {
                 double centerX = (startX + endX) / 2;
@@ -2397,7 +2418,12 @@ public class HelloController {
 
                 // Draw the spiral preview on the temporary canvas
                 drawSpiral(gc, startX, startY, radius, 5, 0.5, turns);
+            } else if (arrowButton.isSelected()) {
+                drawArrow(gc, startX, startY, event.getX(), event.getY(), false);
+            } else if (pyramidButton.isSelected()) {
+                drawPyramid(gc, startX, startY, event.getX(), event.getY(), fillShapes);
             }
+
             // Save the canvas state for undo functionality
             //saveCanvasState(tabPane.getSelectionModel().getSelectedItem());
             saveCanvasState();
@@ -2428,6 +2454,119 @@ public class HelloController {
 
         gc.setGlobalAlpha(1.0); // Reset opacity
     }
+
+
+
+    /**
+     * Draws a triangle on the canvas with a straight horizontal base.
+     * <p>
+     * The triangle is dynamically calculated based on the starting and ending
+     * coordinates, ensuring the base corners are aligned on the same y-coordinate.
+     * The top vertex is positioned at the midpoint between the starting and
+     * ending x-coordinates, with the y-coordinate being the smallest of the two.
+     * </p>
+     *
+     * @param gc     the GraphicsContext used to draw on the canvas
+     * @param startX the x-coordinate of the starting point of the triangle's base
+     * @param startY the y-coordinate of the starting point of the triangle's base
+     * @param endX   the x-coordinate of the ending point of the triangle's base
+     * @param endY   the y-coordinate of the ending point of the triangle's base
+     * @param fill   if true, fills the triangle; otherwise, outlines it
+     */
+    private void drawTriangle(GraphicsContext gc, double startX, double startY, double endX, double endY, boolean fill) {
+        // Calculate the base y-coordinate (ensuring both corners are aligned)
+        double baseY = Math.max(startY, endY);
+
+        // Points for the triangle
+        double[] xPoints = {startX, endX, (startX + endX) / 2};
+        double[] yPoints = {baseY, baseY, Math.min(startY, endY)};
+
+        // Draw the triangle (fill or stroke)
+        if (fill) {
+            gc.fillPolygon(xPoints, yPoints, 3);
+        } else {
+            gc.strokePolygon(xPoints, yPoints, 3);
+        }
+    }
+
+
+
+    /**
+     * Draws an arrow on the canvas.
+     * <p>
+     * This method calculates the position of the arrowhead and draws a line
+     * from the starting point to the endpoint with an optional arrowhead
+     * at the end. The arrow can be filled or outlined based on the `fill` parameter.
+     * </p>
+     *
+     * @param gc    the GraphicsContext used to draw on the canvas
+     * @param startX the x-coordinate of the starting point of the arrow
+     * @param startY the y-coordinate of the starting point of the arrow
+     * @param endX  the x-coordinate of the endpoint of the arrow
+     * @param endY  the y-coordinate of the endpoint of the arrow
+     * @param fill  if true, fills the arrowhead; otherwise, outlines it
+     */
+    private void drawArrow(GraphicsContext gc, double startX, double startY, double endX, double endY, boolean fill) {
+        double strokeWidth = gc.getLineWidth(); // Get the current stroke width
+        double arrowLength = strokeWidth * 6;   // Scale arrowhead length based on stroke width
+        double arrowWidth = strokeWidth * 3;    // Scale arrowhead width based on stroke width
+
+        double angle = Math.atan2(endY - startY, endX - startX);
+
+        // Points for the arrowhead triangle
+        double tipX = endX;
+        double tipY = endY;
+        double baseX1 = endX - arrowLength * Math.cos(angle) - arrowWidth * Math.sin(angle);
+        double baseY1 = endY - arrowLength * Math.sin(angle) + arrowWidth * Math.cos(angle);
+        double baseX2 = endX - arrowLength * Math.cos(angle) + arrowWidth * Math.sin(angle);
+        double baseY2 = endY - arrowLength * Math.sin(angle) - arrowWidth * Math.cos(angle);
+
+        // Draw the main line (stopping at the base of the triangle)
+        double lineEndX = endX - arrowLength * Math.cos(angle);
+        double lineEndY = endY - arrowLength * Math.sin(angle);
+        gc.strokeLine(startX, startY, lineEndX, lineEndY);
+
+        // Draw the arrowhead (triangle)
+        if (fill) {
+            gc.setFill(gc.getStroke()); // Match the fill color to the stroke color
+            gc.fillPolygon(new double[]{tipX, baseX1, baseX2}, new double[]{tipY, baseY1, baseY2}, 3);
+        } else {
+            gc.strokePolygon(new double[]{tipX, baseX1, baseX2}, new double[]{tipY, baseY1, baseY2}, 3);
+        }
+    }
+
+
+    /**
+     * Draws a 3D pyramid on the canvas.
+     * <p>
+     * This method creates a triangular base and connects the base vertices
+     * to a peak point, forming a 3D pyramid. The pyramid can be filled or outlined
+     * based on the `fill` parameter.
+     * </p>
+     *
+     * @param gc    the GraphicsContext used to draw on the canvas
+     * @param startX the x-coordinate of the top-left corner of the pyramid's base
+     * @param startY the y-coordinate of the top-left corner of the pyramid's base
+     * @param endX  the x-coordinate of the bottom-right corner of the pyramid's base
+     * @param endY  the y-coordinate of the bottom-right corner of the pyramid's base
+     * @param fill  if true, fills the base triangle; otherwise, outlines it
+     */
+    private void drawPyramid(GraphicsContext gc, double startX, double startY, double endX, double endY, boolean fill) {
+        double midX = (startX + endX) / 2; // Horizontal midpoint
+        double midY = (startY + endY) / 2; // Vertical midpoint
+
+        // Four points of the rhombus
+        double[] xPoints = {startX, midX, endX, midX};
+        double[] yPoints = {midY, startY, midY, endY};
+
+        // Draw the rhombus
+        if (fill) {
+            gc.fillPolygon(xPoints, yPoints, 4);
+        } else {
+            gc.strokePolygon(xPoints, yPoints, 4);
+        }
+    }
+
 
 
     /**
@@ -3178,6 +3317,8 @@ public class HelloController {
         Image colorGrabIcon = new Image(Objects.requireNonNull(getClass().getResourceAsStream("/images/color_picker_icon.png")));
         Image dashedIcon = new Image(Objects.requireNonNull(getClass().getResourceAsStream("/images/dashed_icon.png")));
         Image fillIcon = new Image(Objects.requireNonNull(getClass().getResourceAsStream("/images/fill_icon.png")));
+        Image pyramidIcon = new Image(Objects.requireNonNull(getClass().getResourceAsStream("/images/rhombus_icon.png")));
+        Image arrowIcon = new Image(Objects.requireNonNull(getClass().getResourceAsStream("/images/arrow_icon.png")));
 
 
         int size = 30;
@@ -3240,6 +3381,12 @@ public class HelloController {
         ImageView imageView22 = new ImageView(fillIcon);
         imageView22.setFitHeight(size); // Set the image height
         imageView22.setFitWidth(sizew);
+        ImageView imageView23 = new ImageView(pyramidIcon);
+        imageView23.setFitHeight(size); // Set the image height
+        imageView23.setFitWidth(sizew);
+        ImageView imageView24 = new ImageView(arrowIcon);
+        imageView24.setFitHeight(size); // Set the image height
+        imageView24.setFitWidth(sizew);
 
         pencilButton.setGraphic(imageView1);
         lineButton.setGraphic(imageView2);
@@ -3262,6 +3409,9 @@ public class HelloController {
         colorGrabButton.setGraphic(imageView19);
         dashedToggleButton.setGraphic(imageView20);
         fillToggleButton.setGraphic(imageView22);
+        pyramidButton.setGraphic(imageView23);
+        arrowButton.setGraphic(imageView24);
+        arrowButton.setGraphic(imageView24);
 
         Image undoIcon = new Image(getClass().getResourceAsStream("/images/undo_icon.png"));
         ImageView imageViewUndo = new ImageView(undoIcon);
@@ -3577,6 +3727,7 @@ public class HelloController {
             CanvasTab canvasTab = getSelectedCanvasTab();
             if (canvasTab != null) {
                 Canvas currentCanvas = canvasTab.getCanvas();
+                Canvas tempCanvas = canvasTab.getTempCanvas();
 
                 // Get the current stage's dimensions
                 Stage stage = (Stage) currentCanvas.getScene().getWindow();
@@ -3586,6 +3737,8 @@ public class HelloController {
                 // Adjust the canvas size according to the window size (with some padding)
                 currentCanvas.setWidth(width - 30);
                 currentCanvas.setHeight(height - 50);
+                tempCanvas.setWidth(width - 30);
+                tempCanvas.setHeight(height - 50);
 
                 // Re-fill the canvas background to ensure the new size is visible
                 GraphicsContext gc = currentCanvas.getGraphicsContext2D();
@@ -3689,6 +3842,7 @@ public class HelloController {
 
                 gc.setFill(Color.WHITE);
                 gc.fillRect(0, 0, currentCanvas.getWidth(), currentCanvas.getHeight());
+                saveCanvasState();
             } else {
                 System.err.println("No CanvasTab found for the selected tab.");
             }
@@ -3752,10 +3906,17 @@ public class HelloController {
                         double imageHeight = image.getHeight();
 
                         GraphicsContext gc = currentCanvas.getGraphicsContext2D();
+                        CanvasTab canvasTab = getSelectedCanvasTab();
+
+                        Canvas canvass = canvasTab.getCanvas();
+                        Canvas tempCanvas = canvasTab.getTempCanvas();
 
                         if (originalSize) {
                             currentCanvas.setWidth(imageWidth);
                             currentCanvas.setHeight(imageHeight);
+                            tempCanvas.setWidth(imageWidth);
+                            tempCanvas.setWidth(imageWidth);
+                            tempCanvas.setHeight(imageHeight);
                             gc.drawImage(image, 0, 0, imageWidth, imageHeight);
                         } else {
                             gc.drawImage(image, 0, 0, currentCanvas.getWidth(), currentCanvas.getHeight());

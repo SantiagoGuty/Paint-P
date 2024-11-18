@@ -1,0 +1,46 @@
+@startuml
+start
+:PaintPController.handleRequest();
+:Initialize view components;
+if (Security Check) then (true)
+  :Initialize canvas;
+  if (User Action) then (true)
+    :Process user action;
+    if (Event is Mouse Click) then (yes)
+      :Handle mouse click event;
+    else (no)
+      if (Event is Key Press) then (yes)
+        :Handle key press event;
+      else
+        :Handle other events;
+      endif
+    endif
+    :Update canvas;
+    :Log user action;
+  else
+    :Idle;
+  endif
+else (false)
+  :Show access denied message;
+endif
+
+if (Is AutoSave Enabled?) then (yes)
+  :AutoSave canvas;
+else
+  :Skip autosave;
+endif
+
+if (Close Application) then (yes)
+  :Prompt user to save;
+  if (User chooses to save) then (yes)
+    :Save current canvas state;
+  else (no)
+    :Exit without saving;
+  endif
+  stop
+else
+  :Continue application;
+endif
+
+stop
+@enduml

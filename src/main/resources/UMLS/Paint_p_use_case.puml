@@ -1,0 +1,15 @@
+@startuml
+actor User
+User --> (Draw Shape)
+User --> (Change Tool)
+User --> (Save Image)
+User --> (Undo/Redo)
+
+rectangle PaintP {
+  (Draw Shape)
+  (Change Tool)
+  (Save Image)
+  (Undo/Redo)
+
+}
+@enduml

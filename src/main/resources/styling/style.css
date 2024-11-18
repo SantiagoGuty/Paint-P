@@ -143,6 +143,11 @@
     -fx-background-color: #2a3b6d; /* Thumb color */
 }
 
+#canvasPane {
+    -fx-cursor: crosshair;
+}
+
+
 .slider:focused .thumb {
     -fx-background-color: #2a3b6d;
     -fx-border-color: #2a3b6d;

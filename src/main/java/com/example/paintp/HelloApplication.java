@@ -57,7 +57,7 @@ public class HelloApplication extends Application {
         controller.startHttpServer(); // This will create the contexts and start the server
 
         // Set up the main window
-        stage.setTitle("Painting-P");
+        stage.setTitle("Paint-P");
         Image icon = new Image(Objects.requireNonNull(getClass().getResourceAsStream("/images/paint-P-Logo.png")));
         stage.getIcons().add(icon);
         stage.setScene(scene);

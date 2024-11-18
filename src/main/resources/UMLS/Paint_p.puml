@@ -1,0 +1,27 @@
+@startuml
+class PaintPController {
+  +onMousePressed()
+  +onMouseDragged()
+  +onMouseReleased()
+  +saveCanvasState()
+}
+
+class CanvasTab {
+  +getCanvas()
+  +getGraphicsContext()
+  +clearCanvas()
+}
+
+class LogWriter {
+  +logEvent()
+  +shutdown()
+}
+
+class SingleImageHandler {
+  +handle()
+}
+
+PaintPController --> CanvasTab : uses
+PaintPController --> LogWriter : logs to
+PaintPController --> SingleImageHandler : serves images
+@enduml

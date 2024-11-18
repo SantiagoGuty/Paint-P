@@ -1,0 +1,8 @@
+@startuml
+actor User
+User -> PaintPController: click save
+PaintPController -> LogWriter: log event
+PaintPController -> CanvasTab: get current canvas
+CanvasTab -> GraphicsContext: create snapshot
+GraphicsContext -> FileSystem: save to file
+@enduml
