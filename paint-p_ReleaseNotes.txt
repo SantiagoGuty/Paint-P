@@ -2,6 +2,11 @@ Release Notes Paint-P
 By Santiago Gutiérrez Morales
 https://github.com/SantiagoGuty/Paint-P
 
+
+-Version 2.4.1 (November 20, 2024)
+
+    -UI fluidity improved
+
 -Version 2.4.0 (November 17, 2024)
     New features
     -Custom shape: arrow!

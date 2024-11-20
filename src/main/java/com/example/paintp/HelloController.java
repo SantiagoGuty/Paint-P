@@ -9,7 +9,9 @@ import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.SimpleDoubleProperty;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.fxml.FXML;
+import javafx.geometry.Rectangle2D;
 import javafx.scene.Node;
+import javafx.scene.SnapshotParameters;
 import javafx.scene.control.Dialog;
 import javafx.scene.control.Menu;
 import javafx.scene.image.*;
@@ -118,7 +120,8 @@ public class HelloController {
             starButton, heartButton, imageButton, textButton, nGonButton,
             cubeButton, fillButton, spiralButton, standardBrushButton,
             calligraphyBrushButton, charcoalBrushButton, sprayPaintBrushButton,
-            dashedToggleButton, fillToggleButton, pyramidButton, arrowButton;
+            dashedToggleButton, fillToggleButton, pyramidButton, arrowButton,
+            selectButton;
 
     @FXML
     private TextField lineWidthInput;
@@ -176,10 +179,14 @@ public class HelloController {
     private double prevX, prevY;
     private double endX, endY;     // End point
     private int clickCount = 0;
-    private boolean isSelecting = false;
+
     private WritableImage selectedChunk;
     private double selectionStartX, selectionStartY, selectionEndX, selectionEndY;
     private double rotationAngle = 0;  // To track the rotation angle
+
+    private boolean isSelecting = false;
+    private WritableImage selectedImage;
+
 
 
     /**
@@ -647,6 +654,7 @@ public class HelloController {
         setToggleTooltip(arrowButton, "Arrow Tool");
         setToggleTooltip(charcoalBrushButton, "Bubbles button");
         setToggleTooltip(sprayPaintBrushButton, "Spray paint button");
+        setToggleTooltip(selectButton, "Select button");
     }
 
     // Helper method to set tooltip with no delay
@@ -1508,6 +1516,7 @@ public class HelloController {
     private void setupToolButtons() {
 
         ToggleGroup toolsToggleGroup = new ToggleGroup();
+        ToggleGroup editToolsToggleGroup = new ToggleGroup();
         pencilButton.setToggleGroup(toolsToggleGroup);
         eraserButton.setToggleGroup(toolsToggleGroup);
         lineButton.setToggleGroup(toolsToggleGroup);
@@ -1518,6 +1527,7 @@ public class HelloController {
         imageButton.setToggleGroup(toolsToggleGroup);
         starButton.setToggleGroup(toolsToggleGroup);
         heartButton.setToggleGroup(toolsToggleGroup);
+        selectButton.setToggleGroup(toolsToggleGroup);
         spiralButton.setToggleGroup(toolsToggleGroup);
         cubeButton.setToggleGroup(toolsToggleGroup);
         nGonButton.setToggleGroup(toolsToggleGroup);
@@ -1527,6 +1537,11 @@ public class HelloController {
         sprayPaintBrushButton.setToggleGroup(toolsToggleGroup);
         pyramidButton.setToggleGroup(toolsToggleGroup);
         arrowButton.setToggleGroup(toolsToggleGroup);
+
+        //edit buttons are the buttons that alter the nature of the rest of the drawing tools
+        fillToggleButton.setToggleGroup(editToolsToggleGroup);
+        dashedToggleButton.setToggleGroup(editToolsToggleGroup);
+        selectButton.setToggleGroup(editToolsToggleGroup);
 
         // Set the onAction for the tool buttons (example for pencil)
         pencilButton.setOnAction(event -> setToolDrawing("Pencil"));
@@ -1539,6 +1554,7 @@ public class HelloController {
         imageButton.setOnAction(event -> setImageTool());
         starButton.setOnAction(event -> setStarTool());
         heartButton.setOnAction(event -> setHeartTool());
+        selectButton.setOnAction(event -> setSelectTool());
         spiralButton.setOnAction(event -> setSpiralTool());
         cubeButton.setOnAction(event -> setCubeTool());
         textButton.setOnAction(event -> setTextTool());
@@ -2173,6 +2189,12 @@ public class HelloController {
             if (fillShapes) {
                 gc.setFill(colorPicker.getValue()); // Set the selected fill color
             }
+            if (selectButton.isSelected()) {
+                isSelecting = true;
+                startX = event.getX();
+                startY = event.getY();
+            }
+
 
             if (dashedToggleButton.isSelected()) {
                 gc.setLineDashes((2 * getLineWidth() + 10));
@@ -2222,6 +2244,21 @@ public class HelloController {
             prevX = endX;
             prevY = endY;
 
+            if (isSelecting) {
+                if (canvasTab != null) {
+                    // Draw a dashed rectangle to visualize the selection
+                    tempGc.setLineDashes(10);
+                    tempGc.setStroke(Color.BLUE);
+                    tempGc.strokeRect(
+                            Math.min(startX, endX),
+                            Math.min(startY, endY),
+                            Math.abs(endX - startX),
+                            Math.abs(endY - startY)
+                    );
+                }
+            }
+
+
             if (pencilButton.isSelected() || eraserButton.isSelected()) {
                 // Set stroke and line width for gc
                 if (eraserButton.isSelected()) {
@@ -2248,6 +2285,8 @@ public class HelloController {
                 if (lineButton.isSelected()) {
                     tempGc.strokeLine(startX, startY, endX, endY);
                 }
+
+
                 else if (rectangleButton.isSelected()) {
                     double width = Math.abs(endX - startX);
                     double height = Math.abs(endY - startY);
@@ -2322,6 +2361,55 @@ public class HelloController {
         }
     }
 
+    private WritableImage copySelection() {
+        if (selectedImage != null) {
+            return new WritableImage(selectedImage.getPixelReader(),
+                    (int) selectedImage.getWidth(),
+                    (int) selectedImage.getHeight()
+            );
+        }
+        return null;
+    }
+
+    private void cutSelection() {
+        if (selectedImage != null) {
+            GraphicsContext gc = getSelectedCanvasTab().getGraphicsContext();
+            gc.clearRect(
+                    Math.min(startX, endX),
+                    Math.min(startY, endY),
+                    Math.abs(endX - startX),
+                    Math.abs(endY - startY)
+            );
+        }
+    }
+
+    private void pasteSelection(double pasteX, double pasteY) {
+        if (selectedImage != null) {
+            GraphicsContext gc = getSelectedCanvasTab().getGraphicsContext();
+            gc.drawImage(selectedImage, pasteX, pasteY);
+        }
+    }
+
+
+    @FXML
+    private void onCopyClick() {
+        WritableImage copiedImage = copySelection();
+        if (copiedImage != null) {
+            selectedImage = copiedImage;
+        }
+    }
+
+    @FXML
+    private void onCutClick() {
+        cutSelection();
+    }
+
+    @FXML
+    private void onPasteClick(MouseEvent event) {
+        pasteSelection(event.getX(), event.getY());
+    }
+
+
 
     /**
      * Handles mouse release events on the canvas.
@@ -2352,6 +2440,37 @@ public class HelloController {
 
             if (pencilButton.isSelected() || eraserButton.isSelected()) {
                 // Nothing to do here; drawing is handled during drag
+            }  if (isSelecting) {
+                isSelecting = false;
+                if (canvasTab != null) {
+
+                    // Capture the selected area as an image
+                    SnapshotParameters params = new SnapshotParameters();
+                    params.setFill(Color.TRANSPARENT);
+                    params.setViewport(new Rectangle2D(
+                            Math.min(startX, endX),
+                            Math.min(startY, endY),
+                            Math.abs(endX - startX),
+                            Math.abs(endY - startY)
+                    ));
+
+                    selectedImage = canvasTab.getCanvas().snapshot(params, null);
+
+                    // Clear the temporary selection rectangle
+                    canvasTab.getTempGraphicsContext().clearRect(
+                            0, 0, canvasTab.getTempCanvas().getWidth(), canvasTab.getTempCanvas().getHeight()
+                    );
+
+                    // Optional: Highlight the selected area
+                    gc.setStroke(Color.BLUE);
+                    gc.setLineDashes(10);
+                    gc.strokeRect(
+                            Math.min(startX, endX),
+                            Math.min(startY, endY),
+                            Math.abs(endX - startX),
+                            Math.abs(endY - startY)
+                    );
+                }
             } else if (lineButton.isSelected()) {
                 gc.strokeLine(startX, startY, endX, endY);
             } else if (rectangleButton.isSelected()) {
@@ -3319,6 +3438,7 @@ public class HelloController {
         Image fillIcon = new Image(Objects.requireNonNull(getClass().getResourceAsStream("/images/fill_icon.png")));
         Image pyramidIcon = new Image(Objects.requireNonNull(getClass().getResourceAsStream("/images/rhombus_icon.png")));
         Image arrowIcon = new Image(Objects.requireNonNull(getClass().getResourceAsStream("/images/arrow_icon.png")));
+        Image selectIcon = new Image(Objects.requireNonNull(getClass().getResourceAsStream("/images/select_icon.png")));
 
 
         int size = 30;
@@ -3387,6 +3507,9 @@ public class HelloController {
         ImageView imageView24 = new ImageView(arrowIcon);
         imageView24.setFitHeight(size); // Set the image height
         imageView24.setFitWidth(sizew);
+        ImageView imageView25 = new ImageView(selectIcon);
+        imageView25.setFitHeight(size); // Set the image height
+        imageView25.setFitWidth(sizew);
 
         pencilButton.setGraphic(imageView1);
         lineButton.setGraphic(imageView2);
@@ -3412,6 +3535,7 @@ public class HelloController {
         pyramidButton.setGraphic(imageView23);
         arrowButton.setGraphic(imageView24);
         arrowButton.setGraphic(imageView24);
+        selectButton.setGraphic(imageView25);
 
         Image undoIcon = new Image(getClass().getResourceAsStream("/images/undo_icon.png"));
         ImageView imageViewUndo = new ImageView(undoIcon);

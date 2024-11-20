@@ -121,6 +121,12 @@
                 <MenuItem onAction="#onCaptureCanvasClick" text="Capture Canvas" />
             </Menu>
 
+            <Menu text="Select">
+                <MenuItem text="Copy" onAction="#onCopyClick" />
+                <MenuItem text="Cut" onAction="#onCutClick" />
+                <MenuItem text="Paste" onAction="#onPasteClick" />
+            </Menu>
+
 
         </MenuBar>
     </HBox>
@@ -302,9 +308,16 @@
                         <Tooltip text="Fill shapes" />
                     </tooltip>
                 </ToggleButton>
-
-
             </VBox>
+
+            <VBox alignment="CENTER" spacing="10">
+                <ToggleButton fx:id="selectButton">
+                    <tooltip>
+                        <Tooltip text="Select Tool" />
+                    </tooltip>
+                </ToggleButton>
+            </VBox>
+
             <opaqueInsets>
                 <Insets />
             </opaqueInsets>
@@ -326,6 +339,7 @@
                 </StackPane>
             </ScrollPane>
         </Tab>
+        <Tab text="+" closable="false" onSelectionChanged="#onNewMenuClick"/>
         <!-- Additional tabs can be added in the controller -->
     </TabPane>
 

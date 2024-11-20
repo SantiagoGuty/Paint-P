@@ -1,4 +1,14 @@
 /* General Background */
+
+/*
+primary color #acbceb
+background white #FFFFFFF
+
+primary color slightly lighter #d6def5
+primary color slightly darker #849be1
+
+
+*/
 .root {
     -fx-background-color: #ffffff; /* Columbia Blue */
 }
@@ -29,14 +39,20 @@
     -fx-background-radius: 0; /* No rounded corners */
     -fx-border-radius: 0; /* No rounded corners */
 }
-/* Hover Effect */
+/* Hover Effect /
 .toggle-button:hover {
-    -fx-background-color: #acbceb; /* Light gray background on hover */
+    -fx-background-color: #acbceb; /* Light gray background on hover
+ }
+*/
+
+.toggle-button:hover {
+    -fx-background-color:#d6def5;
+    -fx-transition: 0.7s;
 }
 
 /* Active (Clicked) Effect */
 .toggle-button:pressed {
-    -fx-background-color: #acbceb; /* Cool gray background when clicked */
+    -fx-background-color: #849be1; /* Cool gray background when clicked */
     -fx-text-fill: #FFFFFF; /* White text when clicked */
 }
 
@@ -65,7 +81,7 @@
 
 /* Hover Effect for Toolbar Buttons */
 .hbox .button:hover, .hbox .toggle-button:hover {
-    -fx-background-color: #acbceb; /* Light gray for hover effect */
+    -fx-background-color: #d6def5; /* Light gray for hover effect */
 }
 
 /* Tab Pane Styling */
@@ -105,19 +121,22 @@
 
 /* Hover effect to give a subtle feedback */
 #undoButton:hover, #redoButton:hover {
-    -fx-background-color: #acbceb; /* Lighter shade on hover */
+    -fx-background-color: #d6def5; /* Lighter shade on hover */
 }
 
 /* Click (pressed) effect */
 #undoButton:pressed, #redoButton:pressed {
-    -fx-background-color: #acbceb; /* Color when clicked */
+    -fx-background-color: #849be1; /* Color when clicked */
 }
 .color-picker {
     -fx-background-color: white;
     -fx-background-radius: 5; /* Optional rounded corners */
 }
 #colorPicker:hover {
-    -fx-background-color: #acbceb;
+    -fx-background-color: #d6def5;
+}
+#colorPicker:pressed{
+    -fx-background-color: #849be1
 }
 
 /* Style for TextField */
@@ -171,7 +190,7 @@
     -fx-border-width: 0; /* Set border width to 0 to avoid borders */
 }
 
-/* Style for the tab content area when a tab is selected
+/* Style for the tab content area when a tab is selected */
 .tab-pane .tab-content-area {
     -fx-background-color: #acbceb; /* Background color for the selected tab's content */
 }
@@ -183,15 +202,24 @@
 }
 /* Hover effect for MenuBar items */
 
+.menu-bar .menu {
+    -fx-text-fill: #d6def5; /* Savoy Blue for default text */
+}
+
+/* Style for MenuItem text when not hovered or selected */
+.menu-bar .menu:showing,
+.menu-item {
+    -fx-text-fill: #d6def5; /* Savoy Blue for default text */
+}
 
 /* Optional: Style for the selected menu item */
 .menu-bar .menu:selected {
-    -fx-background-color: #acbceb; /* Selected background color */
+    -fx-background-color: #d6def5; /* Selected background color */
 }
 
 /* Hover effect for MenuBar items */
 .menu-bar .menu:hover {
-    -fx-background-color: #acbceb; /* Hover background color */
+    -fx-background-color: #d6def5; /* Hover background color */
 }
 
 /* Style for the selected (clicked or opened) menu item */
@@ -202,5 +230,5 @@
 
 /* Optional: Menu items within each menu */
 .menu-item:hover {
-    -fx-background-color: #acbceb; /* Hover color for menu items */
+    -fx-background-color: #d6def5; /* Hover color for menu items */
 }
